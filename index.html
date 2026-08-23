@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAC GP Ansor Kapanewon Sewon - SPA</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="logo-ansor.webp" />
+
+    <!-- Tailwind CSS (v3.4.1) -->
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts: Amiri & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FullCalendar (v6.1.8) -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+    <!-- Swiper (v11) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Quill Editor (v1.3.6) -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <!-- Custom CSS (global) -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* --- Tambahan styling untuk SPA shell --- */
+        .navbar-scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100vh; width: 240px;
+            background: linear-gradient(180deg, #0f2922 0%, #1a3c34 100%);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 4px 0 30px rgba(0,0,0,0.2);
+            z-index: 50;
+            transition: width 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.collapsed { width: 72px; }
+        .sidebar .brand span, .sidebar .link-text, .sidebar .menu-group-title,
+        .sidebar .role-badge span, .sidebar .logout-btn span, .sidebar .submenu-toggle {
+            transition: opacity 0.3s;
+        }
+        .sidebar.collapsed .brand span, .sidebar.collapsed .link-text,
+        .sidebar.collapsed .menu-group-title, .sidebar.collapsed .role-badge span,
+        .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle {
+            opacity: 0; width: 0; overflow: hidden;
+        }
+        .sidebar .nav-links {
+            flex: 1; overflow-y: auto; min-height: 0;
+            scrollbar-width: thin; scrollbar-color: #4b5563 transparent;
+            padding: 0.75rem 0.75rem;
+        }
+        .sidebar .nav-links::-webkit-scrollbar { width: 6px; }
+        .sidebar .nav-links::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        .sidebar .nav-links::-webkit-scrollbar-track { background: transparent; }
+        .sidebar .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; height: 64px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+        .sidebar .brand { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; overflow: hidden; text-decoration: none; color: white; }
+        .sidebar .toggle-btn { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9999px; background: rgba(255,255,255,0.08); transition: all 0.3s; color: rgba(255,255,255,0.6); cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; }
+        .sidebar .toggle-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+        .sidebar.collapsed .toggle-btn { transform: rotate(180deg); }
+        .sidebar .nav-links a { display: flex; align-items: center; padding: 0.5rem 0.75rem; margin-bottom: 0.15rem; border-radius: 0.5rem; color: rgba(255,255,255,0.7); transition: all 0.3s; overflow: hidden; white-space: nowrap; font-size: 0.875rem; text-decoration: none; }
+        .sidebar .nav-links a:hover, .sidebar .nav-links a.active { color: white; transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); background: rgba(255,255,255,0.05); }
+        .sidebar .nav-links a i { width: 1.25rem; font-size: 1rem; flex-shrink: 0; transition: color 0.3s; }
+        .sidebar .nav-links a:hover i, .sidebar .nav-links a.active i { color: #fbbf24; }
+        .sidebar .nav-links a .link-text { margin-left: 0.75rem; }
+        .menu-group-title { color: rgba(255,255,255,0.25); font-size: 0.6rem; padding: 0.4rem 0.75rem 0.1rem 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .sidebar .has-submenu { position: relative; }
+        .sidebar .has-submenu > a { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .sidebar .has-submenu > a .submenu-toggle { margin-left: auto; transition: transform 0.3s; }
+        .sidebar .has-submenu.open > a .submenu-toggle { transform: rotate(90deg); }
+        .sidebar .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s; padding-left: 0.5rem; }
+        .sidebar .has-submenu.open .submenu { max-height: 500px; }
+        .sidebar .submenu a { padding: 0.4rem 1rem 0.4rem 2.25rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+        .sidebar .submenu a:hover { color: white; background: rgba(255,255,255,0.05); }
+        .sidebar.collapsed .submenu { display: none !important; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+        .sidebar-footer .role-badge { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; }
+        .sidebar-footer .logout-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s; color: #f87171; }
+        .sidebar-footer .logout-btn:hover { background: rgba(255,0,0,0.1); }
+        .main-content { margin-left: 240px; transition: margin-left 0.5s; padding: 2rem; min-height: 100vh; }
+        .main-content.expanded { margin-left: 72px; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 240px; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar.collapsed { width: 240px; }
+            .sidebar.collapsed .brand span, .sidebar.collapsed .link-text,
+            .sidebar.collapsed .menu-group-title, .sidebar.collapsed .role-badge span,
+            .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle {
+                opacity: 1; width: auto;
+            }
+            .sidebar.collapsed .toggle-btn { transform: rotate(0deg); }
+            .sidebar.collapsed .submenu { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 1rem !important; }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 40; }
+            .sidebar-overlay.active { display: block; }
+        }
+        /* --- Public navbar --- */
+        .navbar { background: rgba(255,255,255,0.9) !important; backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.8); transition: all 0.4s; }
+        .dark .navbar { background: rgba(15,23,42,0.95) !important; border-color: rgba(255,255,255,0.08); }
+        .navbar-scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .nav-link { position: relative; color: #475569; font-weight: 500; transition: color 0.3s; }
+        .dark .nav-link { color: #94a3b8; }
+        .nav-link:hover, .nav-link.active { color: #0f2922; }
+        .dark .nav-link:hover, .dark .nav-link.active { color: #e2e8f0; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 0; height: 2px; background: #fbbf24; transition: width 0.3s; }
+        .nav-link:hover::after, .nav-link.active::after { width: 80%; }
+        /* --- Footer --- */
+        .footer { background: #0f2922; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.05); }
+        /* --- Skeleton --- */
+        .skeleton-box { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.8s infinite; border-radius: 0.75rem; }
+        .dark .skeleton-box { background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%); }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+</head>
+<body>
+
+    <!-- ===== APP ROOT ===== -->
+    <div id="app">
+
+        <!-- ============================== -->
+        <!-- LAYOUT PUBLIK                   -->
+        <!-- ============================== -->
+        <div id="layout-public" class="hidden flex flex-col min-h-screen">
+            <!-- Navbar Publik -->
+            <nav id="public-navbar" class="navbar fixed top-0 left-0 w-full z-50 transition-all duration-300">
+                <div class="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+                    <a href="/" class="flex items-center space-x-3">
+                        <img src="logo-ansor.webp" alt="Logo Ansor" class="h-10 w-auto object-contain" />
+                        <span class="font-amiri font-bold text-xl text-[#0f2922] tracking-tight hidden sm:block">Ansor Sewon</span>
+                    </a>
+                    <div class="hidden lg:flex items-center space-x-6">
+                        <a href="/" class="nav-link text-sm">Beranda</a>
+                        <a href="/profil" class="nav-link text-sm">Profil</a>
+                        <a href="/kegiatan" class="nav-link text-sm">Kegiatan</a>
+                        <a href="/semua_berita" class="nav-link text-sm">Berita</a>
+                        <a href="/anggota" class="nav-link text-sm">Anggota</a>
+                        <a href="/dokumen" class="nav-link text-sm">Dokumen</a>
+                        <a href="/kalender" class="nav-link text-sm">Kalender</a>
+                        <a href="/arsip" class="nav-link text-sm">Arsip</a>
+                        <a href="/keuangan" class="nav-link text-sm">Keuangan</a>
+                        <a href="/tokoh" class="nav-link text-sm">Tokoh</a>
+                        <a href="/absensi" class="nav-link text-sm">Absensi</a>
+                        <a href="/kontak" class="nav-link text-sm">Kontak</a>
+                        <div id="public-auth-links" class="flex items-center space-x-3"></div>
+                        <button id="theme-toggle" class="text-[#475569] hover:text-[#0f2922] dark:text-[#94a3b8] dark:hover:text-[#e2e8f0] transition">
+                            <i class="fas fa-moon theme-icon-moon"></i>
+                            <i class="fas fa-sun theme-icon-sun hidden"></i>
+                        </button>
+                    </div>
+                    <button id="menu-btn" class="lg:hidden text-2xl text-[#0f2922] dark:text-[#e2e8f0]"><i class="fas fa-bars"></i></button>
+                </div>
+                <!-- Mobile Menu -->
+                <div id="mobile-menu" class="hidden lg:hidden bg-[#f8fafc] dark:bg-[#0f172a] border-t border-[#d1d5db] dark:border-[#4b5563] px-4 py-4 space-y-2 shadow-lg">
+                    <a href="/" class="block nav-link py-2">Beranda</a>
+                    <a href="/profil" class="block nav-link py-2">Profil</a>
+                    <a href="/kegiatan" class="block nav-link py-2">Kegiatan</a>
+                    <a href="/semua_berita" class="block nav-link py-2">Berita</a>
+                    <a href="/anggota" class="block nav-link py-2">Anggota</a>
+                    <a href="/dokumen" class="block nav-link py-2">Dokumen</a>
+                    <a href="/kalender" class="block nav-link py-2">Kalender</a>
+                    <a href="/arsip" class="block nav-link py-2">Arsip</a>
+                    <a href="/keuangan" class="block nav-link py-2">Keuangan</a>
+                    <a href="/tokoh" class="block nav-link py-2">Tokoh</a>
+                    <a href="/absensi" class="block nav-link py-2">Absensi</a>
+                    <a href="/kontak" class="block nav-link py-2">Kontak</a>
+                    <div id="public-auth-links-mobile" class="flex flex-col space-y-2 pt-2 border-t border-[#d1d5db] dark:border-[#4b5563]"></div>
+                    <button id="theme-toggle-mobile" class="block w-full text-left py-2 text-[#0f2922] dark:text-[#e2e8f0]">
+                        <i class="fas fa-moon theme-icon-moon mr-2"></i> <i class="fas fa-sun theme-icon-sun hidden mr-2"></i> Toggle Mode
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Konten Publik -->
+            <main id="public-content" class="flex-grow pt-20"></main>
+
+            <!-- Footer Publik -->
+            <footer class="footer py-8">
+                <div class="container mx-auto px-4 text-center text-sm">
+                    <p>&copy; 2026 PAC GP Ansor Kapanewon Sewon. All rights reserved.</p>
+                </div>
+            </footer>
+        </div>
+
+        <!-- ============================== -->
+        <!-- LAYOUT ADMIN                    -->
+        <!-- ============================== -->
+        <div id="layout-admin" class="hidden">
+            <!-- Sidebar Admin -->
+            <aside id="admin-sidebar" class="sidebar">
+                <div class="sidebar-header flex items-center justify-between border-b border-white/10">
+                    <a href="/" class="brand">
+                        <img src="logo-ansor.webp" alt="Logo" class="h-9 w-auto object-contain drop-shadow-lg flex-shrink-0" />
+                        <span class="font-amiri font-bold text-xl text-white tracking-wide leading-tight">
+                            Ansor<br>Sewon
+                        </span>
+                    </a>
+                    <button id="admin-theme-toggle" class="toggle-btn" title="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i>
+                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button id="sidebar-toggle" class="toggle-btn" title="Minimize/Maximize Sidebar">
+                        <i class="fas fa-chevron-left text-lg"></i>
+                    </button>
+                </div>
+                <nav class="nav-links flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                    <div class="menu-group-title">Manajemen Umum</div>
+                    <a href="/dashboard_admin"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
+                    <a href="/surat_admin"><i class="fas fa-file-alt"></i><span class="link-text">Surat</span></a>
+                    <!-- Submenu Laporan (Logbook sudah di sini) -->
+                    <div class="has-submenu">
+                        <a href="#"><i class="fas fa-file-pdf"></i><span class="link-text">Laporan</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
+                        <div class="submenu">
+                            <a href="/logbook_admin"><i class="fas fa-book"></i> Logbook</a>
+                            <a href="/logbook_report"><i class="fas fa-file-alt"></i> Laporan Lengkap</a>
+                            <a href="/ringkasan"><i class="fas fa-chart-bar"></i> Ringkasan</a>
+                        </div>
+                    </div>
+                    <!-- MENU KEGIATAN DIHAPUS KARENA SUDAH ADA LOGBOOK -->
+                    <a href="/berita_admin"><i class="fas fa-newspaper"></i><span class="link-text">Manajemen Berita</span></a>
+
+                    <div class="menu-group-title mt-6">Sumber Daya</div>
+                    <div class="has-submenu">
+                        <a href="#"><i class="fas fa-users"></i><span class="link-text">Anggota</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
+                        <div class="submenu">
+                            <a href="/anggota_admin"><i class="fas fa-list"></i> Daftar Anggota</a>
+                            <a href="/kader_admin"><i class="fas fa-user-graduate"></i> Kader</a>
+                        </div>
+                    </div>
+                    <a href="/profil_admin"><i class="fas fa-address-card"></i><span class="link-text">Profil</span></a>
+                    <a href="/tokoh_admin"><i class="fas fa-user-tie"></i><span class="link-text">Tokoh</span></a>
+
+                    <div class="menu-group-title mt-6">Konten & Publikasi</div>
+                    <a href="/arsip_admin"><i class="fas fa-archive"></i><span class="link-text">Arsip</span></a>
+                    <a href="/kalender_admin"><i class="fas fa-calendar-alt"></i><span class="link-text">Kalender</span></a>
+                    <a href="/galeri_admin"><i class="fas fa-images"></i><span class="link-text">Galeri</span></a>
+
+                    <div class="menu-group-title mt-6">Operasional</div>
+                    <a href="/keuangan_admin"><i class="fas fa-coins"></i><span class="link-text">Keuangan</span></a>
+                    <a href="/absensi_admin"><i class="fas fa-clipboard-check"></i><span class="link-text">Absensi</span></a>
+                    <!-- Inventaris (submenu Peminjaman sudah dihapus) -->
+                    <div class="has-submenu">
+                        <a href="#"><i class="fas fa-boxes"></i><span class="link-text">Inventaris</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
+                        <div class="submenu">
+                            <a href="/inventaris_admin"><i class="fas fa-box"></i> Barang</a>
+                            <!-- <a href="/inventaris_admin?tab=peminjaman"><i class="fas fa-hand-holding"></i> Peminjaman</a> -->
+                        </div>
+                    </div>
+                    <a href="/proker_admin"><i class="fas fa-tasks"></i><span class="link-text">Program Kerja</span></a>
+                    <a href="/forum_admin"><i class="fas fa-comments"></i><span class="link-text">Forum</span></a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="role-badge">
+                        <i class="fas fa-user-shield text-amber-400"></i>
+                        <span id="sidebar-role" class="text-sm text-white/80">Admin</span>
+                    </div>
+                    <div id="sidebar-logout" class="logout-btn cursor-pointer">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="text-sm">Logout</span>
+                    </div>
+                </div>
+            </aside>
+            <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+            <!-- Konten Admin -->
+            <main id="admin-content" class="main-content"></main>
+        </div>
+
+        <!-- ============================== -->
+        <!-- LAYOUT MEMBER                   -->
+        <!-- ============================== -->
+        <div id="layout-member" class="hidden">
+            <!-- Sidebar Member -->
+            <aside id="member-sidebar" class="sidebar">
+                <div class="sidebar-header flex items-center justify-between border-b border-white/10">
+                    <a href="/" class="brand">
+                        <img src="logo-ansor.webp" alt="Logo" class="h-9 w-auto object-contain drop-shadow-lg flex-shrink-0" />
+                        <span class="font-amiri font-bold text-xl text-white tracking-wide leading-tight">
+                            Ansor<br>Sewon
+                        </span>
+                    </a>
+                    <button id="member-theme-toggle" class="toggle-btn" title="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i>
+                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button id="member-sidebar-toggle" class="toggle-btn"><i class="fas fa-chevron-left text-lg"></i></button>
+                </div>
+                <nav class="nav-links flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                    <div class="menu-group-title">Manajemen Member</div>
+                    <a href="/dashboard_member"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
+                    <a href="/surat_member"><i class="fas fa-file-alt"></i><span class="link-text">Surat</span></a>
+                    <a href="/logbook_member"><i class="fas fa-book"></i><span class="link-text">Logbook</span></a>
+                    <div class="menu-group-title mt-6">Navigasi</div>
+                    <a href="/"><i class="fas fa-home"></i><span class="link-text">Beranda Publik</span></a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="role-badge">
+                        <i class="fas fa-user-shield text-amber-400"></i>
+                        <span id="member-role" class="text-sm text-white/80">Member</span>
+                    </div>
+                    <div id="member-logout" class="logout-btn cursor-pointer">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="text-sm">Logout</span>
+                    </div>
+                </div>
+            </aside>
+            <div id="member-overlay" class="sidebar-overlay"></div>
+
+            <!-- Konten Member -->
+            <main id="member-content" class="main-content"></main>
+        </div>
+
+        <!-- ============================== -->
+        <!-- LAYOUT AUTH                     -->
+        <!-- ============================== -->
+        <div id="layout-auth" class="hidden">
+            <div id="auth-content" class="flex items-center justify-center min-h-screen px-4 py-12"></div>
+        </div>
+
+    </div>
+
+    <!-- ============================== -->
+    <!-- SCRIPTS                         -->
+    <!-- ============================== -->
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <!-- Swiper -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- AOS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Quill -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <!-- jsPlumb & interact.js -->
+    <script src="https://cdn.jsdelivr.net/npm/jsplumb@2.15.6/jsplumb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
+    <!-- QRCode -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- JsBarcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <!-- html2canvas & jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- docx.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js"></script>
+
+    <!-- Core App (Router, Registry, API, etc.) -->
+    <script src="js/app.js"></script>
+</body>
+</html>

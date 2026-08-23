@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Halaman Tidak Ditemukan | PAC GP Ansor Sewon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #f8fafc;
+            color: #0f2922;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            padding: 2rem;
+        }
+        .logo {
+            width: 120px;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-size: 6rem;
+            margin-bottom: 0.5rem;
+            color: #0f2922;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #475569;
+        }
+        p {
+            margin-bottom: 2rem;
+            color: #64748b;
+        }
+        .btn {
+            display: inline-block;
+            background: #0f2922;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #1a3c34;
+        }
+        .meta-redirect {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 2rem;
+        }
+    </style>
+    <!-- Redirect ke SPA root (hash) -->
+    <meta http-equiv="refresh" content="3; url=/#/">
+</head>
+<body>
+    <div class="container">
+        <img src="logo-ansor.webp" alt="Logo Ansor" class="logo">
+        <h1>404</h1>
+        <h2>Halaman Tidak Ditemukan</h2>
+        <p>Maaf, halaman yang Anda cari tidak tersedia.</p>
+        <a href="/#/" class="btn">Kembali ke Beranda</a>
+        <p class="meta-redirect">Anda akan dialihkan secara otomatis dalam 3 detik...</p>
+    </div>
+</body>
+</html>
