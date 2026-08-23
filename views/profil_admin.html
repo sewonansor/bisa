@@ -1,0 +1,359 @@
+<!-- views/profil_admin.html -->
+<!-- Fragment Manajemen Profil Publik untuk Admin -->
+<!-- Versi: 4.2.0 - Final Fix (Stable, No Loop, No Error) -->
+
+<!-- Konten Utama -->
+<div id="main-content">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Profil Publik</h1>
+        <div class="flex gap-2">
+            <button id="refresh-profil-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. KELOLA POSISI FOTO (CUSTOM CRUD)         -->
+    <!-- ========================================== -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] mb-8">
+        <div class="flex justify-between items-center mb-4 border-b border-[var(--card-border)] pb-2">
+            <div>
+                <h2 class="text-xl font-bold text-[var(--text-main)] font-amiri">Kelola Posisi Foto</h2>
+                <p class="text-sm text-[var(--text-muted)] mt-1">Custom posisi pengurus yang muncul di dropdown "Upload Foto".</p>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <input type="text" id="new-posisi-input" class="flex-1 px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Contoh: Wakil Ketua">
+            <button id="add-posisi-btn" class="btn-primary px-6 py-2 rounded-lg hover:bg-[var(--text-main)] transition shadow-md flex items-center justify-center gap-2">
+                <i class="fas fa-plus"></i> Tambah Posisi
+            </button>
+        </div>
+        <div id="posisi-list-container" class="flex flex-wrap gap-2 min-h-[40px]">
+            <!-- Daftar posisi akan di-load oleh JavaScript -->
+            <span class="text-[var(--text-muted)] text-sm">Memuat posisi...</span>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. UPLOAD FOTO PENGURUS                     -->
+    <!-- ========================================== -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] mb-8">
+        <h2 class="text-2xl font-bold text-[var(--text-main)] mb-4 font-amiri">Upload Foto Pengurus Inti</h2>
+        <p class="text-sm text-[var(--text-muted)] mb-4">Pilih posisi dan upload foto untuk menampilkan di halaman publik.</p>
+        <form id="upload-foto-form" class="space-y-4">
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Posisi / Key</label>
+                <select id="foto-key" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <!-- Opsi akan di-load oleh JavaScript -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Pilih File Foto</label>
+                <input type="file" id="foto-file" accept="image/*" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div id="foto-preview-container" class="hidden">
+                <img id="foto-preview" src="" alt="Preview" class="preview-img">
+            </div>
+            <button type="submit" class="btn-primary px-6 py-2 rounded-lg transition shadow-md hover:bg-[var(--text-main)]">
+                <i class="fas fa-upload mr-2"></i>Upload & Simpan Foto
+            </button>
+        </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. TAB NAVIGATION                           -->
+    <!-- ========================================== -->
+    <div class="mb-4 border-b border-[var(--card-border)] flex gap-6 overflow-x-auto px-1">
+        <button class="tab-btn active py-2 px-1 text-sm font-bold" data-tab="sejarah">Sejarah & Visi</button>
+        <button class="tab-btn py-2 px-1 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-main)]" data-tab="struktur">Struktur Pengurus</button>
+        <button class="tab-btn py-2 px-1 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-main)]" data-tab="diagram">Diagram Struktur</button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. TAB: SEJARAH & VISI MISI                -->
+    <!-- ========================================== -->
+    <div id="tab-sejarah" class="tab-content">
+        <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] p-6">
+            <!-- DAFTAR PROFIL (CRUD item profil) -->
+            <div id="profil-list" class="space-y-3 mb-6"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">Konten Sejarah</label>
+                    <textarea id="sejarah_content" rows="6" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Tulis sejarah organisasi..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">Konten Visi & Misi</label>
+                    <textarea id="visi_misi_content" rows="6" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Tulis visi dan misi organisasi..."></textarea>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button id="save-profil-btn" class="btn-primary px-4 py-2 rounded-lg hover:bg-[var(--text-main)] transition shadow-md">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. TAB: STRUKTUR PENGURUS (CRUD)           -->
+    <!-- ========================================== -->
+    <div id="tab-struktur" class="tab-content hidden">
+        <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+            <div class="p-4 border-b border-[var(--card-border)] flex justify-between items-center">
+                <h2 class="text-xl font-bold font-amiri">Daftar Pengurus Lengkap</h2>
+                <button id="add-struktur-btn" class="btn-primary px-4 py-2 rounded-lg text-sm transition shadow-md flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Tambah Pengurus
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-[var(--bg-stats)]">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Foto</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Jabatan</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Nama</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="struktur-table-body" class="divide-y divide-[var(--card-border)]">
+                        <!-- SKELETON LOADING -->
+                        <tr id="struktur-skeleton">
+                            <td colspan="5" class="text-center py-8">
+                                <div class="skeleton-box h-8 w-3/4 mx-auto mb-2"></div>
+                                <div class="skeleton-box h-8 w-1/2 mx-auto"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 6. TAB: DIAGRAM STRUKTUR (jsPlumb)         -->
+    <!-- ========================================== -->
+    <div id="tab-diagram" class="tab-content hidden">
+        <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold font-amiri">Diagram Struktur (Visual)</h2>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="add-node-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition"><i class="fas fa-plus mr-1"></i> Tambah Kotak</button>
+                    <button id="add-connection-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm transition"><i class="fas fa-link mr-1"></i> Sambung</button>
+                    <button id="save-diagram-btn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm transition"><i class="fas fa-save mr-1"></i> Simpan</button>
+                    <button id="clear-diagram-btn" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm transition"><i class="fas fa-trash mr-1"></i> Hapus Semua</button>
+                </div>
+            </div>
+            <div id="diagram-container"></div>
+            <p class="text-xs text-[var(--text-muted)] mt-2">Tips: Klik ganda teks untuk mengedit. Drag untuk memindahkan. Tarik pojok kanan bawah untuk resize.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL PROFIL (TAMBAH / EDIT ITEM PROFIL)    -->
+<!-- ========================================== -->
+<div id="profil-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri" id="modal-title">Tambah Profil</h2>
+        <form id="profil-form">
+            <input type="hidden" id="profil-id">
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Key</label>
+                <input type="text" id="profil-key" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Contoh: sejarah, visi_misi, struktur_diagram" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Konten</label>
+                <textarea id="profil-content" rows="6" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required></textarea>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL CRUD STRUKTUR (PENGURUS)              -->
+<!-- ========================================== -->
+<div id="struktur-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="struktur-modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri" id="struktur-modal-title">Tambah Pengurus</h2>
+        <form id="struktur-form">
+            <input type="hidden" id="struktur-id">
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Jabatan</label>
+                <input type="text" id="struktur_jabatan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Nama Lengkap</label>
+                <input type="text" id="struktur_nama" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">URL Foto (Opsional)</label>
+                <input type="text" id="struktur_foto" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="https://example.com/foto.jpg">
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Urutan (Semakin kecil semakin atas)</label>
+                <input type="number" id="struktur_urutan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" value="0">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="struktur-modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL EDIT TEKS NODE (Diagram)              -->
+<!-- ========================================== -->
+<div id="node-edit-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="node-edit-content">
+        <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] font-amiri">Edit Teks Kotak</h2>
+        <form id="node-edit-form">
+            <input type="hidden" id="node-edit-id">
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Teks</label>
+                <input type="text" id="node-edit-text" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="node-edit-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi, tidak ada logika loop) -->
+<script>
+    (function() {
+        // Modul profil_admin sudah terdaftar di js/profil_admin.js via App.register('profil_admin', ...)
+        // Router akan memanggil App.run('profil_admin') setelah view di-inject.
+        console.log('profil_admin view loaded');
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    /* Skeleton */
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    /* Tombol secondary (untuk refresh) */
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+    .tab-btn {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+        border-bottom: 2px solid #0f2922;
+        color: #0f2922;
+        font-weight: 600;
+    }
+    .tab-btn:not(.active) {
+        color: #6b7280;
+    }
+    .preview-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #e5e7eb;
+    }
+    #diagram-container {
+        position: relative;
+        width: 100%;
+        min-height: 500px;
+        border: 2px dashed #d1d5db;
+        border-radius: 1rem;
+        background: #f9fafb;
+        padding: 20px;
+        overflow: auto;
+    }
+    .node-box {
+        position: absolute;
+        min-width: 120px;
+        min-height: 50px;
+        background: white;
+        border: 2px solid #0f2922;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        cursor: move;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        touch-action: none;
+        user-select: none;
+        z-index: 10;
+    }
+    .node-box:hover {
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    .node-box .node-actions {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        display: flex;
+        gap: 4px;
+    }
+    .node-box:hover .node-actions {
+        opacity: 1;
+    }
+    .node-box .node-actions button {
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .node-box .resize-handle {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 10px;
+        height: 10px;
+        background: #0f2922;
+        border-radius: 50%;
+        cursor: nwse-resize;
+    }
+</style>

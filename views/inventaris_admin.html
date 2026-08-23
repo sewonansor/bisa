@@ -1,0 +1,195 @@
+<!-- views/inventaris_admin.html -->
+<!-- Halaman Admin: Manajemen Inventaris & Peminjaman (Final, Real-Time, Tanpa Error) -->
+
+<div id="main-content">
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Inventaris & Peminjaman</h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="refresh-inventaris-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button id="add-barang-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-plus"></i> Tambah Barang</button>
+            <button id="add-pinjam-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-hand-holding"></i> Catat Pinjam</button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-wider">Total Barang</p>
+            <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="total-barang">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-wider">Kondisi Baik</p>
+            <p class="text-2xl font-bold text-green-600 mt-1" id="total-baik">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-wider">Dipinjam</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1" id="total-dipinjam">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-wider">Rusak</p>
+            <p class="text-2xl font-bold text-red-600 mt-1" id="total-rusak">0</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-[var(--card-border)] mb-4 gap-1">
+        <button class="tab-btn active py-2 px-4 text-sm font-semibold text-[var(--text-main)] border-b-2 border-[var(--text-main)]" data-tab="barang">
+            <i class="fas fa-box mr-1"></i> Barang
+        </button>
+        <button class="tab-btn py-2 px-4 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-main)]" data-tab="peminjaman">
+            <i class="fas fa-hand-holding mr-1"></i> Peminjaman
+        </button>
+    </div>
+
+    <!-- Tab Barang -->
+    <div id="tab-barang" class="tab-content">
+        <div class="bg-[var(--card-bg)] rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-[var(--bg-stats)]">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">No</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Nama Barang</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Jumlah</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Kondisi</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Lokasi</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="barang-table-body" class="divide-y divide-[var(--card-border)]">
+                        <tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin text-2xl"></i></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Peminjaman -->
+    <div id="tab-peminjaman" class="tab-content hidden">
+        <div class="bg-[var(--card-bg)] rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-[var(--bg-stats)]">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">No</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Barang</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Peminjam</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Tgl Pinjam</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Tgl Kembali</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pinjam-table-body" class="divide-y divide-[var(--card-border)]">
+                        <tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin text-2xl"></i></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL BARANG (Tambah/Edit) -->
+<div id="barang-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="barang-modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri" id="barang-modal-title">Tambah Barang</h2>
+        <form id="barang-form" class="space-y-4">
+            <input type="hidden" id="barang-id">
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Nama Barang</label>
+                <input type="text" id="barang_nama" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Jumlah</label>
+                <input type="number" id="barang_jumlah" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Kondisi</label>
+                <select id="barang_kondisi" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <option value="Baik">Baik</option>
+                    <option value="Rusak Ringan">Rusak Ringan</option>
+                    <option value="Rusak Berat">Rusak Berat</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Lokasi</label>
+                <input type="text" id="barang_lokasi" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="barang-modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL PEMINJAMAN -->
+<div id="pinjam-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="pinjam-modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Catat Peminjaman</h2>
+        <form id="pinjam-form" class="space-y-4">
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Pilih Barang</label>
+                <select id="pinjam_barang_id" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <option value="">-- Pilih Barang --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Nama Peminjam</label>
+                <input type="text" id="pinjam_peminjam" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Tanggal Pinjam</label>
+                <input type="date" id="pinjam_tanggal" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm">Tanggal Kembali (Opsional)</label>
+                <input type="date" id="pinjam_tanggal_kembali" class="w-full px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="pinjam-modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi, modul dipanggil via App.run) -->
+<script>
+    console.log('inventaris_admin view loaded');
+</script>
+
+<!-- STYLE INLINE LENGKAP -->
+<style>
+    /* Button */
+    .btn-primary {
+        background: #0f2922; color: white; border: none; border-radius: 0.5rem;
+        padding: 0.5rem 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-primary:hover { background: #1a3c34; transform: translateY(-2px); }
+    .dark .btn-primary { background: #fbbf24; color: #0f2922; }
+    .btn-secondary {
+        background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+        padding: 0.5rem 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-secondary:hover { background: #e2e8f0; transform: translateY(-2px); }
+    .dark .btn-secondary { background: rgba(255,255,255,0.05); color: #c4b5e0; border-color: rgba(128,90,213,0.4); }
+
+    /* Stat Cards */
+    .stat-card { background: var(--card-bg); backdrop-filter: blur(8px); border-radius: 1rem; transition: all 0.3s; }
+    .stat-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+
+    /* Tabs */
+    .tab-btn { border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.3s; }
+    .tab-btn.active { border-color: var(--text-main); color: var(--text-main) !important; font-weight: 700; }
+
+    /* Skeleton */
+    .skeleton-box { background: linear-gradient(90deg, #f0f0f0, #e0e0e0, #f0f0f0); background-size: 200% 100%; animation: shimmer 1.8s infinite; border-radius: 0.75rem; }
+    .dark .skeleton-box { background: linear-gradient(90deg, #2d3748, #4a5568, #2d3748); }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* Modal */
+    #barang-modal, #pinjam-modal { transition: all 0.3s; }
+</style>

@@ -1,0 +1,182 @@
+<!-- views/galeri_admin.html -->
+<!-- Fragment Manajemen Galeri Media & Dokumentasi untuk Admin -->
+<!-- Versi: 4.0.2 - Final Fix (Stable, No Loop) -->
+
+<!-- Konten Utama -->
+<div id="main-content">
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Galeri Media & Dokumentasi</h1>
+        <div class="flex gap-2">
+            <button id="refresh-galeri-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button id="add-btn" class="btn-primary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-plus"></i> Tambah Media
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Ringkasan Statistik -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Total Media</p>
+            <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="total-media">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Foto</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1" id="total-foto">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Video</p>
+            <p class="text-2xl font-bold text-red-600 mt-1" id="total-video">0</p>
+        </div>
+    </div>
+
+    <!-- Tabel Galeri -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[var(--bg-stats)]">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Preview</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Judul</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Deskripsi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Tipe</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-[var(--card-border)]">
+                    <!-- SKELETON LOADING -->
+                    <tr id="galeri-skeleton">
+                        <td colspan="7" class="text-center py-8">
+                            <div class="skeleton-box h-8 w-3/4 mx-auto mb-2"></div>
+                            <div class="skeleton-box h-8 w-1/2 mx-auto"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TAMBAH / EDIT GALERI -->
+<div id="galeri-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri" id="modal-title">Tambah Media</h2>
+        <form id="form">
+            <input type="hidden" id="edit-id">
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Judul</label>
+                <input type="text" id="galeri_judul" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Deskripsi</label>
+                <textarea id="galeri_deskripsi" rows="2" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Tipe</label>
+                    <select id="galeri_tipe" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                        <option value="foto">Foto</option>
+                        <option value="video">Video (Termasuk YouTube)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Kategori</label>
+                    <select id="galeri_kategori" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                        <option value="Kegiatan">Kegiatan</option>
+                        <option value="Pengajian">Pengajian</option>
+                        <option value="Bakti Sosial">Bakti Sosial</option>
+                        <option value="Rapat">Rapat</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Upload File (Gambar / Video)</label>
+                <input type="file" id="galeri_file" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" accept="image/*,video/*">
+                <p class="text-xs text-[var(--text-muted)] mt-1">File akan diunggah ke Google Drive.</p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Atau Masukkan URL (Link YouTube / Google Drive)</label>
+                <input type="text" id="galeri_url" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="https://www.youtube.com/watch?v=... atau https://drive.google.com/...">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<script>
+    (function() {
+        // Modul galeri_admin sudah terdaftar di js/galeri_admin.js via App.register('galeri_admin', ...)
+        // Router akan memanggil App.run('galeri_admin') setelah view di-inject.
+        console.log('galeri_admin view loaded');
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    /* Skeleton */
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .stat-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+    .thumb-img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+    }
+    /* Tombol secondary (untuk refresh) */
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+</style>

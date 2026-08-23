@@ -1,0 +1,169 @@
+<!-- views/kader_admin.html -->
+<!-- Fragment Database Kader & Masa Bakti untuk Admin -->
+<!-- Versi: 4.0.2 - Final Fix (Stable, No Loop) -->
+
+<!-- Konten Utama -->
+<div id="main-content">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Database Kader & Masa Bakti</h1>
+        <div class="flex gap-2">
+            <button id="refresh-kader-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistik Ringkasan -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Total Anggota</p>
+            <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-anggota">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Admin</p>
+            <p class="text-3xl font-bold text-red-600 mt-1" id="total-admin">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Member</p>
+            <p class="text-3xl font-bold text-blue-600 mt-1" id="total-member">0</p>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">Angkatan Terbanyak</p>
+            <p class="text-xl font-bold text-[var(--text-main)] mt-1" id="angkatan-terbanyak">-</p>
+        </div>
+    </div>
+
+    <!-- Tabel Kader -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[var(--bg-stats)]">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Nama</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Username</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Alamat</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Angkatan</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Riwayat Jabatan</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-[var(--card-border)]">
+                    <!-- Skeleton Loading -->
+                    <tr id="kader-skeleton">
+                        <td colspan="8" class="text-center py-8">
+                            <div class="skeleton-box h-8 w-3/4 mx-auto mb-2"></div>
+                            <div class="skeleton-box h-8 w-1/2 mx-auto"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDIT KADER -->
+<div id="kader-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Edit Data Kader</h2>
+        <form id="kader-form">
+            <input type="hidden" id="edit-id">
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Nama Lengkap</label>
+                <input type="text" id="kader_nama" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Username</label>
+                <input type="text" id="kader_username" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Role</label>
+                <select id="kader_role" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Alamat / Kalurahan</label>
+                <input type="text" id="kader_alamat" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Angkatan (tahun masuk)</label>
+                <input type="text" id="kader_angkatan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Contoh: 2024">
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Riwayat Jabatan</label>
+                <input type="text" id="kader_riwayat_jabatan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Contoh: Ketua, Sekretaris, dll">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
+                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<script>
+    (function() {
+        // Modul kader_admin sudah terdaftar di js/kader_admin.js via App.register('kader_admin', ...)
+        // Router akan memanggil App.run('kader_admin') setelah view di-inject.
+        console.log('kader_admin view loaded');
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    /* Skeleton */
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    /* Tombol secondary (untuk refresh) */
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+    /* Stat cards */
+    .stat-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+</style>

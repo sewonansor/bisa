@@ -1,0 +1,121 @@
+<!-- views/anggota.html -->
+<!-- Fragment Halaman Daftar Anggota Publik -->
+<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+
+<!-- HERO SECTION -->
+<section class="pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Daftar Anggota</h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+            Anggota aktif PAC GP Ansor Kapanewon Sewon yang berkhidmat untuk umat dan bangsa.
+        </p>
+    </div>
+</section>
+
+<!-- DAFTAR ANGGOTA (GRID) dengan Skeleton -->
+<section class="py-12 container mx-auto px-4">
+    <div id="anggota-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Skeleton Loading -->
+        <div id="anggota-skeleton" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="anggota-card skeleton"><div class="skeleton-box h-64 w-full"></div></div>
+            <div class="anggota-card skeleton"><div class="skeleton-box h-64 w-full"></div></div>
+            <div class="anggota-card skeleton"><div class="skeleton-box h-64 w-full"></div></div>
+        </div>
+        <!-- Konten Asli -->
+        <div id="anggota-content" class="col-span-full hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                <p>Memuat data anggota...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT INLINE -->
+<script>
+    (async function() {
+        const skeleton = document.getElementById('anggota-skeleton');
+        const content = document.getElementById('anggota-content');
+        
+        // Tampilkan skeleton, sembunyikan konten
+        skeleton.classList.remove('hidden');
+        content.classList.add('hidden');
+
+        try {
+            // Kita akan memanggil endpoint getUsers untuk mendapatkan daftar semua user (hanya data publik yang ditampilkan)
+            // Di backend, getUsers mengembalikan semua user tanpa password. Kita bisa filter hanya yang status approved.
+            const result = await apiCall('getUsers', 'POST', {});
+            
+            skeleton.classList.add('hidden');
+            content.classList.remove('hidden');
+
+            if (result.success && result.data.length > 0) {
+                // Filter hanya yang status approved (atau tidak ada status = aktif)
+                const members = result.data.filter(u => u.status === 'approved' || !u.status);
+                if (members.length === 0) {
+                    content.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                            <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                            <p>Belum ada anggota terdaftar.</p>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    members.forEach(user => {
+                        // Gunakan avatar default jika tidak ada foto
+                        const avatarUrl = user.foto_url || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`;
+                        html += `
+                            <div class="anggota-card bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] transition hover:shadow-xl hover:translate-y-[-4px]">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-[var(--text-main)]">
+                                        <img src="${avatarUrl}" alt="${user.nama || user.username}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-bold text-[var(--text-main)] text-lg truncate">${user.nama || user.username}</h3>
+                                        <p class="text-sm text-[var(--text-muted)]">${user.role === 'admin' ? 'Admin' : 'Member'}</p>
+                                        <div class="text-xs text-[var(--text-muted)] mt-1">
+                                            ${user.alamat ? `<span><i class="fas fa-map-marker-alt mr-1"></i>${user.alamat}</span>` : ''}
+                                            ${user.angkatan ? ` • Angkatan ${user.angkatan}` : ''}
+                                            ${user.riwayat_jabatan ? ` • ${user.riwayat_jabatan}` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    content.innerHTML = html;
+                }
+            } else {
+                content.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                        <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                        <p>Belum ada data anggota.</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            skeleton.classList.add('hidden');
+            content.classList.remove('hidden');
+            content.innerHTML = `
+                <div class="col-span-full text-center py-12 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+        }
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    .anggota-card {
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .anggota-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+    .anggota-card.skeleton .skeleton-box {
+        height: 100px;
+    }
+</style>

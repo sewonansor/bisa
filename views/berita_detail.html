@@ -1,0 +1,118 @@
+<!-- views/berita_detail.html -->
+<!-- Halaman Publik: Detail Berita (Desain Profesional) -->
+<!-- Versi: 1.1.0 - Final (Header, Meta, Gambar, Isi, Share) -->
+
+<!-- HEADER -->
+<section class="pt-24 pb-10 bg-gradient-to-br from-green-900 to-green-800 text-white">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <div class="mb-4">
+            <a href="/" class="text-green-200 hover:underline">Beranda</a> /
+            <a href="/semua_berita" class="text-green-200 hover:underline">Semua Berita</a>
+        </div>
+        <h1 id="berita-judul" class="text-3xl md:text-5xl font-bold font-amiri leading-tight mb-6"></h1>
+        <div id="berita-meta" class="flex flex-wrap items-center gap-4 text-sm text-green-100">
+            <span id="berita-penulis"><i class="fas fa-user-circle mr-1"></i>Penulis</span>
+            <span id="berita-tanggal"><i class="far fa-calendar-alt mr-1"></i>Tanggal</span>
+            <span id="berita-tag" class="bg-green-800 px-3 py-1 rounded-full text-xs uppercase tracking-wide">Tag</span>
+        </div>
+    </div>
+</section>
+
+<!-- KONTEN UTAMA -->
+<section class="py-10">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <!-- Loading State -->
+        <div id="berita-loading" class="text-center py-20">
+            <i class="fas fa-spinner fa-spin text-4xl text-[var(--text-main)]"></i>
+            <p class="mt-4 text-[var(--text-muted)]">Memuat berita...</p>
+        </div>
+
+        <!-- Konten Berita -->
+        <div id="berita-content" class="hidden">
+            <article class="bg-[var(--card-bg)] rounded-2xl shadow-lg border border-[var(--card-border)] p-6 md:p-10">
+                <!-- Gambar Utama -->
+                <div class="mb-8">
+                    <img id="berita-gambar" src="" alt="Gambar Berita" class="w-full h-auto rounded-xl"
+                         onerror="this.style.display='none'; document.getElementById('berita-gambar-placeholder').style.display='flex';">
+                    <div id="berita-gambar-placeholder" class="hidden h-64 md:h-96 bg-[var(--bg-stats)] rounded-xl items-center justify-center text-[var(--text-muted)]">
+                        <i class="fas fa-image text-5xl"></i>
+                    </div>
+                </div>
+
+                <!-- Isi Artikel -->
+                <div id="berita-isi" class="prose prose-lg max-w-none text-[var(--text-main)] leading-relaxed"></div>
+
+                <!-- Tombol Share & Navigasi -->
+                <div class="mt-10 border-t pt-6 flex flex-wrap items-center justify-between gap-4">
+                    <a href="/semua_berita" class="btn-outline text-sm">← Kembali ke Semua Berita</a>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-[var(--text-muted)]">Bagikan:</span>
+                        <a href="#" onclick="shareFacebook()" class="text-blue-600 hover:text-blue-800"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" onclick="shareTwitter()" class="text-sky-500 hover:text-sky-700"><i class="fab fa-twitter"></i></a>
+                        <a href="#" onclick="shareWhatsApp()" class="text-green-600 hover:text-green-800"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" onclick="shareTelegram()" class="text-blue-400 hover:text-blue-600"><i class="fab fa-telegram-plane"></i></a>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT INLINE (Konfirmasi + fungsi share) -->
+<script>
+    console.log('berita_detail view loaded');
+
+    // Fungsi Share Sederhana
+    window.shareFacebook = function() { window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); };
+    window.shareTwitter = function() { window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href), '_blank'); };
+    window.shareWhatsApp = function() { window.open('https://wa.me/?text=' + encodeURIComponent(document.title + ' ' + window.location.href), '_blank'); };
+    window.shareTelegram = function() { window.open('https://t.me/share/url?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent(document.title), '_blank'); };
+</script>
+
+<!-- STYLE INLINE (bisa dipindah ke CSS global) -->
+<style>
+    .btn-outline {
+        border: 1.5px solid var(--text-main);
+        color: var(--text-main);
+        border-radius: 9999px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-outline:hover {
+        background: var(--text-main);
+        color: var(--text-inverse);
+        transform: translateY(-2px);
+    }
+    #berita-isi img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+    /* Prose styling untuk isi artikel */
+    #berita-isi p {
+        margin-bottom: 1.25rem;
+        line-height: 1.8;
+    }
+    #berita-isi h2, #berita-isi h3 {
+        font-weight: bold;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-family: 'Amiri', serif;
+    }
+    #berita-isi a {
+        color: #0f2922;
+        text-decoration: underline;
+    }
+    #berita-isi blockquote {
+        border-left: 4px solid #0f2922;
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: var(--text-muted);
+    }
+</style>

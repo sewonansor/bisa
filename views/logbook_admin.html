@@ -1,0 +1,142 @@
+<!-- views/logbook_admin.html -->
+<!-- Fragment Manajemen Logbook (Laporan Pertanggungjawaban) untuk Admin -->
+<!-- Versi: 4.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+
+<!-- Konten Utama -->
+<div id="main-content">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Logbook</h1>
+        <div class="flex gap-2">
+            <a href="/logbook_report" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-file-alt"></i> Laporan Lengkap
+            </a>
+            <button id="refresh-logbook-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh Daftar
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Form Buat Logbook -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] mb-8">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Buat Logbook Baru</h2>
+        <form id="logbook-form">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Nama Kegiatan</label>
+                    <input type="text" id="kegiatan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Tempat</label>
+                    <input type="text" id="tempat" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Tanggal Mulai</label>
+                    <input type="date" id="tanggal_mulai" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Tanggal Selesai</label>
+                    <input type="date" id="tanggal_selesai" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Peserta (jumlah)</label>
+                    <input type="number" id="peserta" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-[var(--text-muted)] mb-2">Anggaran (Rp)</label>
+                    <input type="number" id="anggaran" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Deskripsi Kegiatan</label>
+                <textarea id="deskripsi" rows="4" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">File Pendukung (URL)</label>
+                <input type="text" id="file_url" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Link Google Drive (opsional)">
+            </div>
+            <div class="mb-4">
+                <label class="block text-[var(--text-muted)] mb-2">Upload File Pendukung</label>
+                <input type="file" id="logbook_file" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+            </div>
+            <div class="flex flex-wrap gap-4 mt-4">
+                <button type="submit" class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition"><i class="fas fa-save mr-2"></i>Simpan Logbook</button>
+                <button type="button" id="preview-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"><i class="fas fa-eye mr-2"></i>Preview</button>
+                <button type="button" id="export-pdf-btn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
+                <button type="button" id="export-docx-btn" class="bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-900 transition"><i class="fas fa-file-word mr-2"></i>Export DOCX</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Preview -->
+    <div id="logbook-preview" class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] hidden">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Preview Logbook</h2>
+        <div id="logbook-preview-content" class="border border-[var(--card-border)] p-4 rounded-lg text-[var(--text-main)]"></div>
+    </div>
+
+    <!-- Daftar Logbook -->
+    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Daftar Logbook</h2>
+        <div id="logbook-list" class="space-y-4">
+            <p class="text-[var(--text-muted)]">Memuat data...</p>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<script>
+    (function() {
+        // Modul logbook_admin sudah terdaftar di js/logbook_admin.js via App.register('logbook_admin', ...)
+        // Router akan memanggil App.run('logbook_admin') setelah view di-inject.
+        console.log('logbook_admin view loaded');
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    #logbook-preview-content table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    #logbook-preview-content table td {
+        padding: 0.5rem 0;
+        vertical-align: top;
+    }
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+</style>

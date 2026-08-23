@@ -1,0 +1,165 @@
+<!-- views/keuangan.html -->
+<!-- Halaman Keuangan Publik - Transparansi & Akuntabilitas -->
+
+<!-- HERO SECTION -->
+<section class="hero-bg pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Keuangan Transparan</h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+            Kami menyajikan laporan keuangan secara terbuka untuk memastikan akuntabilitas dan transparansi pengelolaan dana organisasi.
+        </p>
+    </div>
+</section>
+
+<!-- RINGKASAN KEUANGAN -->
+<section class="py-12 container mx-auto px-4">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-2xl font-bold text-center mb-8 text-[var(--text-main)] font-amiri">Ringkasan Keuangan</h2>
+        
+        <!-- Kartu Statistik -->
+        <div id="keuangan-summary" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <!-- Diisi oleh JavaScript -->
+        </div>
+
+        <!-- Grafik Batang Pemasukan vs Pengeluaran -->
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/30 dark:border-gray-700/50 mb-10">
+            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri text-center">Grafik Pemasukan vs Pengeluaran</h3>
+            <div id="keuangan-chart" class="flex items-end justify-around h-64 space-x-4 px-4">
+                <!-- Diisi oleh JavaScript -->
+            </div>
+        </div>
+
+        <!-- Transaksi Terbaru -->
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/30 dark:border-gray-700/50">
+            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri">Transaksi Terbaru</h3>
+            <div id="keuangan-recent" class="space-y-3">
+                <!-- Diisi oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STYLE INLINE -->
+<style>
+    .hero-bg { background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%); }
+    
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    }
+    .stat-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .stat-card .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+    .stat-card .label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .chart-bar {
+        width: 80px;
+        border-radius: 0.5rem 0.5rem 0 0;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        overflow: hidden;
+        transition: height 0.5s ease;
+    }
+    .chart-bar .bar-label {
+        position: absolute;
+        bottom: -1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    .chart-bar .bar-value {
+        position: absolute;
+        top: -1.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+    .transaction-item .txn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .txn-icon.income {
+        background: #d1fae5;
+        color: #059669;
+    }
+    .txn-icon.expense {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    .transaction-item .txn-detail {
+        flex: 1;
+        margin-left: 1rem;
+    }
+    .transaction-item .txn-detail .txn-desc {
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 0.875rem;
+    }
+    .transaction-item .txn-detail .txn-date {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .transaction-item .txn-amount {
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+    .txn-amount.income {
+        color: #059669;
+    }
+    .txn-amount.expense {
+        color: #dc2626;
+    }
+
+    /* Responsive untuk mobile */
+    @media (max-width: 640px) {
+        #keuangan-summary {
+            grid-template-columns: 1fr; /* Satu kolom di layar kecil */
+        }
+        .chart-bar {
+            width: 60px;
+        }
+    }
+</style>

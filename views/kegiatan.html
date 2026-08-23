@@ -1,0 +1,156 @@
+<!-- views/kegiatan.html -->
+<!-- Fragment Halaman Daftar Kegiatan Publik - Menggunakan Logbook -->
+<!-- Versi: 4.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+
+<!-- HERO SECTION -->
+<section class="pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Kegiatan Terbaru</h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+            Dokumentasi kegiatan sosial, keagamaan, dan kemasyarakatan PAC GP Ansor Kapanewon Sewon.
+        </p>
+    </div>
+</section>
+
+<!-- DAFTAR KEGIATAN (GRID) dengan Skeleton -->
+<section class="py-12 container mx-auto px-4">
+    <div id="kegiatan-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Skeleton Loading -->
+        <div id="kegiatan-skeleton" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
+            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
+            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
+        </div>
+        <!-- Konten Asli -->
+        <div id="kegiatan-content" class="col-span-full hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                <p>Memuat data kegiatan...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT INLINE -->
+<script>
+    (async function() {
+        // DOM elements
+        const skeleton = document.getElementById('kegiatan-skeleton');
+        const content = document.getElementById('kegiatan-content');
+        
+        // Tampilkan skeleton, sembunyikan konten
+        skeleton.classList.remove('hidden');
+        content.classList.add('hidden');
+
+        try {
+            // Ambil data kegiatan dari Logbook (bukan LPJ)
+            const result = await apiCall('getLogbook', 'POST', {});
+            
+            // Sembunyikan skeleton, tampilkan konten
+            skeleton.classList.add('hidden');
+            content.classList.remove('hidden');
+
+            if (result.success && result.data.length > 0) {
+                let html = '';
+                result.data.forEach(item => {
+                    let descPlain = item.deskripsi ? item.deskripsi.replace(/<[^>]*>?/gm, '') : '';
+                    let shortDesc = descPlain.length > 100 ? descPlain.substring(0, 100) + '...' : (descPlain || 'Klik untuk membaca detail.');
+                    const imgUrl = item.file_url || 'https://placehold.co/600x400/e2e8f0/475569?text=Kegiatan+Ansor';
+                    
+                    html += `
+                        <a href="/kegiatan_detail?id=${item.id}" class="kegiatan-card group">
+                            <div class="img-wrapper">
+                                <img src="${imgUrl}" alt="${item.kegiatan || 'Kegiatan'}" />
+                            </div>
+                            <div class="p-5">
+                                <div class="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-2">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <span>${formatDate(item.tanggal_mulai)}</span>
+                                    <span class="text-gray-300">|</span>
+                                    <span>${item.tempat || '-'}</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-[var(--text-main)] font-amiri mb-2 group-hover:text-[#0f2922] transition-colors">
+                                    ${item.kegiatan || 'Kegiatan'}
+                                </h3>
+                                <p class="text-sm text-[var(--text-muted)] line-clamp-2 mb-3">${shortDesc}</p>
+                                <span class="text-sm font-semibold text-[var(--text-main)] inline-flex items-center gap-2 group-hover:gap-3 transition-all">
+                                    Baca Selengkapnya <i class="fas fa-arrow-right text-xs"></i>
+                                </span>
+                            </div>
+                        </a>
+                    `;
+                });
+                content.innerHTML = html;
+            } else if (result.success && result.data.length === 0) {
+                content.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                        <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                        <p>Belum ada kegiatan yang tercatat.</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                        <p>Gagal memuat data kegiatan. Silakan refresh halaman.</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            skeleton.classList.add('hidden');
+            content.classList.remove('hidden');
+            content.innerHTML = `
+                <div class="col-span-full text-center py-12 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+        }
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global, tapi disertakan agar fragment mandiri) -->
+<style>
+    .kegiatan-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        overflow: hidden;
+        display: block;
+    }
+    .kegiatan-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        border-color: var(--text-main);
+    }
+    .kegiatan-card .img-wrapper {
+        height: 200px;
+        overflow: hidden;
+        background: var(--bg-stats);
+        position: relative;
+    }
+    .kegiatan-card .img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .kegiatan-card:hover .img-wrapper img {
+        transform: scale(1.05);
+    }
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>

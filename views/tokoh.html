@@ -1,0 +1,101 @@
+<!-- views/tokoh.html -->
+<!-- Halaman Publik: Daftar Tokoh & Penggerak -->
+
+<!-- HERO SECTION -->
+<section class="hero-bg pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Tokoh & Penggerak</h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+            Profil tokoh, ulama, dan penggerak organisasi PAC GP Ansor Kapanewon Sewon.
+        </p>
+    </div>
+</section>
+
+<!-- DAFTAR TOKOH -->
+<section class="py-12 container mx-auto px-4">
+    <div id="tokoh-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Skeleton Loading -->
+        <div class="tokoh-card skeleton-card">
+            <div class="skeleton-box h-56 w-full"></div>
+            <div class="p-4">
+                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+                <div class="skeleton-box h-4 w-2/3"></div>
+            </div>
+        </div>
+        <div class="tokoh-card skeleton-card">
+            <div class="skeleton-box h-56 w-full"></div>
+            <div class="p-4">
+                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+                <div class="skeleton-box h-4 w-2/3"></div>
+            </div>
+        </div>
+        <div class="tokoh-card skeleton-card">
+            <div class="skeleton-box h-56 w-full"></div>
+            <div class="p-4">
+                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+                <div class="skeleton-box h-4 w-2/3"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    .hero-bg { background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%); }
+    .tokoh-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .tokoh-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        border-color: var(--text-main);
+    }
+    .tokoh-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+    }
+    .tokoh-card .body {
+        padding: 1.25rem;
+    }
+    .tokoh-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+        font-family: 'Amiri', serif;
+    }
+    .tokoh-card p {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+    }
+    .tokoh-card .riwayat {
+        border-top: 1px solid var(--card-border);
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>

@@ -1,0 +1,158 @@
+<!-- views/absensi.html -->
+<!-- Halaman Absensi Digital Publik - Self-Contained (CSS Inline, Logo di QR) -->
+
+<!-- HERO SECTION -->
+<div class="absensi-hero">
+    <h1>Absensi Digital</h1>
+    <p>Catat kehadiran Anda secara digital dengan tanda tangan elektronik.</p>
+</div>
+
+<!-- QR SECTION -->
+<div class="absensi-section">
+    <div class="absensi-center">
+        <!-- Wrapper QR dengan logo di tengah -->
+        <div id="qrcode-wrapper">
+            <div id="qrcode" class="qr-placeholder">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <!-- Logo Ansor di tengah (tidak mengganggu scan) -->
+            <div id="qrcode-logo-overlay">
+                <img src="logo-ansor.webp" alt="Logo Ansor" />
+            </div>
+            <!-- Overlay status nonaktif -->
+            <div id="qr-status-overlay" class="hidden">
+                <i class="fas fa-lock"></i>
+                <p>QR Code Ditutup</p>
+                <p class="small">Absensi belum dibuka oleh admin.</p>
+            </div>
+        </div>
+        <p id="qr-status-text" class="status-text">Memuat status...</p>
+    </div>
+</div>
+
+<!-- FORM ABSENSI -->
+<div class="absensi-section" style="background: #f4f7f9;">
+    <div class="absensi-form-container">
+        <div class="absensi-card">
+            <h2>Form Absensi</h2>
+            <form id="absensi-form">
+                <!-- Password Field (Di atas Nama, dengan label terpisah) -->
+                <div id="password-field" class="form-group hidden">
+                    <label>Password Absensi</label>
+                    <input type="password" id="absensi_password" placeholder="Masukkan password" autocomplete="off">
+                </div>
+                <!-- Nama -->
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="absensi_nama" placeholder="Masukkan nama" required>
+                </div>
+                <!-- Alamat -->
+                <div class="form-group">
+                    <label>Alamat</label>
+                    <input type="text" id="absensi_alamat" placeholder="Masukkan alamat" required>
+                </div>
+                <!-- Tanda Tangan -->
+                <div class="form-group">
+                    <label>Tanda Tangan</label>
+                    <div class="signature-area">
+                        <canvas id="signature-canvas" width="500" height="140"></canvas>
+                        <button type="button" id="clear-signature">Hapus</button>
+                    </div>
+                </div>
+                <!-- Tombol -->
+                <div class="btn-row">
+                    <button type="button" id="reset-form" class="btn-reset">Reset</button>
+                    <button type="submit" class="btn-submit">Absen Sekarang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DAFTAR ABSENSI -->
+<div class="absensi-section">
+    <div class="absensi-center">
+        <h2>Kehadiran Terbaru</h2>
+        <div id="absensi-list" class="absensi-list">
+            <p style="text-align:center;">Memuat data...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CSS INLINE LENGKAP ===== -->
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .absensi-hero { background: linear-gradient(135deg, #f8fafc, #ecfdf5); padding: 80px 20px 30px; text-align: center; }
+    .absensi-hero h1 { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 5px; }
+    .absensi-hero p { color: #64748b; font-size: 1.1rem; }
+    .absensi-section { padding: 40px 20px; }
+    .absensi-center { max-width: 800px; margin: 0 auto; text-align: center; }
+
+    /* QR WRAPPER dengan logo */
+    #qrcode-wrapper { display: inline-block; background: #fff; padding: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; width: 200px; height: 200px; }
+    .qr-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #94a3b8; }
+    #qrcode canvas { display: block; width: 100%; height: 100%; }
+
+    /* Logo overlay di tengah QR */
+    #qrcode-logo-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: #ffffff;
+        border-radius: 50%;
+        padding: 2px;
+        box-shadow: 0 0 0 3px #ffffff;
+        pointer-events: none;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #qrcode-logo-overlay img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 50%;
+    }
+
+    /* Overlay status nonaktif */
+    #qr-status-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 5; }
+    #qr-status-overlay.hidden { display: none !important; }
+    #qr-status-overlay p { font-weight: 600; margin-top: 8px; }
+    #qr-status-overlay .small { font-size: 0.8rem; opacity: 0.8; }
+    .status-text { color: #64748b; margin-top: 10px; }
+
+    /* Form */
+    .absensi-form-container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .absensi-card h2 { text-align: center; font-size: 1.8rem; margin-bottom: 20px; color: #1e293b; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #334155; }
+    .form-group input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+    .form-group input:focus { border-color: #0f2922; outline: none; }
+
+    .signature-area { position: relative; border: 2px dashed #cbd5e1; border-radius: 8px; height: 120px; margin-top: 10px; background: #f8fafc; overflow: hidden; }
+    .signature-area canvas { width: 100%; height: 100%; cursor: crosshair; }
+    #clear-signature { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.1); border: none; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-reset, .btn-submit { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-reset { background: transparent; border: 1px solid #cbd5e1; color: #1e293b; }
+    .btn-submit { background: #0f2922; border: none; color: white; }
+    .btn-submit:hover { background: #1a4038; }
+
+    /* List */
+    .absensi-list { background: #fff; border-radius: 12px; padding: 10px; max-width: 700px; margin: 20px auto 0; }
+    .record { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+    .record .badge { background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+
+    .hidden { display: none !important; }
+    
+    /* Dark mode */
+    .dark .absensi-hero { background: linear-gradient(135deg, #0f172a, #1e293b); }
+    .dark .absensi-form-container { background: #1e293b; border: 1px solid #334155; }
+    .dark .absensi-list { background: #1e293b; }
+    .dark .form-group input { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+</style>

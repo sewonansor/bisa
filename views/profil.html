@@ -1,0 +1,197 @@
+<!-- views/profil.html -->
+<!-- Fragment Halaman Profil Publik -->
+<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+
+<!-- HERO -->
+<section class="w-full py-16 sm:py-20 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Profil Organisasi</h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+            Mengenal lebih dekat PAC GP Ansor Kapanewon Sewon
+        </p>
+    </div>
+</section>
+
+<!-- KONTEN UTAMA -->
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Sejarah & Visi Misi -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-right">
+                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Sejarah</h3>
+                <div id="profil-sejarah" class="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">
+                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                </div>
+            </div>
+            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-left">
+                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Visi & Misi</h3>
+                <div id="profil-visi-misi" class="text-[var(--text-muted)] text-sm sm:text-base">
+                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Struktur Organisasi -->
+        <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-up">
+            <h3 class="text-xl sm:text-2xl font-bold mb-8 text-[var(--text-main)] text-center font-amiri">Struktur Organisasi</h3>
+            <div id="profil-struktur" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                <!-- Skeleton Loading -->
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+            </div>
+            <div class="text-center mt-8">
+                <button id="show-full-structure" class="btn-outline text-sm">Lihat Selengkapnya</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL STRUKTUR -->
+<div id="structure-modal" class="hidden">
+    <div id="structure-modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold font-amiri">Diagram Struktur Organisasi</h2>
+            <button id="close-structure-modal" class="text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="diagram-container" class="w-full min-h-[500px] border-2 border-dashed border-[var(--card-border)] rounded-lg p-4 relative bg-[var(--bg-stats)]">
+            <div id="diagram-loading" class="text-center py-4 text-[var(--text-muted)]">Memuat diagram...</div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (akan dieksekusi saat halaman di-inject) -->
+<script>
+    // Inisialisasi modul profil (bisa juga menggunakan App.register jika ada js/profil.js)
+    // Karena ini inline, kita jalankan langsung.
+    (async function() {
+        // Pastikan kita berada di halaman profil
+        console.log('Profil view loaded');
+
+        // Fungsi formatDate (fallback jika belum ada)
+        function formatDate(d) {
+            if (!d) return '-';
+            const date = new Date(d);
+            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Load data profil (sejarah & visi misi)
+        async function loadProfilData() {
+            try {
+                const res = await apiCall('getProfil', 'POST', {});
+                if (res.success && res.data) {
+                    const map = {};
+                    res.data.forEach(i => { map[i.key] = i.content; });
+                    const sejarahEl = document.getElementById('profil-sejarah');
+                    const visiMisiEl = document.getElementById('profil-visi-misi');
+                    if (sejarahEl) sejarahEl.innerHTML = map['sejarah'] || '<p class="text-[var(--text-muted)] italic">Belum ada data sejarah.</p>';
+                    if (visiMisiEl) visiMisiEl.innerHTML = map['visi_misi'] || '<p class="text-[var(--text-muted)] italic">Belum ada data visi misi.</p>';
+                }
+            } catch (e) {
+                console.error('Error loading profil:', e);
+            }
+        }
+
+        // Load struktur organisasi (daftar pengurus)
+        async function loadStruktur() {
+            const container = document.getElementById('profil-struktur');
+            try {
+                const res = await apiCall('getStruktur', 'POST', {});
+                if (res.success && res.data.length > 0) {
+                    // Tampilkan maksimal 5 pengurus
+                    const limited = res.data.slice(0, 5);
+                    container.innerHTML = limited.map(item => `
+                        <div class="flex flex-col items-center text-center p-3 rounded-lg hover:bg-[var(--card-border)] transition">
+                            <img src="${item.foto_url || 'https://i.pravatar.cc/150?img=' + (Math.floor(Math.random() * 70) + 1)}" alt="${item.nama}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mb-3 shadow-sm border border-[var(--card-border)]">
+                            <div class="font-medium text-xs sm:text-sm text-[var(--text-main)]">${item.nama || '-'}</div>
+                            <div class="text-xs text-[var(--text-muted)] font-medium">${item.jabatan || '-'}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `<p class="text-[var(--text-muted)] col-span-full text-center py-8 italic">Belum ada data struktur organisasi.</p>`;
+                }
+            } catch (e) {
+                console.error('Error loading struktur:', e);
+            }
+        }
+
+        // Load diagram struktur (jsPlumb) – di dalam modal
+        let diagramInstance = null;
+        async function loadDiagram() {
+            const container = document.getElementById('diagram-container');
+            const loading = document.getElementById('diagram-loading');
+            if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
+            if (container) container.innerHTML = '';
+            if (loading) { loading.style.display = 'block'; loading.textContent = 'Memuat diagram...'; }
+            try {
+                const res = await apiCall('getProfil', 'POST', {});
+                if (res.success && container && loading) {
+                    const item = res.data.find(p => p.key === 'struktur_diagram');
+                    if (item && item.content) {
+                        const data = JSON.parse(item.content);
+                        loading.style.display = 'none';
+                        if (typeof jsPlumb === 'undefined') {
+                            loading.textContent = '⚠️ Pustaka diagram (jsPlumb) gagal dimuat.';
+                            return;
+                        }
+                        diagramInstance = jsPlumb.getInstance({
+                            Connector: ["Straight", { gap: 5 }], PaintStyle: { strokeWidth: 2, stroke: "#0f2922" },
+                            Endpoint: ["Rectangle", { width: 12, height: 12 }], EndpointStyle: { fill: "#0f2922" },
+                            Anchors: ["Right", "Left", "Top", "Bottom"], Container: container
+                        });
+                        data.nodes.forEach(nodeData => {
+                            const node = document.createElement('div');
+                            node.id = nodeData.id; node.className = 'node-box';
+                            node.style.left = nodeData.x + 'px'; node.style.top = nodeData.y + 'px';
+                            node.style.width = nodeData.width + 'px'; node.style.height = nodeData.height + 'px';
+                            node.textContent = nodeData.label; container.appendChild(node);
+                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Right", uuid: nodeData.id + "-right" });
+                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Left", uuid: nodeData.id + "-left" });
+                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Top", uuid: nodeData.id + "-top" });
+                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Bottom", uuid: nodeData.id + "-bottom" });
+                        });
+                        data.connections.forEach(conn => diagramInstance.connect({ uuids: [conn.source + "-bottom", conn.target + "-top"] }));
+                        setTimeout(() => diagramInstance.repaintEverything(), 100);
+                    } else { loading.textContent = 'Belum ada diagram struktur.'; }
+                }
+            } catch (error) { if (loading) loading.textContent = 'Error: ' + error.message; }
+        }
+
+        // Event listeners untuk modal struktur
+        const showBtn = document.getElementById('show-full-structure');
+        const modal = document.getElementById('structure-modal');
+        const closeBtn = document.getElementById('close-structure-modal');
+        if (showBtn && modal) {
+            showBtn.addEventListener('click', function() {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                loadDiagram();
+            });
+        }
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+                if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
+            });
+        }
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === e.currentTarget) {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
+                }
+            });
+        }
+
+        // Jalankan loading data
+        await loadProfilData();
+        await loadStruktur();
+    })();
+</script>

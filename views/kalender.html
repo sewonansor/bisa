@@ -1,0 +1,151 @@
+<!-- views/kalender.html -->
+<!-- Fragment Halaman Kalender Publik -->
+<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+
+<!-- HERO SECTION -->
+<section class="hero-light dark:hero-dark py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-text font-amiri">Kalender Kegiatan</h1>
+        <p class="text-xl md:text-2xl mb-8 opacity-90">Timeline lengkap persiapan, pelaksanaan, dan pasca acara</p>
+    </div>
+</section>
+
+<!-- KALENDER -->
+<section class="py-16 bg-gray-100/50 dark:bg-transparent">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-purple-200 glow-text font-amiri">Timeline Kegiatan</h2>
+        <div id="calendar" class="max-w-5xl mx-auto"></div>
+    </div>
+</section>
+
+<!-- SCRIPT INLINE (akan dieksekusi oleh router) -->
+<script>
+    (function() {
+        // Daftarkan modul kalender publik
+        App.register('kalender', function() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            // Fungsi load data timeline (sama seperti di admin)
+            async function loadTimelineData() {
+                const [lpjResult, eventsResult] = await Promise.all([
+                    apiCall('getLpj', 'POST', {}),
+                    apiCall('getEvents', 'POST', {})
+                ]);
+
+                const events = [];
+
+                // 1. Dari LPJ (kegiatan yang sudah/sedang berjalan) - warna hijau
+                if (lpjResult.success) {
+                    lpjResult.data.forEach(item => {
+                        events.push({
+                            id: 'lpj_' + item.id,
+                            title: '📋 ' + (item.kegiatan || 'Kegiatan'),
+                            start: item.tanggal_mulai,
+                            end: item.tanggal_selesai,
+                            backgroundColor: '#16a34a',
+                            borderColor: '#16a34a',
+                            textColor: '#ffffff',
+                            extendedProps: {
+                                type: 'kegiatan',
+                                deskripsi: item.deskripsi || '',
+                                tempat: item.tempat || '-'
+                            }
+                        });
+                    });
+                }
+
+                // 2. Dari Events (rencana/persiapan) - warna biru
+                if (eventsResult.success) {
+                    eventsResult.data.forEach(item => {
+                        events.push({
+                            id: 'evt_' + item.id,
+                            title: '📌 ' + (item.title || 'Rencana'),
+                            start: item.start,
+                            end: item.end || item.start,
+                            backgroundColor: '#2563eb',
+                            borderColor: '#2563eb',
+                            textColor: '#ffffff',
+                            extendedProps: {
+                                type: 'rencana'
+                            }
+                        });
+                    });
+                }
+
+                return events;
+            }
+
+            // Inisialisasi kalender
+            function initCalendar(events) {
+                // Deteksi dark mode untuk override warna
+                const isDark = document.documentElement.classList.contains('dark');
+                if (isDark) {
+                    events.forEach(e => {
+                        if (e.extendedProps.type === 'kegiatan') {
+                            e.backgroundColor = '#16a34a';
+                            e.borderColor = '#16a34a';
+                        } else {
+                            e.backgroundColor = '#7c3aed';
+                            e.borderColor = '#7c3aed';
+                        }
+                    });
+                }
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listWeek'
+                    },
+                    events: events,
+                    eventClick: function(info) {
+                        const event = info.event;
+                        let detail = `📅 ${event.title}\n`;
+                        detail += `📆 Mulai: ${event.start.toLocaleDateString('id-ID')}`;
+                        if (event.end && event.end.toDateString() !== event.start.toDateString()) {
+                            detail += `\n📆 Selesai: ${event.end.toLocaleDateString('id-ID')}`;
+                        }
+                        if (event.extendedProps.tempat) {
+                            detail += `\n📍 Tempat: ${event.extendedProps.tempat}`;
+                        }
+                        if (event.extendedProps.deskripsi) {
+                            detail += `\n📝 Deskripsi: ${event.extendedProps.deskripsi}`;
+                        }
+                        alert(detail);
+                    },
+                    windowResize: function(view) {
+                        calendar.render();
+                    }
+                });
+                calendar.render();
+            }
+
+            // Load data dan inisialisasi
+            loadTimelineData().then(events => initCalendar(events));
+        });
+
+        // Modul sudah terdaftar, router akan memanggil App.run('kalender')
+        // Jika kita ingin langsung menjalankan saat view dimuat (tidak perlu menunggu router),
+        // kita bisa panggil App.run('kalender') di sini, tapi router sudah melakukannya.
+        // Untuk keamanan, kita biarkan saja.
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    .hero-light { background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); color: #1e293b; }
+    .dark .hero-dark { background: linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 100%); color: #f0eaff; box-shadow: inset 0 0 100px rgba(128, 90, 213, 0.1); }
+    .dark .glow-text { text-shadow: 0 0 20px rgba(167, 139, 250, 0.3); }
+    .dark .fc-theme-standard { background-color: transparent; color: #e0d6f5; }
+    .dark .fc-theme-standard .fc-col-header-cell { background-color: rgba(20, 15, 40, 0.5); border-color: rgba(128, 90, 213, 0.3); }
+    .dark .fc-theme-standard .fc-daygrid-day { border-color: rgba(128, 90, 213, 0.2); }
+    .dark .fc-theme-standard .fc-daygrid-day-number { color: #e0d6f5; }
+    .dark .fc-theme-standard .fc-event { border: none; cursor: pointer; }
+    .dark .fc-theme-standard .fc-button-primary { background: rgba(128, 90, 213, 0.3); border-color: rgba(128, 90, 213, 0.5); color: #e0d6f5; }
+    .dark .fc-theme-standard .fc-button-primary:hover { background: rgba(128, 90, 213, 0.5); border-color: #a78bfa; }
+    .dark .fc-theme-standard .fc-toolbar-title { color: #e0d6f5; }
+    .dark .fc-theme-standard .fc-day-today { background: rgba(128, 90, 213, 0.15) !important; }
+    .fc-theme-standard { background: white; border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+</style>

@@ -1,0 +1,211 @@
+<!-- views/absensi_admin.html -->
+<!-- Halaman Admin: Manajemen Absensi (QR + Password + Regenerate + Download QR + Logo) -->
+
+<div id="main-content">
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Absensi</h1>
+        <div class="flex gap-2">
+            <input type="date" id="filter-date" class="px-3 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button id="export-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-download"></i> Export CSV</button>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
+
+    <!-- Panel Kontrol QR + Preview QR + Download -->
+    <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow mb-6 border border-[var(--card-border)]">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-qrcode text-2xl text-[var(--text-main)]"></i>
+                <div>
+                    <h3 class="font-bold">QR Absensi</h3>
+                    <p id="qr-status-text-admin" class="text-sm text-muted">Memuat status...</p>
+                    <p id="qr-token-text-admin" class="text-xs text-muted">Token: -</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="qr-toggle-btn" class="btn-primary px-4 py-2 rounded-lg">Aktifkan QR</button>
+                <button id="qr-regenerate-btn" class="btn-secondary px-4 py-2 rounded-lg" title="Buat QR baru (QR lama langsung tidak berlaku)">
+                    <i class="fas fa-sync-alt mr-1"></i> Regenerate QR
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview QR & Download (dengan logo di tengah) -->
+        <div id="qr-preview-container" class="mt-4 flex flex-col items-center">
+            <div id="qr-preview" class="bg-white p-4 rounded-xl border border-gray-300 relative">
+                <div id="qr-code-display" class="w-48 h-48 flex items-center justify-center relative">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                </div>
+                <!-- Logo Ansor di tengah (overlay) -->
+                <div id="qr-logo-overlay">
+                    <img src="logo-ansor.webp" alt="Logo" />
+                </div>
+            </div>
+            <button id="download-qr-btn" class="btn-secondary mt-3 px-4 py-2 rounded-lg" disabled>
+                <i class="fas fa-download mr-1"></i> Download QR
+            </button>
+            <p class="text-xs text-muted mt-2">QR ini menampilkan token aktif dan dapat diunduh.</p>
+        </div>
+    </div>
+
+    <!-- Panel Manajemen Password -->
+    <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow mb-6 border border-[var(--card-border)]">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="fas fa-lock text-2xl text-[var(--text-main)]"></i>
+            <h3 class="font-bold">Password Akses Langsung</h3>
+        </div>
+        <p class="text-sm text-muted mb-3">Password digunakan jika pengguna membuka <code>/absensi</code> langsung tanpa scan QR.</p>
+        <div class="flex gap-2">
+            <input type="text" id="password-input-admin" placeholder="Password baru" class="flex-1 px-4 py-2 border rounded-lg bg-[var(--bg-body)] text-[var(--text-main)]">
+            <button id="save-password-btn" class="btn-primary px-4 py-2 rounded-lg">Simpan Password</button>
+        </div>
+        <p id="password-msg" class="text-sm text-muted mt-2"></p>
+    </div>
+
+    <!-- Tabel Absensi -->
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[var(--bg-stats)]">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">Nama</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">Alamat</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">Waktu</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">TTD</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="absensi-table-body">
+                    <tr><td colspan="6" class="text-center py-4">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi) -->
+<script>
+    console.log('absensi_admin view loaded');
+</script>
+
+<!-- STYLE INLINE -->
+<style>
+    .btn-primary {
+        background: #0f2922;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-primary:hover {
+        background: #1a3c34;
+        transform: translateY(-2px);
+    }
+    .dark .btn-primary {
+        background: #fbbf24;
+        color: #0f2922;
+    }
+    .dark .btn-primary:hover {
+        background: #f59e0b;
+    }
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+    .table-thumb {
+        width: 80px;
+        height: 40px;
+        object-fit: contain;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+    }
+
+    /* Preview QR */
+    #qr-preview-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    #qr-preview {
+        padding: 1rem;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    #qr-code-display canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .dark #qr-preview {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    /* Logo overlay di tengah QR */
+    #qr-logo-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: #ffffff;
+        border-radius: 50%;
+        padding: 2px;
+        box-shadow: 0 0 0 3px #ffffff;
+        pointer-events: none;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #qr-logo-overlay img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 50%;
+    }
+
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>

@@ -1,0 +1,128 @@
+<!-- views/surat_preview.html -->
+<!-- Halaman Preview & Cetak Surat Resmi -->
+<!-- Versi: 1.0.1 - Fixed (No Empty Ruleset, Print Ready) -->
+
+<div id="main-content">
+    <!-- Toolbar Aksi (Disembunyikan saat print) -->
+    <div class="flex justify-between items-center mb-6 no-print">
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-amiri">Preview Surat</h1>
+        <div class="flex gap-2">
+            <button id="back-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-arrow-left"></i> Kembali</button>
+            <button id="print-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-print"></i> Cetak / Simpan PDF</button>
+        </div>
+    </div>
+
+    <!-- Area Preview Surat -->
+    <div id="surat-preview-container" class="bg-white shadow-2xl rounded-lg p-8 text-black mx-auto" style="font-family: 'Times New Roman', serif; max-width: 900px; line-height: 1.6;">
+        <!-- Loading State -->
+        <div id="preview-loading" class="text-center py-20">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
+            <p class="text-gray-500 mt-4">Memuat surat...</p>
+        </div>
+
+        <!-- KOP SURAT -->
+        <div id="kop-surat" class="hidden mb-6">
+            <div class="flex items-center justify-between border-b-4 border-black pb-4">
+                <!-- Logo Organisasi -->
+                <img src="logo-ansor.webp" alt="Logo Ansor" class="h-24 w-auto object-contain" />
+                
+                <!-- Nama Organisasi & Alamat -->
+                <div class="text-center flex-1">
+                    <h1 class="text-2xl font-bold uppercase leading-tight">Pimpinan Anak Cabang</h1>
+                    <h1 class="text-2xl font-bold uppercase leading-tight">Gerakan Pemuda Ansor</h1>
+                    <h1 class="text-2xl font-bold uppercase leading-tight">Kapanewon Sewon</h1>
+                    <div class="text-xs mt-2">
+                        <p>Alamat: Komplek Masjid Baitul Hadi Jalan Parangtritis Km 4,5</p>
+                        <p>Telp: 083866675221 | Email: sewon.ansor@gmail.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ISI SURAT -->
+        <div id="isi-surat" class="hidden">
+            <!-- Tanggal Surat -->
+            <div class="text-right text-sm mb-4" id="surat-tanggal"></div>
+
+            <!-- Nomor Surat, Lampiran, Perihal -->
+            <div class="space-y-1 text-sm">
+                <p><span class="inline-block w-24">No</span> : <span id="surat-nomor" class="font-semibold"></span></p>
+                <p><span class="inline-block w-24">Lampiran</span> : <span id="surat-lampiran">-</span></p>
+                <p><span class="inline-block w-24">Hal</span> : <span id="surat-perihal" class="font-semibold"></span></p>
+            </div>
+
+            <!-- Tujuan Surat -->
+            <div class="mt-6 text-sm">
+                <p>Kepada Yth.</p>
+                <p id="surat-penerima" class="font-semibold"></p>
+                <p>Di Tempat</p>
+            </div>
+
+            <!-- Pembuka Surat -->
+            <div class="mt-4 text-sm">
+                <p>Assalamu'alaikum wr. wb.</p>
+                <p class="mb-4">Bismillahirrohmanirrohim.</p>
+            </div>
+
+            <!-- Isi Surat Utama -->
+            <div id="surat-isi" class="text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]"></div>
+
+            <!-- Penutup Surat -->
+            <div class="mt-8 text-sm">
+                <p>Demikian surat permohonan ini disampaikan, atas perhatian dan kerjasamanya diucapkan terima kasih.</p>
+                <p class="mt-2">Wallahul Muwaffiq ila Aqwamith-thoriq</p>
+                <p>Wassalamu'alaikum wr. wb.</p>
+            </div>
+
+            <!-- Tanda Tangan -->
+            <div class="text-right mt-10 text-sm">
+                <p>Pimpinan Anak Cabang</p>
+                <p>Gerakan Pemuda Ansor Kapanewon Sewon</p>
+                <div class="mt-10 h-8"></div> <!-- Spasi untuk tanda tangan -->
+                <p class="font-bold underline" id="surat-pengirim"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Style untuk Preview & Print -->
+<style>
+    #surat-preview-container {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    /* Tidak ada ruleset kosong untuk .no-print */
+
+    @media print {
+        /* Sembunyikan toolbar dan elemen non-surat */
+        .no-print, #back-btn, #print-btn {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        #main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        #surat-preview-container {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Pastikan kop surat dan isi tetap terlihat */
+        #kop-surat, #isi-surat {
+            display: block !important;
+        }
+    }
+</style>

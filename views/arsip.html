@@ -1,0 +1,208 @@
+<!-- views/arsip.html -->
+<!-- Fragment Halaman Arsip Publik -->
+<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+
+<!-- HERO SECTION -->
+<section class="hero-light dark:hero-dark py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-text font-amiri">Arsip Digital</h1>
+        <p class="text-xl md:text-2xl mb-8 opacity-90">Kumpulan dokumentasi, laporan, dan arsip PAC GP Ansor Kapanewon Sewon</p>
+    </div>
+</section>
+
+<!-- FILTER TAHUN -->
+<section class="py-8 bg-white/50 dark:bg-transparent">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-3">
+            <button class="filter-btn px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition" data-year="all">Semua</button>
+            <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-year="2026">2026</button>
+            <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-year="2025">2025</button>
+            <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-year="2024">2024</button>
+            <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-year="2023">2023</button>
+        </div>
+    </div>
+</section>
+
+<!-- DAFTAR ARSIP -->
+<section class="py-16 bg-gray-100/50 dark:bg-transparent">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12 text-[var(--text-main)] dark:text-purple-200 glow-text font-amiri">Daftar Arsip</h2>
+        
+        <!-- SKELETON LOADING -->
+        <div id="arsip-skeleton" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="light-card dark:dark-card p-6"><div class="skeleton-box h-32 w-full"></div></div>
+        </div>
+        
+        <!-- KONTEN ASLI -->
+        <div id="arsip-list" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-[var(--text-muted)] col-span-full text-center py-8">Memuat data...</p>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT INLINE -->
+<script>
+    (function() {
+        // Daftarkan modul arsip
+        App.register('arsip', function() {
+            const skeleton = document.getElementById('arsip-skeleton');
+            const container = document.getElementById('arsip-list');
+            
+            // Tampilkan skeleton, sembunyikan konten
+            skeleton.classList.remove('hidden');
+            container.classList.add('hidden');
+
+            async function loadArsip() {
+                try {
+                    const result = await apiCall('getArsip', 'POST', {});
+                    
+                    // Sembunyikan skeleton, tampilkan konten
+                    skeleton.classList.add('hidden');
+                    container.classList.remove('hidden');
+
+                    if (result.success && result.data.length > 0) {
+                        renderArsip(result.data);
+                    } else if (result.success && result.data.length === 0) {
+                        container.innerHTML = `<p class="text-[var(--text-muted)] col-span-full text-center">Belum ada arsip.</p>`;
+                    } else {
+                        container.innerHTML = `<p class="text-red-500 dark:text-red-400 col-span-full text-center">${result.message || 'Gagal memuat data'}</p>`;
+                    }
+                } catch (error) {
+                    skeleton.classList.add('hidden');
+                    container.classList.remove('hidden');
+                    container.innerHTML = `<p class="text-red-500 dark:text-red-400 col-span-full text-center">Error: ${error.message}</p>`;
+                }
+            }
+
+            function renderArsip(data) {
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-[var(--text-muted)] col-span-full text-center">Belum ada arsip.</p>`;
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    // Tentukan ikon berdasarkan jenis
+                    let iconClass = 'fa-file';
+                    let jenisLabel = 'File';
+                    if (item.jenis === 'pdf') { iconClass = 'fa-file-pdf'; jenisLabel = 'PDF'; }
+                    else if (item.jenis === 'docx') { iconClass = 'fa-file-word'; jenisLabel = 'DOCX'; }
+                    else if (item.jenis === 'xlsx') { iconClass = 'fa-file-excel'; jenisLabel = 'XLSX'; }
+                    else if (item.jenis === 'img') { iconClass = 'fa-image'; jenisLabel = 'Gambar'; }
+                    else if (item.jenis === 'video') { iconClass = 'fa-video'; jenisLabel = 'Video'; }
+                    else { iconClass = 'fa-file'; jenisLabel = 'File'; }
+
+                    // Tag warna berdasarkan kategori
+                    let tagClass = 'category-tag-other';
+                    if (item.kategori === 'dokumen') tagClass = 'category-tag-doc';
+                    else if (item.kategori === 'laporan') tagClass = 'category-tag-pdf';
+                    else if (item.kategori === 'foto') tagClass = 'category-tag-img';
+                    else if (item.kategori === 'video') tagClass = 'category-tag-video';
+
+                    html += `
+                        <div class="light-card dark:dark-card p-6 archive-item" data-year="${item.tahun || ''}">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-3xl text-blue-600 dark:text-purple-400">
+                                        <i class="fas ${iconClass}"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-[var(--text-main)] dark:text-purple-200">${item.judul}</h3>
+                                        <p class="text-sm text-[var(--text-muted)]">${item.tahun || '-'} • ${jenisLabel}</p>
+                                    </div>
+                                </div>
+                                <span class="category-tag ${tagClass}">${item.kategori}</span>
+                            </div>
+                            <p class="text-[var(--text-muted)] text-sm line-clamp-2 mb-3">${item.deskripsi || ''}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-[var(--text-muted)]"><i class="far fa-calendar mr-1"></i>${formatDate(item.created_at)}</span>
+                                ${item.file_url ? `<a href="${item.file_url}" target="_blank" class="btn-secondary text-sm px-3 py-1">Download</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+                // Aktifkan filter tahun setelah render
+                attachFilterListeners();
+            }
+
+            function attachFilterListeners() {
+                const filterBtns = document.querySelectorAll('.filter-btn');
+                const archiveItems = document.querySelectorAll('.archive-item');
+
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Reset semua tombol
+                        filterBtns.forEach(b => {
+                            b.classList.remove('bg-green-600', 'text-white');
+                            b.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                        });
+                        // Aktifkan tombol yang diklik
+                        this.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                        this.classList.add('bg-green-600', 'text-white');
+
+                        const year = this.getAttribute('data-year');
+                        archiveItems.forEach(item => {
+                            if (year === 'all' || item.getAttribute('data-year') === year) {
+                                item.style.display = 'block';
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+            }
+
+            loadArsip();
+        });
+
+        // Modul sudah terdaftar, router akan memanggil App.run('arsip')
+        // Jika kita ingin langsung menjalankan saat view dimuat, kita bisa panggil App.run('arsip')
+        // Tapi router sudah melakukannya.
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    /* HERO */
+    .hero-light { background: linear-gradient(145deg, #ffffff 0%, #e0e7ff 100%); color: #1e293b; }
+    .dark .hero-dark { background: linear-gradient(145deg, #1a0f2e 0%, #2d1b4e 100%); color: #f0eaff; box-shadow: inset 0 0 100px rgba(128, 90, 213, 0.1); }
+    .dark .glow-text { text-shadow: 0 0 20px rgba(167, 139, 250, 0.3); }
+
+    /* CARDS */
+    .light-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border-radius: 1.5rem; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .light-card:hover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); transform: translateY(-6px) scale(1.01); border-color: rgba(37, 99, 235, 0.2); }
+    .dark .dark-card { background: rgba(20, 15, 40, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(128, 90, 213, 0.3); box-shadow: 0 8px 32px rgba(128, 90, 213, 0.2); border-radius: 1rem; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .dark .dark-card:hover { box-shadow: 0 12px 40px rgba(128, 90, 213, 0.4); transform: scale(1.03); border-color: rgba(168, 85, 247, 0.6); }
+
+    /* CATEGORY TAGS */
+    .category-tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .category-tag-pdf { background: #fee2e2; color: #dc2626; }
+    .dark .category-tag-pdf { background: #7f1d1d; color: #fca5a5; }
+    .category-tag-doc { background: #dbeafe; color: #2563eb; }
+    .dark .category-tag-doc { background: #1e3a5f; color: #93c5fd; }
+    .category-tag-xlsx { background: #dcfce7; color: #16a34a; }
+    .dark .category-tag-xlsx { background: #14532d; color: #86efac; }
+    .category-tag-img { background: #fef3c7; color: #d97706; }
+    .dark .category-tag-img { background: #78350f; color: #fcd34d; }
+    .category-tag-video { background: #f3e8ff; color: #7c3aed; }
+    .dark .category-tag-video { background: #4c1d95; color: #c4b5fd; }
+    .category-tag-other { background: #f3f4f6; color: #4b5563; }
+    .dark .category-tag-other { background: #374151; color: #d1d5db; }
+
+    /* BUTTONS */
+    .btn-secondary { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 0.5rem 1.5rem; font-weight: 500; transition: all 0.3s; }
+    .btn-secondary:hover { background: #e2e8f0; transform: translateY(-2px); }
+    .dark .btn-secondary { background: rgba(255,255,255,0.05); color: #c4b5e0; border: 1px solid rgba(128,90,213,0.4); }
+    .dark .btn-secondary:hover { background: rgba(128,90,213,0.2); border-color: #a78bfa; }
+
+    /* SKELETON */
+    .skeleton-box { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.8s infinite; border-radius: 0.75rem; }
+    .dark .skeleton-box { background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%); }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+</style>

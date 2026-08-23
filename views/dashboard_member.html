@@ -1,0 +1,129 @@
+<!-- views/dashboard_member.html -->
+<!-- Fragment Dashboard Member -->
+<!-- Versi: 4.0.2 - Final Fix (Stable, No Loop) -->
+
+<!-- Konten Dashboard Member -->
+<div id="member-frame-content">
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Dashboard Member</h1>
+        <div class="flex items-center gap-3">
+            <button id="refresh-member-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <div class="flex items-center text-sm text-[var(--text-muted)]">
+                <i class="fas fa-clock mr-2"></i> <span id="current-time"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SKELETON LOADING -->
+    <div id="member-skeleton" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-24 w-full"></div></div>
+        <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-24 w-full"></div></div>
+        <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-24 w-full"></div></div>
+    </div>
+
+    <!-- KONTEN ASLI -->
+    <div id="member-dashboard-content" class="hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Surat Saya</p>
+                        <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-surat-saya">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-[var(--text-main)]/10 flex items-center justify-center text-[var(--text-main)] text-xl">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-[var(--text-muted)]">Total LPJ Saya</p>
+                        <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-lpj-saya">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-[var(--text-main)]/10 flex items-center justify-center text-[var(--text-main)] text-xl">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-[var(--text-muted)]">Role</p>
+                        <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="user-role-here">Member</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-[var(--text-main)]/10 flex items-center justify-center text-[var(--text-main)] text-xl">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] font-amiri">Surat Terbaru Saya</h2>
+                <div id="recent-surat-saya" class="space-y-3">
+                    <p class="text-[var(--text-muted)]">Belum ada data</p>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] font-amiri">LPJ Terbaru Saya</h2>
+                <div id="recent-lpj-saya" class="space-y-3">
+                    <p class="text-[var(--text-muted)]">Belum ada data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<script>
+    (function() {
+        // Modul dashboard_member sudah terdaftar di js/dashboard_member.js via App.register('dashboard_member', ...)
+        // Router akan memanggil App.run('dashboard_member') setelah view di-inject.
+        console.log('dashboard_member view loaded');
+    })();
+</script>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    /* Skeleton */
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    /* Tombol secondary (untuk refresh) */
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+    .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: #c4b5e0;
+        border: 1px solid rgba(128,90,213,0.4);
+    }
+    .dark .btn-secondary:hover {
+        background: rgba(128,90,213,0.2);
+        border-color: #a78bfa;
+    }
+</style>

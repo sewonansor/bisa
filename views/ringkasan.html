@@ -1,0 +1,125 @@
+<!-- views/ringkasan.html -->
+<!-- Halaman Ringkasan Data - Preview Semua Modul Sebelum Kompilasi Laporan -->
+
+<div id="main-content">
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Ringkasan Data</h1>
+        <div class="flex gap-2">
+            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh
+            </button>
+            <a href="/lpj_report" class="btn-primary px-4 py-2 rounded-lg">
+                <i class="fas fa-file-alt mr-1"></i> Kompilasi Laporan
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigasi cepat ke modul -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a href="/surat_admin" class="btn-outline text-xs px-3 py-1">Surat</a>
+        <a href="/lpj_admin" class="btn-outline text-xs px-3 py-1">LPJ</a>
+        <a href="/keuangan_admin" class="btn-outline text-xs px-3 py-1">Keuangan</a>
+        <a href="/inventaris_admin" class="btn-outline text-xs px-3 py-1">Inventaris</a>
+        <a href="/galeri_admin" class="btn-outline text-xs px-3 py-1">Galeri</a>
+        <a href="/proker_admin" class="btn-outline text-xs px-3 py-1">Proker</a>
+        <a href="/forum_admin" class="btn-outline text-xs px-3 py-1">Forum</a>
+        <a href="/anggota_admin" class="btn-outline text-xs px-3 py-1">Anggota</a>
+        <a href="/tokoh_admin" class="btn-outline text-xs px-3 py-1">Tokoh</a>
+        <a href="/absensi_admin" class="btn-outline text-xs px-3 py-1">Absensi</a>
+        <a href="/profil_admin" class="btn-outline text-xs px-3 py-1">Profil/Struktur</a>
+    </div>
+
+    <!-- Container untuk preview data -->
+    <div id="ringkasan-data" class="space-y-8">
+        <!-- Akan diisi oleh JavaScript -->
+    </div>
+</div>
+
+<style>
+    .preview-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .preview-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .preview-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'Amiri', serif;
+    }
+    .preview-card h3 i {
+        color: #fbbf24;
+    }
+    .preview-card .count-badge {
+        background: var(--bg-stats);
+        border-radius: 9999px;
+        padding: 0.15rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-left: 0.5rem;
+    }
+    .preview-card .table-wrapper {
+        max-height: 300px;
+        overflow-y: auto;
+        border-radius: 0.75rem;
+        border: 1px solid var(--card-border);
+        margin-top: 0.75rem;
+    }
+    .preview-card table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    .preview-card th, .preview-card td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--card-border);
+        text-align: left;
+        white-space: nowrap;
+    }
+    .preview-card th {
+        background: var(--bg-stats);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .preview-card tr:hover {
+        background: var(--bg-stats);
+    }
+    .preview-card .empty-msg {
+        color: var(--text-muted);
+        font-style: italic;
+        margin-top: 0.5rem;
+    }
+    .preview-card .show-all-link {
+        display: inline-block;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        text-decoration: underline;
+    }
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+    }
+</style>
+
+<script>
+    (function() {
+        console.log('ringkasan view loaded');
+    })();
+</script>

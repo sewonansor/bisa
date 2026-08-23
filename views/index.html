@@ -1,0 +1,238 @@
+<!-- views/index.html -->
+<!-- Halaman Beranda Publik - Menampilkan Berita Terbaru -->
+<!-- Versi: 2.0.0 - Final (Berita, Bebas Error) -->
+
+<!-- HERO SECTION -->
+<section id="hero" class="w-full pt-32 pb-20 sm:pb-24 relative" style="background: var(--bg-hero);">
+    <div class="container mx-auto px-4 sm:px-6 text-center max-w-4xl relative z-10">
+        <div class="inline-block rounded-full px-4 py-1 text-xs sm:text-sm font-medium mb-6 bg-yellow-100/50 border border-yellow-200/50 text-amber-700 backdrop-blur-sm" data-aos="fade-up">
+            <i class="fas fa-leaf mr-2"></i> Organisasi Pemuda Islami
+        </div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-[var(--text-main)] leading-tight font-amiri" data-aos="fade-up" data-aos-delay="100">
+            PAC GP Ansor <br /> Kapanewon Sewon
+        </h1>
+        <p class="text-lg sm:text-xl md:text-2xl mb-8 text-[var(--text-muted)] font-light max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+            Mengabdi untuk Umat, Berjuang untuk Bangsa
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4" data-aos="fade-up" data-aos-delay="400">
+            <a href="/semua_berita" class="btn-outline text-sm sm:text-base w-full sm:w-auto text-center">Lihat Berita</a>
+            <a href="/absensi" class="btn-primary text-sm sm:text-base w-full sm:w-auto text-center">Absensi Digital</a>
+        </div>
+    </div>
+</section>
+
+<!-- PROFIL SECTION -->
+<section id="profil" class="w-full py-16 sm:py-20" style="background: var(--bg-profil);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Profil Organisasi</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-right">
+                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Sejarah</h3>
+                <div id="profil-sejarah" class="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">
+                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                </div>
+            </div>
+            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-left">
+                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Visi & Misi</h3>
+                <div id="profil-visi-misi" class="text-[var(--text-muted)] text-sm sm:text-base">
+                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-up">
+            <h3 class="text-xl sm:text-2xl font-bold mb-8 text-[var(--text-main)] text-center font-amiri">Struktur Organisasi</h3>
+            <div id="profil-struktur" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                <!-- Skeleton Loading -->
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+            </div>
+            <div class="text-center mt-8">
+                <button id="show-full-structure" class="btn-outline text-sm">Lihat Selengkapnya</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TRANSPARANSI KEUANGAN -->
+<section id="keuangan" class="w-full py-16 sm:py-20" style="background: var(--bg-stats);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">
+            Transparansi Keuangan
+        </h2>
+        <div id="keuangan-summary" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <!-- Kartu akan diisi oleh JavaScript -->
+            <div class="glass-card p-6 rounded-2xl text-center">
+                <div class="skeleton-box h-12 w-full"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl text-center">
+                <div class="skeleton-box h-12 w-full"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl text-center">
+                <div class="skeleton-box h-12 w-full"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
+            </div>
+        </div>
+        <div class="text-center" data-aos="fade-up">
+            <a href="/keuangan" class="btn-outline text-sm">Lihat Detail Keuangan</a>
+        </div>
+    </div>
+</section>
+
+<!-- JUMLAH ANGGOTA PER RANTING -->
+<section id="stats" class="w-full py-16 sm:py-20" style="background: var(--bg-stats);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Jumlah Anggota per Ranting</h2>
+        <div id="village-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
+            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
+            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
+            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- BERITA TERBARU (menggantikan Kegiatan Terbaru) -->
+<section id="berita" class="w-full py-16 sm:py-20" style="background: var(--bg-kegiatan);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Berita Terbaru</h2>
+        <div id="berita-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Skeleton loading items -->
+            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
+            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
+            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
+        </div>
+        <div class="text-center mt-8" data-aos="fade-up">
+            <a href="/semua_berita" class="btn-outline text-sm">Lihat Berita Selengkapnya</a>
+        </div>
+    </div>
+</section>
+
+<!-- GALERI DOKUMENTASI -->
+<section id="galeri" class="w-full py-16 sm:py-20 overflow-hidden" style="background: var(--bg-galeri);">
+    <div class="w-full px-0">
+        <div class="container mx-auto px-4 sm:px-6 mb-12">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center text-[var(--text-main)] font-amiri" data-aos="fade-up">Galeri Dokumentasi</h2>
+        </div>
+        <div class="swiper galeriSwiper !px-4 sm:!px-6 pb-8">
+            <div class="swiper-wrapper" id="galeri-wrapper">
+                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
+                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
+                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</section>
+
+<!-- KALENDER / TIMELINE -->
+<section id="kalender" class="w-full py-16 sm:py-20" style="background: var(--bg-kalender);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Kalender / Timeline Kegiatan</h2>
+        <div id="calendar" class="max-w-full mx-auto bg-[var(--card-bg)] backdrop-blur-sm p-4 rounded-2xl border border-[var(--card-border)] shadow-sm"></div>
+    </div>
+</section>
+
+<!-- ARSIP DOKUMEN -->
+<section id="dokumen" class="w-full py-16 sm:py-20" style="background: var(--bg-dokumen);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Arsip Dokumen</h2>
+        <div id="arsip-dokumen-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-32 w-full"></div></div>
+            <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-32 w-full"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- KONTAK -->
+<section id="kontak" class="w-full py-16 sm:py-20" style="background: var(--bg-kontak);">
+    <div class="container mx-auto px-4 sm:px-6 max-w-5xl">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Kontak Kami</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="glass-card p-6 flex items-center space-x-4 rounded-2xl" data-aos="fade-right">
+                <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0"><i class="fas fa-map-marker-alt"></i></div>
+                <div><h4 class="font-semibold text-[var(--text-main)]">Alamat</h4><p class="text-sm text-[var(--text-muted)]">Jl. Contoh No. 123, Kapanewon Sewon, Bantul</p></div>
+            </div>
+            <div class="glass-card p-6 flex items-center space-x-4 rounded-2xl" data-aos="fade-left">
+                <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0"><i class="fas fa-phone"></i></div>
+                <div><h4 class="font-semibold text-[var(--text-main)]">Telepon</h4><p class="text-sm text-[var(--text-muted)]">+62 812 3456 7890</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MODAL STRUKTUR -->
+<div id="structure-modal" class="hidden">
+    <div id="structure-modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold font-amiri">Diagram Struktur Organisasi</h2>
+            <button id="close-structure-modal" class="text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="diagram-container" class="w-full min-h-[500px] border-2 border-dashed border-[var(--card-border)] rounded-lg p-4 relative bg-[var(--bg-stats)]">
+            <div id="diagram-loading" class="text-center py-4 text-[var(--text-muted)]">Memuat diagram...</div>
+        </div>
+    </div>
+</div>
+
+<!-- SCROLL TO TOP BUTTON (mungkin di luar konten, tapi disertakan agar konsisten) -->
+<button id="scroll-top-btn" class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[#0f2922] text-white shadow-xl hover:bg-[#1a4038] hover:scale-110 transition-all duration-300 flex items-center justify-center border border-white/20 backdrop-blur-sm hidden opacity-0 translate-y-5">
+    <i class="fas fa-chevron-up text-lg"></i>
+</button>
+
+<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<style>
+    section[id] { scroll-margin-top: 80px; }
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.8s infinite;
+        border-radius: 0.75rem;
+    }
+    .dark .skeleton-box {
+        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    #scroll-top-btn.show {
+        display: flex !important;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .berita-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .berita-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        border-color: var(--text-main);
+    }
+    .berita-card .skeleton-box {
+        height: 200px;
+    }
+    /* Responsive grid for berita */
+    #berita-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+
+<!-- SCRIPT INLINE (hanya konfirmasi, tidak mendaftarkan modul) -->
+<script>
+    console.log('index view loaded');
+</script>

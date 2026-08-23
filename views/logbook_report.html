@@ -1,0 +1,254 @@
+<!-- views/logbook_report.html -->
+<!-- Halaman Laporan Lengkap Logbook - Multi-Halaman, Premium, Siap Cetak -->
+<!-- Versi: 2.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+
+<div id="main-content">
+    <!-- Toolbar Aksi (Disembunyikan saat print) -->
+    <div class="flex flex-wrap justify-between items-center mb-6 no-print">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Laporan Lengkap Logbook</h1>
+        <div class="flex gap-2">
+            <button id="back-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
+            <button id="print-pdf-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-file-pdf mr-1"></i> Cetak PDF</button>
+            <button id="export-docx-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-file-word mr-1"></i> Export DOCX</button>
+        </div>
+    </div>
+
+    <!-- Area Laporan -->
+    <div id="report-area" class="bg-white p-4 sm:p-8 shadow-2xl rounded-2xl border border-gray-200 max-w-[900px] mx-auto">
+        <!-- Loading -->
+        <div id="report-loading" class="text-center py-20">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
+            <p class="text-gray-500 mt-4">Menyusun laporan...</p>
+        </div>
+
+        <!-- Konten Laporan (diisi oleh JS) -->
+        <div id="report-content" class="hidden"></div>
+    </div>
+</div>
+
+<!-- Style untuk Laporan Premium -->
+<style>
+    /* ===================== SCREEN STYLES (untuk tampilan di web) ===================== */
+    @media screen {
+        .report-cover {
+            background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            page-break-after: always; /* Cetak: halaman baru setelah cover */
+        }
+        .report-cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 80%;
+            height: 80%;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 50%;
+        }
+        .report-cover img {
+            width: 120px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        .report-cover h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            font-family: 'Amiri', serif;
+            margin: 0.5rem 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .report-cover p {
+            color: #d1fae5;
+            margin: 0.25rem 0;
+            font-weight: 300;
+        }
+        .report-cover .subtitle {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* Section headings */
+        .report-section {
+            margin-bottom: 2.5rem;
+            page-break-after: always; /* Setiap section di halaman baru? Atau atur manual */
+        }
+        .report-section:last-child {
+            page-break-after: auto;
+        }
+        .report-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-left: 6px solid #fbbf24;
+            padding-left: 1rem;
+            margin-bottom: 1.25rem;
+            color: #0f2922;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .report-section h2 i {
+            color: #fbbf24;
+            font-size: 1.25rem;
+        }
+
+        /* Ringkasan Eksekutif */
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .report-summary-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .report-summary-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
+        .report-summary-box .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .report-summary-box .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .report-summary-box .value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0f2922;
+        }
+
+        /* Tabel Premium */
+        .report-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+        .report-table th {
+            background: #0f2922;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            padding: 0.85rem 1rem;
+            border: none;
+        }
+        .report-table td {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0.85rem 1rem;
+            color: #334155;
+            font-size: 0.9rem;
+        }
+        .report-table tr:last-child td { border-bottom: none; }
+        .report-table tbody tr:hover { background-color: #f8fafc; }
+
+        .text-green { color: #059669; }
+        .text-red { color: #dc2626; }
+        .text-blue { color: #2563eb; }
+
+        /* Tanda Tangan */
+        .signature-block {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            page-break-inside: avoid;
+        }
+        .signature-box {
+            text-align: center;
+            width: 40%;
+        }
+        .signature-box .line {
+            border-bottom: 2px solid #0f2922;
+            margin: 2rem 0 0.5rem;
+            height: 2rem;
+        }
+        .signature-box .name {
+            font-weight: 600;
+            color: #0f2922;
+        }
+        .signature-box .role {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        /* Paragraf narasi */
+        .report-intro {
+            color: #475569;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    /* ===================== PRINT STYLES (Export PDF / Cetak) ===================== */
+    @media print {
+        .no-print, #back-btn, #print-pdf-btn, #export-docx-btn { display: none !important; }
+        #report-area {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+        body { background: white !important; }
+        
+        /* Cover Print */
+        .report-cover {
+            background: white !important;
+            border: 4px solid #0f2922;
+            color: black !important;
+            padding: 2rem;
+            box-shadow: none !important;
+            page-break-after: always;
+        }
+        .report-cover h1 { color: black !important; text-shadow: none !important; }
+        .report-cover p { color: #333 !important; }
+        
+        .report-summary-box { background: white !important; color: black !important; box-shadow: none !important; border: 1px solid #ccc; }
+        .report-summary-box .label { color: #555 !important; }
+        .report-summary-box .value { color: black !important; }
+        
+        .report-table th { background: #ddd !important; color: black !important; }
+        .report-table td { border-bottom: 1px solid #ccc; color: black !important; }
+        .report-section h2 { border-left-color: #333 !important; color: black !important; }
+        
+        .report-section {
+            page-break-after: always;
+        }
+        .report-section:last-child {
+            page-break-after: auto;
+        }
+        .signature-block { page-break-inside: avoid; }
+    }
+</style>
+
+<!-- Skrip kecil hanya untuk placeholder (tetap di-handle oleh JS) -->
+<script>
+    (function() {
+        console.log('logbook_report view loaded');
+    })();
+</script>
