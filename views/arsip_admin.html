@@ -1,45 +1,59 @@
 <!-- views/arsip_admin.html -->
-<!-- Fragment Manajemen Arsip Digital untuk Admin -->
-<!-- Versi: 4.0.2 - Final Fix (Stable, No Loop) -->
+<!-- Halaman Admin: Manajemen Arsip Digital -->
+<!-- Logic: js/arsip_admin.js | Route: /arsip_admin -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- Konten Utama -->
 <div id="main-content">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Arsip Digital</h1>
-        <div class="flex gap-2">
-            <button id="refresh-arsip-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i> Refresh
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-archive mr-2"></i>
+            Manajemen Arsip Digital
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="refresh-arsip-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
             </button>
-            <button id="add-arsip-btn" class="btn-primary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-plus"></i> Tambah Arsip
+            <button id="add-arsip-btn"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Arsip</span>
             </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+            <button id="mobile-menu-btn"
+                    class="md:hidden text-2xl text-[var(--text-muted)]"
+                    aria-label="Buka Menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </div>
 
-    <!-- Tabel Arsip -->
-    <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+    <!-- ============================================================ -->
+    <!-- TABEL ARSIP                                                   -->
+    <!-- ============================================================ -->
+    <div class="table-wrapper">
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-[var(--bg-stats)]">
+                <thead>
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Judul</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Tahun</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Kategori</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Jenis</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Deskripsi</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
+                        <th>No</th>
+                        <th>Judul</th>
+                        <th>Tahun</th>
+                        <th>Kategori</th>
+                        <th>Jenis</th>
+                        <th>Deskripsi</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="arsip-table-body" class="divide-y divide-[var(--card-border)]">
                     <!-- SKELETON LOADING -->
                     <tr id="arsip-skeleton">
                         <td colspan="7" class="text-center py-8">
-                            <div class="skeleton-box h-8 w-3/4 mx-auto mb-2"></div>
-                            <div class="skeleton-box h-8 w-1/2 mx-auto"></div>
+                            <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data arsip...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -48,24 +62,48 @@
     </div>
 </div>
 
-<!-- MODAL TAMBAH / EDIT ARSIP -->
-<div id="arsip-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
-        <h2 class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri" id="modal-title">Tambah Arsip</h2>
-        <form id="arsip-form">
+<!-- ============================================================ -->
+<!-- MODAL: TAMBAH / EDIT ARSIP                                    -->
+<!-- ============================================================ -->
+<div id="arsip-modal"
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
+    <div id="modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+
+        <h2 id="modal-title"
+            class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">
+            Tambah Arsip
+        </h2>
+
+        <form id="arsip-form" class="space-y-4">
             <input type="hidden" id="arsip-id">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Judul</label>
-                    <input type="text" id="arsip_judul" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Judul <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="arsip_judul"
+                           class="form-input"
+                           placeholder="Contoh: AD/ART Ansor 2026"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Tahun</label>
-                    <input type="text" id="arsip_tahun" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tahun <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="arsip_tahun"
+                           class="form-input"
+                           placeholder="Contoh: 2026"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Kategori</label>
-                    <select id="arsip_kategori" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Kategori <span class="text-red-500">*</span>
+                    </label>
+                    <select id="arsip_kategori" class="form-input" required>
                         <option value="dokumen">Dokumen</option>
                         <option value="laporan">Laporan</option>
                         <option value="foto">Foto</option>
@@ -73,9 +111,12 @@
                         <option value="lainnya">Lainnya</option>
                     </select>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Jenis File</label>
-                    <select id="arsip_jenis" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Jenis File <span class="text-red-500">*</span>
+                    </label>
+                    <select id="arsip_jenis" class="form-input" required>
                         <option value="pdf">PDF</option>
                         <option value="docx">DOCX</option>
                         <option value="xlsx">XLSX</option>
@@ -85,68 +126,72 @@
                     </select>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-[var(--text-muted)] mb-2">File URL</label>
-                <input type="text" id="arsip_file_url" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Link file (opsional)">
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    File URL
+                </label>
+                <input type="text" id="arsip_file_url"
+                       class="form-input"
+                       placeholder="Link file (opsional)">
+                <p class="text-xs text-[var(--text-muted)] mt-1">
+                    Bisa juga upload file di bawah ini (otomatis terisi).
+                </p>
             </div>
-            <div class="mb-4">
-                <label class="block text-[var(--text-muted)] mb-2">Deskripsi</label>
-                <textarea id="arsip_deskripsi" rows="3" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required></textarea>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Deskripsi <span class="text-red-500">*</span>
+                </label>
+                <textarea id="arsip_deskripsi" rows="3"
+                          class="form-input"
+                          placeholder="Deskripsi singkat arsip"
+                          required></textarea>
             </div>
-            <div class="flex justify-end gap-2">
-                <button type="button" id="modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
-                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="modal-close"
+                        class="btn-secondary px-4 py-2 rounded-lg">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Simpan</span>
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
     (function() {
-        // Modul arsip_admin sudah terdaftar di js/arsip_admin.js via App.register('arsip_admin', ...)
-        // Router akan memanggil App.run('arsip_admin') setelah view di-inject.
-        console.log('arsip_admin view loaded');
+        console.log('[View] arsip_admin.html loaded — logic handled by js/arsip_admin.js');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view arsip_admin saja                   -->
+<!-- Common styles (btn-primary, btn-secondary, form-input, table) -->
+<!-- sudah di-load dari css/style.css                              -->
+<!-- ============================================================ -->
 <style>
-    /* Skeleton */
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
-    }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
-    }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    /* Tombol secondary (untuk refresh) */
-    .btn-secondary {
-        background: #f1f5f9;
-        color: #1e293b;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    .btn-secondary:hover {
-        background: #e2e8f0;
-        transform: translateY(-2px);
-    }
-    .dark .btn-secondary {
-        background: rgba(255,255,255,0.05);
-        color: #c4b5e0;
-        border: 1px solid rgba(128,90,213,0.4);
-    }
-    .dark .btn-secondary:hover {
-        background: rgba(128,90,213,0.2);
-        border-color: #a78bfa;
+    /* View tidak butuh CSS khusus — semua pakai style.css.
+       JS akan auto-inject:
+       - arsip-stats (4 kartu)
+       - arsip-search-wrap (search + filter + export)
+       - arsip-bulk-bar (bulk actions)
+       - arsip-upload-preview (upload file)
+       - arsip-detail-modal (preview)
+       - arsip_file (file input) */
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        #arsip-modal .grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
     }
 </style>

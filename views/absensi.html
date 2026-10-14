@@ -1,13 +1,19 @@
 <!-- views/absensi.html -->
-<!-- Halaman Absensi Digital Publik - Self-Contained (CSS Inline, Logo di QR) -->
+<!-- Halaman Absensi Digital Publik -->
+<!-- Logic: js/absensi.js | Route: /absensi | Libs: qrcode -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
 <div class="absensi-hero">
     <h1>Absensi Digital</h1>
     <p>Catat kehadiran Anda secara digital dengan tanda tangan elektronik.</p>
 </div>
 
-<!-- QR SECTION -->
+<!-- ============================================================ -->
+<!-- QR SECTION                                                    -->
+<!-- ============================================================ -->
 <div class="absensi-section">
     <div class="absensi-center">
         <!-- Wrapper QR dengan logo di tengah -->
@@ -30,27 +36,39 @@
     </div>
 </div>
 
-<!-- FORM ABSENSI -->
-<div class="absensi-section" style="background: #f4f7f9;">
+<!-- ============================================================ -->
+<!-- FORM ABSENSI                                                  -->
+<!-- ============================================================ -->
+<div class="absensi-section absensi-section-alt">
     <div class="absensi-form-container">
         <div class="absensi-card">
             <h2>Form Absensi</h2>
             <form id="absensi-form">
-                <!-- Password Field (Di atas Nama, dengan label terpisah) -->
+
+                <!-- Password Field (di atas Nama, dengan label terpisah) -->
                 <div id="password-field" class="form-group hidden">
                     <label>Password Absensi</label>
-                    <input type="password" id="absensi_password" placeholder="Masukkan password" autocomplete="off">
+                    <input type="password" id="absensi_password"
+                           placeholder="Masukkan password"
+                           autocomplete="off">
                 </div>
+
                 <!-- Nama -->
                 <div class="form-group">
                     <label>Nama Lengkap</label>
-                    <input type="text" id="absensi_nama" placeholder="Masukkan nama" required>
+                    <input type="text" id="absensi_nama"
+                           placeholder="Masukkan nama"
+                           required>
                 </div>
+
                 <!-- Alamat -->
                 <div class="form-group">
                     <label>Alamat</label>
-                    <input type="text" id="absensi_alamat" placeholder="Masukkan alamat" required>
+                    <input type="text" id="absensi_alamat"
+                           placeholder="Masukkan alamat"
+                           required>
                 </div>
+
                 <!-- Tanda Tangan -->
                 <div class="form-group">
                     <label>Tanda Tangan</label>
@@ -59,6 +77,7 @@
                         <button type="button" id="clear-signature">Hapus</button>
                     </div>
                 </div>
+
                 <!-- Tombol -->
                 <div class="btn-row">
                     <button type="button" id="reset-form" class="btn-reset">Reset</button>
@@ -69,29 +88,96 @@
     </div>
 </div>
 
-<!-- DAFTAR ABSENSI -->
+<!-- ============================================================ -->
+<!-- DAFTAR ABSENSI TERBARU                                        -->
+<!-- ============================================================ -->
 <div class="absensi-section">
     <div class="absensi-center">
         <h2>Kehadiran Terbaru</h2>
         <div id="absensi-list" class="absensi-list">
-            <p style="text-align:center;">Memuat data...</p>
+            <p style="text-align: center;">Memuat data...</p>
         </div>
     </div>
 </div>
 
-<!-- ===== CSS INLINE LENGKAP ===== -->
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    .absensi-hero { background: linear-gradient(135deg, #f8fafc, #ecfdf5); padding: 80px 20px 30px; text-align: center; }
-    .absensi-hero h1 { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 5px; }
-    .absensi-hero p { color: #64748b; font-size: 1.1rem; }
-    .absensi-section { padding: 40px 20px; }
-    .absensi-center { max-width: 800px; margin: 0 auto; text-align: center; }
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] absensi.html loaded — logic handled by js/absensi.js');
+    })();
+</script>
 
-    /* QR WRAPPER dengan logo */
-    #qrcode-wrapper { display: inline-block; background: #fff; padding: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; width: 200px; height: 200px; }
-    .qr-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #94a3b8; }
-    #qrcode canvas { display: block; width: 100%; height: 100%; }
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view absensi saja                       -->
+<!-- Common styles (btn-primary, skeleton, form-input, dst.)       -->
+<!-- sudah di-load dari css/style.css                              -->
+<!-- ============================================================ -->
+<style>
+    /* ────────────── HERO ────────────── */
+    .absensi-hero {
+        background: linear-gradient(135deg, #f8fafc, #ecfdf5);
+        padding: 80px 20px 30px;
+        text-align: center;
+    }
+    .absensi-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 5px;
+        font-family: 'Amiri', 'Times New Roman', serif;
+    }
+    .absensi-hero p {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+
+    /* ────────────── SECTION ────────────── */
+    .absensi-section {
+        padding: 40px 20px;
+    }
+    .absensi-section-alt {
+        background: #f4f7f9;
+    }
+    .absensi-center {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .absensi-center h2 {
+        font-family: 'Amiri', serif;
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #0f2922;
+    }
+
+    /* ────────────── QR WRAPPER ────────────── */
+    #qrcode-wrapper {
+        display: inline-block;
+        background: #fff;
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        width: 200px;
+        height: 200px;
+    }
+    .qr-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #94a3b8;
+    }
+    #qrcode canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
 
     /* Logo overlay di tengah QR */
     #qrcode-logo-overlay {
@@ -119,40 +205,257 @@
     }
 
     /* Overlay status nonaktif */
-    #qr-status-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 5; }
+    #qr-status-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 5;
+    }
     #qr-status-overlay.hidden { display: none !important; }
-    #qr-status-overlay p { font-weight: 600; margin-top: 8px; }
-    #qr-status-overlay .small { font-size: 0.8rem; opacity: 0.8; }
-    .status-text { color: #64748b; margin-top: 10px; }
+    #qr-status-overlay p {
+        font-weight: 600;
+        margin-top: 8px;
+    }
+    #qr-status-overlay .small {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+    .status-text {
+        color: #64748b;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
 
-    /* Form */
-    .absensi-form-container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    .absensi-card h2 { text-align: center; font-size: 1.8rem; margin-bottom: 20px; color: #1e293b; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #334155; }
-    .form-group input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
-    .form-group input:focus { border-color: #0f2922; outline: none; }
+    /* ────────────── FORM ABSENSI ────────────── */
+    .absensi-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .absensi-card h2 {
+        text-align: center;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: #1e293b;
+        font-family: 'Amiri', serif;
+    }
 
-    .signature-area { position: relative; border: 2px dashed #cbd5e1; border-radius: 8px; height: 120px; margin-top: 10px; background: #f8fafc; overflow: hidden; }
-    .signature-area canvas { width: 100%; height: 100%; cursor: crosshair; }
-    #clear-signature { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.1); border: none; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+    /* Scoped .form-group untuk absensi (override global default) */
+    .absensi-form-container .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+    .absensi-form-container .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        color: #334155;
+    }
+    .absensi-form-container .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: #ffffff;
+        color: #0f2922;
+        font-family: inherit;
+        transition: all 180ms var(--ease-smooth);
+    }
+    .absensi-form-container .form-group input:focus {
+        border-color: #0f2922;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(15, 41, 34, 0.08);
+    }
+    .absensi-form-container .form-group input::placeholder {
+        color: #94a3b8;
+    }
 
-    .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-    .btn-reset, .btn-submit { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    .btn-reset { background: transparent; border: 1px solid #cbd5e1; color: #1e293b; }
-    .btn-submit { background: #0f2922; border: none; color: white; }
-    .btn-submit:hover { background: #1a4038; }
+    /* ────────────── SIGNATURE PAD ────────────── */
+    .signature-area {
+        position: relative;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        height: 140px;
+        margin-top: 10px;
+        background: #f8fafc;
+        overflow: hidden;
+    }
+    .signature-area canvas {
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+        touch-action: none;
+        display: block;
+    }
+    #clear-signature {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.08);
+        border: none;
+        padding: 5px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #334155;
+        transition: all 180ms ease;
+        font-family: inherit;
+    }
+    #clear-signature:hover {
+        background: rgba(0, 0, 0, 0.15);
+    }
 
-    /* List */
-    .absensi-list { background: #fff; border-radius: 12px; padding: 10px; max-width: 700px; margin: 20px auto 0; }
-    .record { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f1f5f9; }
-    .record .badge { background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+    /* ────────────── BUTTONS ────────────── */
+    .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .btn-reset,
+    .btn-submit {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 180ms var(--ease-smooth);
+    }
+    .btn-reset {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        color: #1e293b;
+    }
+    .btn-reset:hover {
+        background: #f1f5f9;
+    }
+    .btn-submit {
+        background: #0f2922;
+        border: none;
+        color: white;
+    }
+    .btn-submit:hover {
+        background: #1a4038;
+        transform: translateY(-1px);
+    }
+    .btn-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
 
-    .hidden { display: none !important; }
-    
-    /* Dark mode */
-    .dark .absensi-hero { background: linear-gradient(135deg, #0f172a, #1e293b); }
-    .dark .absensi-form-container { background: #1e293b; border: 1px solid #334155; }
-    .dark .absensi-list { background: #1e293b; }
-    .dark .form-group input { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+    /* ────────────── DAFTAR ABSENSI ────────────── */
+    .absensi-list {
+        background: #fff;
+        border-radius: 12px;
+        padding: 10px;
+        max-width: 700px;
+        margin: 20px auto 0;
+        text-align: left;
+    }
+    .record {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .record:last-child { border-bottom: none; }
+    .record .badge {
+        background: #ecfdf5;
+        color: #059669;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* ────────────── DARK MODE ────────────── */
+    .dark .absensi-hero {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+    }
+    .dark .absensi-hero h1 { color: #f1f5f9; }
+    .dark .absensi-hero p { color: #94a3b8; }
+
+    .dark .absensi-section-alt {
+        background: #0a0f1e;
+    }
+    .dark .absensi-center h2 { color: #fbbf24; }
+
+    .dark #qrcode-wrapper {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .dark .absensi-form-container {
+        background: #1e293b;
+        border: 1px solid #334155;
+    }
+    .dark .absensi-card h2 { color: #f1f5f9; }
+
+    .dark .absensi-form-container .form-group label { color: #cbd5e1; }
+    .dark .absensi-form-container .form-group input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+    .dark .absensi-form-container .form-group input::placeholder {
+        color: #64748b;
+    }
+
+    .dark .signature-area {
+        background: #0f172a;
+        border-color: #334155;
+    }
+    #clear-signature:hover { background: rgba(255, 255, 255, 0.15); }
+    .dark #clear-signature {
+        background: rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+    }
+
+    .dark .btn-reset {
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+    .dark .btn-reset:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .dark .absensi-list {
+        background: #1e293b;
+        color: #e2e8f0;
+    }
+    .dark .record { border-bottom-color: #334155; }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .absensi-hero {
+            padding: 90px 16px 24px;
+        }
+        .absensi-hero h1 { font-size: 1.75rem; }
+        .absensi-hero p { font-size: 1rem; }
+
+        .absensi-section { padding: 32px 16px; }
+        .absensi-center h2 { font-size: 1.5rem; }
+
+        .absensi-form-container { padding: 20px; }
+        .absensi-card h2 { font-size: 1.5rem; }
+
+        .signature-area { height: 120px; }
+
+        .btn-row { flex-direction: column; }
+    }
 </style>

@@ -1,189 +1,1833 @@
 <!-- views/auth.html -->
-<!-- Fragment Halaman Login & Register -->
-<!-- Tampilan Premium, Elegan, Modern -->
-<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+<!-- Halaman Autentikasi: Login, Register, Lupa Akun -->
+<!-- Logic: js/auth.js | Route: /auth -->
+<!-- Versi: 3.0.0 — Full Fix Edition (Mobile + Cache + Stability) -->
+<!-- 
+    CHANGELOG v3.0.0:
+    + Tombol "Bersihkan Cache" (fix login stuck)
+    + Mobile responsive diperbaiki
+    + Fallback CSS jika Tailwind gagal load
+    + Auto-detect environment (mobile/desktop)
+    + Skip animasi berat di mobile
+    + Accessibility: focus rings, aria-labels
+    + Auto-hide banner di layar kecil
+    + Semua fitur v2.1.0 dipertahankan
+-->
 
-<div id="auth-wrapper">
-    <!-- Card Utama dengan glassmorphism premium -->
-    <div class="glass-card p-8 md:p-10 rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden mx-auto border border-white/30 dark:border-slate-700/50 backdrop-blur-sm">
-        
-        <!-- Ornamen dekoratif di sudut (estetika premium) -->
-        <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-[#0f2922]/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-[#fbbf24]/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+<!-- ══════════════════════════════════════════════════════════════
+     SPLIT WRAPPER
+     ══════════════════════════════════════════════════════════════ -->
+<div id="auth-wrapper" class="auth-split">
 
-        <!-- Logo -->
-        <div class="logo-container flex justify-center mb-6 relative z-10">
-            <img src="logo-ansor.webp" alt="Logo Ansor" class="h-20 w-auto object-contain drop-shadow-sm" />
-        </div>
+    <!-- ═══════════════════════════════════════════════════════
+         BRAND PANEL (KIRI) — Hidden di mobile
+         ═══════════════════════════════════════════════════════ -->
+    <aside class="auth-brand" aria-hidden="true">
+        <div class="auth-brand-pattern"></div>
+        <div class="auth-orb auth-orb-1"></div>
+        <div class="auth-orb auth-orb-2"></div>
+        <div class="auth-orb auth-orb-3"></div>
 
-        <!-- Title -->
-        <div class="text-center mb-8 relative z-10">
-            <h2 class="text-3xl md:text-4xl font-bold text-[#0f2922] dark:text-white font-amiri tracking-wide" id="form-title">Login</h2>
-            <p class="text-sm text-[var(--text-muted)] dark:text-[var(--text-muted)] mt-2 font-light tracking-wide">Masuk ke portal Ansor Sewon</p>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="flex mb-8 border-b border-gray-200 dark:border-gray-700/50 relative z-10">
-            <button class="flex-1 py-3 text-center font-semibold text-sm tracking-wide transition-all duration-300 border-b-2 border-transparent text-gray-400 hover:text-[#0f2922] dark:hover:text-white" id="login-tab">Login</button>
-            <button class="flex-1 py-3 text-center font-semibold text-sm tracking-wide transition-all duration-300 border-b-2 border-transparent text-gray-400 hover:text-[#0f2922] dark:hover:text-white" id="register-tab">Register</button>
-        </div>
-
-        <!-- ===== LOGIN CONTAINER ===== -->
-        <div id="login-form-container" class="block w-full relative z-10">
-            <form id="login-form" class="space-y-5">
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Email / Username</label>
-                    <input type="text" id="login-username" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Masukkan email atau username" required>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Password</label>
-                    <div class="relative">
-                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 pr-10 transition-all duration-300" placeholder="Masukkan password" required>
-                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0f2922] dark:hover:text-white transition-colors" onclick="togglePassword('login-password', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <a href="#" id="forgot-account-link" class="text-sm text-[#0f2922] dark:text-[#fbbf24] hover:underline font-medium">Lupa Akun?</a>
-                </div>
-                <button type="submit" class="w-full btn-auth py-3 rounded-xl font-semibold text-base bg-gradient-to-r from-[#0f2922] to-[#1a4038] hover:from-[#1a4038] hover:to-[#0f2922] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">Login</button>
-                <div id="login-message" class="mt-2 text-center text-sm"></div>
-            </form>
-        </div>
-
-        <!-- ===== REGISTER CONTAINER ===== -->
-        <div id="register-form-container" class="hidden w-full relative z-10">
-            <form id="register-form" class="space-y-4">
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Nama Lengkap</label>
-                    <input type="text" id="reg-nama" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Masukkan nama lengkap" required>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Username / Email</label>
-                    <input type="text" id="reg-username" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Buat username atau gunakan email" required>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Password</label>
-                    <div class="relative">
-                        <input type="password" id="reg-password" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 pr-10 transition-all duration-300" placeholder="Minimal 6 karakter" required>
-                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0f2922] dark:hover:text-white transition-colors" onclick="togglePassword('reg-password', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Konfirmasi Password</label>
-                    <div class="relative">
-                        <input type="password" id="reg-password-confirm" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 pr-10 transition-all duration-300" placeholder="Masukkan ulang password" required>
-                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0f2922] dark:hover:text-white transition-colors" onclick="togglePassword('reg-password-confirm', this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">No. HP</label>
-                    <input type="text" id="reg-no_hp" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="08xxxxxxxxxx" required>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Kalurahan</label>
-                    <select id="reg-kalurahan" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] transition-all duration-300" required>
-                        <option value="">-- Pilih Kalurahan --</option>
-                        <option value="Panggungharjo">Panggungharjo</option>
-                        <option value="Bangunharjo">Bangunharjo</option>
-                        <option value="Pendowoharjo">Pendowoharjo</option>
-                        <option value="Timbulharjo">Timbulharjo</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Pertanyaan Keamanan</label>
-                    <select id="reg-pertanyaan" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] transition-all duration-300" required>
-                        <option value="">-- Pilih Pertanyaan --</option>
-                        <option value="Siapa nama pahlawan nasional favorit Anda?">Siapa nama pahlawan nasional favorit Anda?</option>
-                        <option value="Apa nama kota kelahiran Anda?">Apa nama kota kelahiran Anda?</option>
-                        <option value="Siapa nama guru SD favorit Anda?">Siapa nama guru SD favorit Anda?</option>
-                        <option value="Apa nama hewan peliharaan pertama Anda?">Apa nama hewan peliharaan pertama Anda?</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Jawaban Keamanan</label>
-                    <input type="text" id="reg-jawaban" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Jawaban Anda" required>
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Nama Pengurus (opsional)</label>
-                    <input type="text" id="reg-nama_pengurus" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Nama pengurus yang Anda kenal">
-                </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] text-sm font-medium mb-1.5">Jabatan (opsional)</label>
-                    <input type="text" id="reg-jabatan" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Jabatan pengurus tersebut">
-                </div>
-                <div class="flex items-start gap-3 mt-2">
-                    <input type="checkbox" id="reg-commitment" class="mt-1 w-5 h-5 rounded border-gray-300 dark:border-gray-700 text-[#0f2922] focus:ring-[#fbbf24] focus:ring-2 cursor-pointer" required>
-                    <label for="reg-commitment" class="text-sm text-[var(--text-muted)] dark:text-[var(--text-muted)] leading-relaxed cursor-pointer">Saya menyatakan berkhidmat untuk organisasi PAC GP Ansor Kapanewon Sewon dan siap mengikuti aturan yang berlaku.</label>
-                </div>
-                <button type="submit" class="w-full btn-auth py-3 rounded-xl font-semibold text-base bg-gradient-to-r from-[#0f2922] to-[#1a4038] hover:from-[#1a4038] hover:to-[#0f2922] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 mt-2">Register</button>
-                <div id="register-message" class="mt-2 text-center text-sm"></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ===== MODAL LUPA AKUN ===== -->
-    <div id="forgot-account-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white/95 dark:bg-gray-800/90 rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="forgot-modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-[#0f2922] dark:text-white font-amiri">Lupa Akun</h2>
-                <button id="close-forgot-modal" class="text-gray-400 hover:text-[#0f2922] dark:hover:text-white text-2xl transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div class="auth-brand-content">
+            <div class="auth-brand-badge">
+                <i class="fas fa-mosque"></i>
+                <span>Organisasi Pemuda Islami</span>
             </div>
 
-            <!-- Pilihan Mode -->
-            <div id="forgot-mode-select" class="mb-4 flex gap-4">
-                <label class="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)] dark:text-[var(--text-muted)]">
-                    <input type="radio" name="forgotMode" value="password" checked class="text-[#0f2922] focus:ring-[#fbbf24]">
-                    Lupa Password
+            <div class="auth-brand-logo-wrap">
+                <img src="logo-ansor.webp" alt="Logo Ansor Sewon" class="auth-brand-logo-img" />
+            </div>
+
+            <h1 class="auth-brand-title">PAC GP Ansor</h1>
+            <p class="auth-brand-subtitle">Kapanewon Sewon</p>
+
+            <div class="auth-brand-divider"></div>
+
+            <p class="auth-brand-tagline">
+                "Mengabdi untuk Umat,<br>Berjuang untuk Bangsa"
+            </p>
+
+            <ul class="auth-brand-features">
+                <li>
+                    <span class="auth-brand-feature-icon"><i class="fas fa-check"></i></span>
+                    <span>Kelola Surat &amp; Logbook Digital</span>
+                </li>
+                <li>
+                    <span class="auth-brand-feature-icon"><i class="fas fa-check"></i></span>
+                    <span>Absensi QR Real-time</span>
+                </li>
+                <li>
+                    <span class="auth-brand-feature-icon"><i class="fas fa-check"></i></span>
+                    <span>Transparansi Keuangan Publik</span>
+                </li>
+                <li>
+                    <span class="auth-brand-feature-icon"><i class="fas fa-check"></i></span>
+                    <span>Arsip Digital Terpadu</span>
+                </li>
+            </ul>
+
+            <div class="auth-brand-footer">
+                <span>&copy; 2026 PAC GP Ansor Sewon</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════
+         FORM PANEL (KANAN)
+         ═══════════════════════════════════════════════════════ -->
+    <main class="auth-form-panel">
+
+        <!-- Top Actions: Back + Clear Cache -->
+        <div class="auth-top-actions">
+            <a href="/" class="auth-back-link" title="Kembali ke beranda">
+                <i class="fas fa-arrow-left"></i>
+                <span class="auth-back-label">Beranda</span>
+            </a>
+            <button type="button" id="clear-cache-btn" 
+                    class="auth-back-link auth-clear-cache-btn" 
+                    title="Bersihkan cache jika ada masalah login">
+                <i class="fas fa-broom"></i>
+                <span class="auth-back-label">Clear Cache</span>
+            </button>
+        </div>
+
+        <div class="auth-form-inner">
+            <div class="auth-card">
+
+                <!-- Mobile-only logo -->
+                <div class="auth-mobile-header">
+                    <img src="logo-ansor.webp" alt="Logo" />
+                    <div>
+                        <p class="auth-mobile-title">PAC GP Ansor Sewon</p>
+                        <p class="auth-mobile-sub">Portal Digital Resmi</p>
+                    </div>
+                </div>
+
+                <!-- Hidden heading (diupdate oleh auth.js) -->
+                <h2 id="form-title" class="sr-only">Login</h2>
+
+                <!-- ═══ TAB SWITCHER ═══ -->
+                <div class="auth-tabs" role="tablist" aria-label="Login atau Register">
+                    <span class="auth-tabs-slider" aria-hidden="true"></span>
+                    <button id="login-tab" type="button" class="auth-tab" role="tab" aria-selected="true">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </button>
+                    <button id="register-tab" type="button" class="auth-tab" role="tab" aria-selected="false">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Register</span>
+                    </button>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════
+                     LOGIN CONTAINER
+                     ═══════════════════════════════════════════════ -->
+                <div id="login-form-container" class="auth-form-body">
+                    <header class="auth-heading">
+                        <h3 class="auth-heading-title">Selamat Datang Kembali</h3>
+                        <p class="auth-heading-sub">Masuk untuk melanjutkan ke portal Ansor Sewon</p>
+                    </header>
+
+                    <form id="login-form" class="auth-form" novalidate autocomplete="on">
+                        <div class="auth-field">
+                            <label for="login-username" class="auth-label">
+                                <i class="fas fa-user-circle"></i> Email / Username
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-user auth-input-icon"></i>
+                                <input type="text" id="login-username"
+                                       placeholder="Masukkan email atau username"
+                                       autocomplete="username"
+                                       autocapitalize="none"
+                                       autocorrect="off"
+                                       spellcheck="false"
+                                       inputmode="email"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="login-password" class="auth-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-key auth-input-icon"></i>
+                                <input type="password" id="login-password"
+                                       placeholder="Masukkan password"
+                                       autocomplete="current-password"
+                                       required />
+                                <button type="button" class="auth-input-action"
+                                        onclick="togglePassword('login-password', this)"
+                                        aria-label="Tampilkan atau sembunyikan password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="auth-row-between">
+                            <a href="#" id="forgot-account-link" class="auth-link">
+                                <i class="fas fa-question-circle"></i> Lupa Akun?
+                            </a>
+                        </div>
+
+                        <button type="submit" class="auth-submit" id="login-submit-btn">
+                            <span class="auth-submit-text">Login</span>
+                            <i class="fas fa-arrow-right auth-submit-arrow"></i>
+                        </button>
+
+                        <div id="login-message" class="auth-msg" role="status" aria-live="polite"></div>
+                    </form>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════
+                     REGISTER CONTAINER
+                     ═══════════════════════════════════════════════ -->
+                <div id="register-form-container" class="auth-form-body hidden">
+                    <header class="auth-heading">
+                        <h3 class="auth-heading-title">Buat Akun Baru</h3>
+                        <p class="auth-heading-sub">Bergabunglah dengan keluarga besar Ansor Sewon</p>
+                    </header>
+
+                    <form id="register-form" class="auth-form" novalidate autocomplete="on">
+
+                        <div class="auth-field">
+                            <label for="reg-nama" class="auth-label">
+                                <i class="fas fa-id-card"></i> Nama Lengkap
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-user auth-input-icon"></i>
+                                <input type="text" id="reg-nama"
+                                       placeholder="Masukkan nama lengkap" 
+                                       autocomplete="name"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="reg-username" class="auth-label">
+                                <i class="fas fa-at"></i> Username / Email
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-user-tag auth-input-icon"></i>
+                                <input type="text" id="reg-username"
+                                       placeholder="Buat username atau gunakan email"
+                                       autocomplete="username"
+                                       autocapitalize="none"
+                                       autocorrect="off"
+                                       spellcheck="false"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="auth-grid-2">
+                            <div class="auth-field">
+                                <label for="reg-password" class="auth-label">
+                                    <i class="fas fa-lock"></i> Password
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-key auth-input-icon"></i>
+                                    <input type="password" id="reg-password"
+                                           placeholder="Min 6 karakter"
+                                           autocomplete="new-password"
+                                           required />
+                                    <button type="button" class="auth-input-action"
+                                            onclick="togglePassword('reg-password', this)"
+                                            aria-label="Tampilkan atau sembunyikan password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="auth-field">
+                                <label for="reg-password-confirm" class="auth-label">
+                                    <i class="fas fa-check-circle"></i> Konfirmasi
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-lock auth-input-icon"></i>
+                                    <input type="password" id="reg-password-confirm"
+                                           placeholder="Ulangi password"
+                                           autocomplete="new-password"
+                                           required />
+                                    <button type="button" class="auth-input-action"
+                                            onclick="togglePassword('reg-password-confirm', this)"
+                                            aria-label="Tampilkan atau sembunyikan password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="auth-grid-2">
+                            <div class="auth-field">
+                                <label for="reg-no_hp" class="auth-label">
+                                    <i class="fas fa-phone"></i> No. HP
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-mobile-alt auth-input-icon"></i>
+                                    <input type="tel" id="reg-no_hp"
+                                           placeholder="08xxxxxxxxxx"
+                                           inputmode="numeric"
+                                           autocomplete="tel"
+                                           required />
+                                </div>
+                            </div>
+                            <div class="auth-field">
+                                <label for="reg-kalurahan" class="auth-label">
+                                    <i class="fas fa-map-marker-alt"></i> Kalurahan
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-map-pin auth-input-icon"></i>
+                                    <select id="reg-kalurahan" required>
+                                        <option value="">Pilih Kalurahan</option>
+                                        <option value="Panggungharjo">Panggungharjo</option>
+                                        <option value="Bangunharjo">Bangunharjo</option>
+                                        <option value="Pendowoharjo">Pendowoharjo</option>
+                                        <option value="Timbulharjo">Timbulharjo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="reg-pertanyaan" class="auth-label">
+                                <i class="fas fa-shield-alt"></i> Pertanyaan Keamanan
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-question-circle auth-input-icon"></i>
+                                <select id="reg-pertanyaan" required>
+                                    <option value="">Pilih pertanyaan keamanan</option>
+                                    <option value="Siapa nama pahlawan nasional favorit Anda?">Siapa nama pahlawan nasional favorit Anda?</option>
+                                    <option value="Apa nama kota kelahiran Anda?">Apa nama kota kelahiran Anda?</option>
+                                    <option value="Siapa nama guru SD favorit Anda?">Siapa nama guru SD favorit Anda?</option>
+                                    <option value="Apa nama hewan peliharaan pertama Anda?">Apa nama hewan peliharaan pertama Anda?</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="reg-jawaban" class="auth-label">
+                                <i class="fas fa-key"></i> Jawaban Keamanan
+                            </label>
+                            <div class="auth-input-wrap">
+                                <i class="fas fa-lightbulb auth-input-icon"></i>
+                                <input type="text" id="reg-jawaban"
+                                       placeholder="Jawaban Anda" 
+                                       autocapitalize="none"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="auth-grid-2">
+                            <div class="auth-field">
+                                <label for="reg-nama_pengurus" class="auth-label">
+                                    <i class="fas fa-user-tie"></i> Nama Pengurus
+                                    <span class="auth-opt">opsional</span>
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-user-friends auth-input-icon"></i>
+                                    <input type="text" id="reg-nama_pengurus"
+                                           placeholder="Nama pengurus" />
+                                </div>
+                            </div>
+                            <div class="auth-field">
+                                <label for="reg-jabatan" class="auth-label">
+                                    <i class="fas fa-briefcase"></i> Jabatan
+                                    <span class="auth-opt">opsional</span>
+                                </label>
+                                <div class="auth-input-wrap">
+                                    <i class="fas fa-sitemap auth-input-icon"></i>
+                                    <input type="text" id="reg-jabatan"
+                                           placeholder="Jabatan pengurus" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="auth-checkbox">
+                            <input type="checkbox" id="reg-commitment" required />
+                            <span class="auth-checkbox-box"><i class="fas fa-check"></i></span>
+                            <span class="auth-checkbox-text">
+                                Saya menyatakan <strong>berkhidmat</strong> untuk
+                                PAC GP Ansor Kapanewon Sewon dan siap mengikuti
+                                aturan yang berlaku.
+                            </span>
+                        </label>
+
+                        <button type="submit" class="auth-submit" id="register-submit-btn">
+                            <span class="auth-submit-text">Register</span>
+                            <i class="fas fa-arrow-right auth-submit-arrow"></i>
+                        </button>
+
+                        <div id="register-message" class="auth-msg" role="status" aria-live="polite"></div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL LUPA AKUN
+     ══════════════════════════════════════════════════════════════ -->
+<div id="forgot-account-modal" class="auth-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="forgot-modal-title">
+    <div id="forgot-modal-content" class="auth-modal-card">
+
+        <div class="auth-modal-header">
+            <div class="auth-modal-title-wrap">
+                <div class="auth-modal-icon">
+                    <i class="fas fa-life-ring"></i>
+                </div>
+                <h2 id="forgot-modal-title" class="auth-modal-title">Lupa Akun</h2>
+            </div>
+            <button id="close-forgot-modal" class="auth-modal-close" aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="forgot-mode-select" class="auth-mode-switch">
+            <label class="auth-mode-option">
+                <input type="radio" name="forgotMode" value="password" checked />
+                <span>Lupa Password</span>
+            </label>
+            <label class="auth-mode-option">
+                <input type="radio" name="forgotMode" value="username" />
+                <span>Lupa Username</span>
+            </label>
+        </div>
+
+        <div id="forgot-step-1" class="auth-modal-step">
+            <p class="auth-modal-desc" id="forgot-step1-desc">
+                Masukkan username atau email Anda. Kami akan menampilkan pertanyaan keamanan.
+            </p>
+            <div id="forgot-password-input" class="auth-field">
+                <label class="auth-label">
+                    <i class="fas fa-user-circle"></i> Username / Email
                 </label>
-                <label class="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)] dark:text-[var(--text-muted)]">
-                    <input type="radio" name="forgotMode" value="username" class="text-[#0f2922] focus:ring-[#fbbf24]">
-                    Lupa Username
+                <div class="auth-input-wrap">
+                    <i class="fas fa-user auth-input-icon"></i>
+                    <input type="text" id="forgot-username"
+                           placeholder="Masukkan username atau email"
+                           autocapitalize="none"
+                           autocorrect="off"
+                           spellcheck="false" />
+                </div>
+            </div>
+            <div id="forgot-username-input" class="auth-field hidden">
+                <label class="auth-label">
+                    <i class="fas fa-phone"></i> No. HP
                 </label>
+                <div class="auth-input-wrap">
+                    <i class="fas fa-mobile-alt auth-input-icon"></i>
+                    <input type="tel" id="forgot-phone"
+                           placeholder="08xxxxxxxxxx"
+                           inputmode="numeric" />
+                </div>
             </div>
+            <button id="forgot-next" type="button" class="auth-submit mt-4">
+                <span class="auth-submit-text">Lanjut</span>
+                <i class="fas fa-arrow-right auth-submit-arrow"></i>
+            </button>
+            <div id="forgot-step1-msg" class="auth-msg"></div>
+        </div>
 
-            <!-- Step 1: Input identifier -->
-            <div id="forgot-step-1">
-                <p class="text-sm text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-4" id="forgot-step1-desc">Masukkan username atau email Anda. Kami akan menampilkan pertanyaan keamanan.</p>
-                <div id="forgot-password-input">
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-2 text-sm font-medium">Username / Email</label>
-                    <input type="text" id="forgot-username" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Masukkan username atau email" required>
+        <div id="forgot-step-2" class="auth-modal-step hidden">
+            <p class="auth-modal-desc">Jawab pertanyaan keamanan berikut:</p>
+            <div class="auth-field">
+                <label class="auth-label">
+                    <i class="fas fa-question-circle"></i> Pertanyaan
+                </label>
+                <div class="auth-question-box">
+                    <p id="forgot-question-text"></p>
                 </div>
-                <div id="forgot-username-input" class="hidden">
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-2 text-sm font-medium">No. HP</label>
-                    <input type="text" id="forgot-phone" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="08xxxxxxxxxx" required>
-                </div>
-                <button id="forgot-next" class="w-full btn-auth py-2 rounded-lg font-medium mt-3">Lanjut</button>
-                <div id="forgot-step1-msg" class="mt-2 text-center text-sm"></div>
             </div>
+            <div class="auth-field">
+                <label class="auth-label">
+                    <i class="fas fa-key"></i> Jawaban Anda
+                </label>
+                <div class="auth-input-wrap">
+                    <i class="fas fa-lightbulb auth-input-icon"></i>
+                    <input type="text" id="forgot-answer"
+                           placeholder="Masukkan jawaban"
+                           autocapitalize="none" />
+                </div>
+            </div>
+            <button id="forgot-verify" type="button" class="auth-submit mt-4">
+                <span class="auth-submit-text">Verifikasi</span>
+                <i class="fas fa-shield-alt auth-submit-arrow"></i>
+            </button>
+            <div id="forgot-step2-msg" class="auth-msg"></div>
+        </div>
 
-            <!-- Step 2: Question & Answer -->
-            <div id="forgot-step-2" class="hidden">
-                <p class="text-sm text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-4">Jawab pertanyaan keamanan berikut:</p>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-2 text-sm font-medium">Pertanyaan</label>
-                    <p id="forgot-question-text" class="font-medium text-[var(--text-main)] dark:text-[var(--text-main)]"></p>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] dark:text-[var(--text-muted)] mb-2 text-sm font-medium">Jawaban Anda</label>
-                    <input type="text" id="forgot-answer" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/40 focus:border-[#fbbf24] bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm text-[var(--text-main)] dark:text-[var(--text-main)] placeholder:text-gray-400 transition-all duration-300" placeholder="Jawaban Anda" required>
-                </div>
-                <button id="forgot-verify" class="w-full btn-auth py-2 rounded-lg font-medium">Verifikasi</button>
-                <div id="forgot-step2-msg" class="mt-2 text-center text-sm"></div>
-            </div>
-
-            <!-- Step 3: Result -->
-            <div id="forgot-step-3" class="hidden">
-                <div id="forgot-result-content"></div>
-                <button id="forgot-done" class="w-full btn-auth py-2 rounded-lg font-medium mt-3">Selesai</button>
-            </div>
+        <div id="forgot-step-3" class="auth-modal-step hidden">
+            <div id="forgot-result-content"></div>
+            <button id="forgot-done" type="button" class="auth-submit mt-4">
+                <span class="auth-submit-text">Selesai</span>
+                <i class="fas fa-check auth-submit-arrow"></i>
+            </button>
         </div>
     </div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPT INLINE — Tab slider fallback + Clear Cache handler
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        'use strict';
+        console.log('[View] auth.html Full Fix v3.0.0 loaded');
+
+        // ============================================================
+        //  1. TAB SLIDER FALLBACK (browser tanpa :has())
+        // ============================================================
+        function initTabSliderFallback() {
+            const tabsWrap = document.querySelector('.auth-tabs');
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            if (!tabsWrap || !loginTab || !registerTab) return;
+
+            function updateSlider() {
+                const isRegisterActive = registerTab.classList.contains('text-green-700') ||
+                                        registerTab.classList.contains('active');
+                tabsWrap.classList.toggle('is-register-active', isRegisterActive);
+                loginTab.setAttribute('aria-selected', !isRegisterActive ? 'true' : 'false');
+                registerTab.setAttribute('aria-selected', isRegisterActive ? 'true' : 'false');
+            }
+
+            const supportsHas = (typeof CSS !== 'undefined' &&
+                                CSS.supports &&
+                                CSS.supports('selector(:has(*))'));
+
+            if (!supportsHas) {
+                const observer = new MutationObserver(updateSlider);
+                observer.observe(loginTab, { attributes: true, attributeFilter: ['class'] });
+                observer.observe(registerTab, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            updateSlider();
+        }
+
+        // ============================================================
+        //  2. CLEAR CACHE BUTTON — Fix login stuck
+        // ============================================================
+        function initClearCacheButton() {
+            const btn = document.getElementById('clear-cache-btn');
+            if (!btn) return;
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const confirmed = confirm(
+                    'Bersihkan cache dan muat ulang halaman?\n\n' +
+                    'Gunakan jika:\n' +
+                    '• Login gagal / stuck\n' +
+                    '• Halaman tampil tidak normal\n' +
+                    '• Data tidak muncul\n\n' +
+                    'Anda mungkin perlu login ulang.'
+                );
+                if (!confirmed) return;
+
+                try {
+                    // Clear semua cache
+                    sessionStorage.clear();
+                    localStorage.removeItem('__cache_version');
+                    localStorage.removeItem('__lastPrefetch');
+                    localStorage.removeItem('__lastPrefetchRole');
+                    localStorage.removeItem('authTab');
+                    localStorage.removeItem('absensi_draft_v1');
+
+                    // Clear view cache keys
+                    const removeKeys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (key.startsWith('cache_') || key.startsWith('__view_'))) {
+                            removeKeys.push(key);
+                        }
+                    }
+                    removeKeys.forEach(k => localStorage.removeItem(k));
+
+                    // Clear in-memory view cache
+                    if (window.__APP_LOADED) {
+                        try { window.resetPrefetchCache && window.resetPrefetchCache(); } catch (err) {}
+                    }
+
+                } catch (err) {
+                    console.warn('[Auth] Clear cache error:', err);
+                }
+
+                // Show feedback
+                if (typeof showToast === 'function') {
+                    showToast('✅ Cache dibersihkan. Memuat ulang...', 'success', 1500);
+                }
+
+                // Hard reload dengan cache-busting
+                setTimeout(() => {
+                    const url = window.location.origin + window.location.pathname +
+                                '?v=' + Date.now() + '#/auth';
+                    window.location.href = url;
+                }, 800);
+            });
+        }
+
+        // ============================================================
+        //  3. SKIP ANIMASI BERAT DI MOBILE (performa)
+        // ============================================================
+        function applyMobileOptimizations() {
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            if (isMobile) {
+                document.documentElement.style.setProperty('--auth-orb-blur', '60px');
+                // Disable orb animation di mobile untuk hemat baterai
+                const style = document.createElement('style');
+                style.textContent = `
+                    @media (max-width: 767px) {
+                        .auth-orb {
+                            animation: none !important;
+                            opacity: 0.35 !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // ============================================================
+        //  4. AUTO-FOCUS PERTAMA INPUT DI MOBILE
+        // ============================================================
+        function setupAutoFocus() {
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            // Skip auto-focus di mobile (biar keyboard tidak langsung muncul)
+            if (isMobile) return;
+
+            setTimeout(() => {
+                const loginContainer = document.getElementById('login-form-container');
+                if (loginContainer && !loginContainer.classList.contains('hidden')) {
+                    const firstInput = loginContainer.querySelector('input:not([type="hidden"]):not([disabled])');
+                    if (firstInput) firstInput.focus();
+                }
+            }, 400);
+        }
+
+        // ============================================================
+        //  5. INIT
+        // ============================================================
+        function init() {
+            initTabSliderFallback();
+            initClearCacheButton();
+            applyMobileOptimizations();
+            setupAutoFocus();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(init, 100));
+        } else {
+            setTimeout(init, 100);
+        }
+
+    })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     STYLE — Auth-specific (Self-contained)
+     ══════════════════════════════════════════════════════════════ -->
+<style>
+    /* ═══════════════════════════════════════════════════════
+       RESET CONTAINER
+       ═══════════════════════════════════════════════════════ */
+    #auth-content {
+        padding: 0 !important;
+        display: block !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       DESIGN TOKENS (scoped — tidak override global)
+       ═══════════════════════════════════════════════════════ */
+    .auth-split {
+        --a-brand-900: #051410;
+        --a-brand-800: #0a1e19;
+        --a-brand-700: #0f2922;
+        --a-brand-600: #1a4038;
+        --a-brand-500: #24584a;
+        --a-gold-400: #fbbf24;
+        --a-gold-500: #f59e0b;
+        --a-line: #d1d5db;
+        --a-line-strong: #9ca3af;
+        --a-text: #000000;
+        --a-text-muted: #374151;
+        --a-text-dim: #6b7280;
+        --a-success: #059669;
+        --a-error: #dc2626;
+
+        display: grid;
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .dark .auth-split {
+        --a-line: #334155;
+        --a-line-strong: #475569;
+        --a-text: #f1f5f9;
+        --a-text-muted: #cbd5e1;
+        --a-text-dim: #94a3b8;
+        background: #0f172a;
+        color: #f1f5f9;
+    }
+
+    @media (min-width: 1024px) {
+        .auth-split { grid-template-columns: minmax(420px, 44%) 1fr; }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BRAND PANEL (KIRI) — Desktop only
+       ═══════════════════════════════════════════════════════ */
+    .auth-brand {
+        display: none;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg,
+            var(--a-brand-900) 0%,
+            var(--a-brand-700) 40%,
+            var(--a-brand-600) 70%,
+            var(--a-brand-800) 100%);
+        color: #ffffff;
+        isolation: isolate;
+    }
+    @media (min-width: 1024px) { .auth-brand { display: block; } }
+
+    .auth-brand-pattern {
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(circle at 1px 1px,
+                rgba(251, 191, 36, 0.18) 1px,
+                transparent 0);
+        background-size: 26px 26px;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .auth-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        pointer-events: none;
+        z-index: 0;
+        will-change: transform;
+    }
+    .auth-orb-1 {
+        width: 420px; height: 420px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.45), transparent 70%);
+        top: -140px; left: -140px;
+        animation: authFloat1 16s ease-in-out infinite;
+    }
+    .auth-orb-2 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.35), transparent 70%);
+        bottom: -180px; right: -160px;
+        animation: authFloat2 20s ease-in-out infinite;
+    }
+    .auth-orb-3 {
+        width: 280px; height: 280px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.3), transparent 70%);
+        top: 45%; right: 15%;
+        animation: authFloat3 14s ease-in-out infinite;
+    }
+    @keyframes authFloat1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50%      { transform: translate(60px, 50px) scale(1.15); }
+    }
+    @keyframes authFloat2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50%      { transform: translate(-70px, -40px) scale(1.1); }
+    }
+    @keyframes authFloat3 {
+        0%, 100% { transform: translate(0, 0); opacity: 0.35; }
+        50%      { transform: translate(-40px, 30px); opacity: 0.55; }
+    }
+
+    .auth-brand-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 56px 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 620px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .auth-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px;
+        border-radius: 9999px;
+        background: rgba(251, 191, 36, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        color: var(--a-gold-400);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        width: fit-content;
+        margin-bottom: 32px;
+        animation: authFadeUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-logo-wrap {
+        margin-bottom: 28px;
+        animation: authFadeUp 700ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-logo-img {
+        height: 92px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 32px rgba(251, 191, 36, 0.35));
+        transition: transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .auth-brand-logo-wrap:hover .auth-brand-logo-img {
+        transform: rotate(-6deg) scale(1.06);
+    }
+    .auth-brand-title {
+        font-family: 'Amiri', 'Times New Roman', serif;
+        font-size: 2.75rem;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        margin: 0 0 8px 0;
+        animation: authFadeUp 700ms 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-subtitle {
+        font-size: 1.05rem;
+        color: rgba(251, 191, 36, 0.9);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 0 0 28px 0;
+        animation: authFadeUp 700ms 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-divider {
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--a-gold-400), transparent);
+        border-radius: 3px;
+        margin-bottom: 28px;
+        animation: authFadeUp 700ms 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-tagline {
+        font-family: 'Amiri', serif;
+        font-style: italic;
+        font-size: 1.35rem;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.88);
+        margin: 0 0 40px 0;
+        animation: authFadeUp 700ms 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 auto 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .auth-brand-features li {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.85);
+        animation: authFadeUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .auth-brand-features li:nth-child(1) { animation-delay: 360ms; }
+    .auth-brand-features li:nth-child(2) { animation-delay: 420ms; }
+    .auth-brand-features li:nth-child(3) { animation-delay: 480ms; }
+    .auth-brand-features li:nth-child(4) { animation-delay: 540ms; }
+    .auth-brand-feature-icon {
+        width: 26px; height: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(251, 191, 36, 0.15);
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        color: var(--a-gold-400);
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+    .auth-brand-footer {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.04em;
+        animation: authFadeUp 700ms 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes authFadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FORM PANEL (KANAN)
+       ═══════════════════════════════════════════════════════ */
+    .auth-form-panel {
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #ffffff;
+        height: 100vh;
+        height: 100dvh;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dark .auth-form-panel { background: #0f172a; }
+
+    /* ────────── TOP ACTIONS (Back + Clear Cache) ────────── */
+    .auth-top-actions {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 10;
+    }
+
+    .auth-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        background: #ffffff;
+        border: 1px solid var(--a-line);
+        color: var(--a-text-muted);
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 250ms ease;
+        font-family: inherit;
+    }
+    .auth-back-link:hover {
+        color: var(--a-text);
+        border-color: var(--a-line-strong);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(15, 41, 34, 0.08);
+    }
+    .dark .auth-back-link {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    .dark .auth-back-link:hover {
+        background: #334155;
+    }
+
+    /* Clear cache button variant */
+    .auth-clear-cache-btn:hover {
+        color: var(--a-error) !important;
+        border-color: rgba(220, 38, 38, 0.3) !important;
+    }
+    .auth-clear-cache-btn:hover i {
+        transform: rotate(-15deg);
+    }
+    .auth-clear-cache-btn i {
+        transition: transform 300ms ease;
+    }
+
+    .auth-form-inner {
+        min-height: 100%;
+        padding: 88px 24px 40px;
+        display: flex;
+        flex-direction: column;
+    }
+    @media (min-width: 640px) {
+        .auth-form-inner { padding: 72px 40px 48px; }
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 480px;
+        margin: auto;
+        animation: authCardIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes authCardIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .auth-mobile-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--a-line);
+    }
+    .auth-mobile-header img {
+        height: 48px;
+        width: auto;
+        filter: drop-shadow(0 4px 12px rgba(15, 41, 34, 0.18));
+    }
+    .auth-mobile-title {
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #000000;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .dark .auth-mobile-title { color: #f1f5f9; }
+    .auth-mobile-sub {
+        font-size: 0.75rem;
+        color: var(--a-text-dim);
+        margin: 2px 0 0 0;
+        letter-spacing: 0.03em;
+    }
+    @media (min-width: 1024px) {
+        .auth-mobile-header { display: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       TAB SWITCHER
+       ═══════════════════════════════════════════════════════ */
+    .auth-tabs {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 5px;
+        background: #e5e7eb;
+        border-radius: 16px;
+        margin-bottom: 32px;
+        isolation: isolate;
+    }
+    .dark .auth-tabs { background: #1e293b; }
+
+    .auth-tabs-slider {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: calc((100% - 10px) / 2);
+        height: calc(100% - 10px);
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.12),
+            0 1px 2px rgba(0, 0, 0, 0.08);
+        transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+        z-index: 0;
+    }
+    .dark .auth-tabs-slider {
+        background: #475569;
+        box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.5),
+            0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .auth-tabs:has(#register-tab.text-green-700) .auth-tabs-slider,
+    .auth-tabs:has(#register-tab.active) .auth-tabs-slider,
+    .auth-tabs.is-register-active .auth-tabs-slider {
+        transform: translateX(100%);
+    }
+
+    .auth-tab {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--a-text-dim);
+        cursor: pointer;
+        transition: color 300ms ease;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+        box-shadow: none !important;
+    }
+    .auth-tab i {
+        font-size: 0.82rem;
+        opacity: 0.7;
+        transition: opacity 300ms ease, transform 300ms ease;
+    }
+    .auth-tab:hover { color: var(--a-text-muted); }
+    .auth-tab:hover i { opacity: 1; transform: scale(1.1); }
+
+    .auth-tab.text-green-700,
+    .auth-tab.active {
+        color: var(--a-brand-700) !important;
+    }
+    .dark .auth-tab.text-green-700,
+    .dark .auth-tab.active {
+        color: var(--a-gold-400) !important;
+    }
+    .auth-tab.text-green-700 i,
+    .auth-tab.active i {
+        opacity: 1;
+        color: var(--a-gold-500);
+    }
+    .auth-tab.border-green-700,
+    .auth-tab[class*="border-"] {
+        border: none !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FORM BODY & HEADING
+       ═══════════════════════════════════════════════════════ */
+    .auth-form-body {
+        animation: authFadeInUp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        color: #000000;
+    }
+    .dark .auth-form-body { color: #f1f5f9; }
+    @keyframes authFadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-heading {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    .auth-heading-title {
+        font-family: 'Amiri', serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #000000;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.01em;
+    }
+    .dark .auth-heading-title { color: #f1f5f9; }
+    .auth-heading-sub {
+        font-size: 0.88rem;
+        color: #4b5563;
+        margin: 0;
+        line-height: 1.5;
+    }
+    .dark .auth-heading-sub { color: #cbd5e1; }
+
+    /* ═══════════════════════════════════════════════════════
+       FORM ELEMENTS
+       ═══════════════════════════════════════════════════════ */
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .auth-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+    @media (min-width: 560px) {
+        .auth-grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .auth-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .auth-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #1f2937;
+        letter-spacing: 0.01em;
+    }
+    .dark .auth-label { color: #e2e8f0; }
+    .auth-label i {
+        font-size: 0.78rem;
+        color: var(--a-brand-700);
+    }
+    .dark .auth-label i { color: var(--a-gold-400); }
+
+    .auth-opt {
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid var(--a-line);
+        margin-left: auto;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .auth-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        border-radius: 12px;
+        background: #ffffff !important;
+        border: 1.5px solid var(--a-line);
+        transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+        overflow: hidden;
+    }
+    .dark .auth-input-wrap {
+        background: #1e293b !important;
+        border-color: #334155;
+    }
+    .auth-input-wrap:focus-within {
+        border-color: var(--a-brand-700);
+        box-shadow: 0 0 0 4px rgba(15, 41, 34, 0.09);
+        transform: translateY(-1px);
+    }
+    .dark .auth-input-wrap:focus-within {
+        border-color: var(--a-gold-400);
+        box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.12);
+    }
+
+    .auth-input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 0.88rem;
+        pointer-events: none;
+        transition: color 220ms ease;
+        z-index: 2;
+    }
+    .auth-input-wrap:focus-within .auth-input-icon {
+        color: var(--a-brand-700);
+    }
+    .dark .auth-input-wrap:focus-within .auth-input-icon {
+        color: var(--a-gold-400);
+    }
+
+    .auth-input-wrap input,
+    .auth-input-wrap select {
+        flex: 1;
+        width: 100%;
+        padding: 13px 16px 13px 42px;
+        border: none !important;
+        background: #ffffff !important;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 0.92rem;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 1;
+    }
+    .dark .auth-input-wrap input,
+    .dark .auth-input-wrap select {
+        background: #1e293b !important;
+        color: #f1f5f9 !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    .auth-input-wrap input::placeholder {
+        color: #9ca3af !important;
+        -webkit-text-fill-color: #9ca3af !important;
+        opacity: 1;
+    }
+    .dark .auth-input-wrap input::placeholder {
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
+    }
+
+    /* Autofill override */
+    .auth-input-wrap input:-webkit-autofill,
+    .auth-input-wrap input:-webkit-autofill:hover,
+    .auth-input-wrap input:-webkit-autofill:focus,
+    .auth-input-wrap input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+        box-shadow: 0 0 0 1000px #ffffff inset !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+    .dark .auth-input-wrap input:-webkit-autofill,
+    .dark .auth-input-wrap input:-webkit-autofill:hover,
+    .dark .auth-input-wrap input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+        box-shadow: 0 0 0 1000px #1e293b inset !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    .auth-input-wrap select {
+        cursor: pointer;
+        padding-right: 40px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 14px center !important;
+    }
+    .auth-input-wrap select option {
+        background: #ffffff;
+        color: #000000;
+    }
+    .dark .auth-input-wrap select option {
+        background: #1e293b;
+        color: #f1f5f9;
+    }
+
+    .auth-input-action {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.82rem;
+        transition: all 200ms ease;
+        z-index: 2;
+    }
+    .auth-input-action:hover {
+        color: #000000;
+        background: #f3f4f6;
+    }
+    .dark .auth-input-action:hover {
+        color: #f1f5f9;
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .auth-row-between {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -6px;
+    }
+    .auth-link {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--a-gold-500);
+        text-decoration: none;
+        transition: color 200ms ease, transform 200ms ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .auth-link:hover {
+        color: var(--a-brand-700);
+        transform: translateX(2px);
+    }
+    .dark .auth-link:hover { color: var(--a-gold-400); }
+
+    /* ═══════════════════════════════════════════════════════
+       CHECKBOX COMMITMENT
+       ═══════════════════════════════════════════════════════ */
+    .auth-checkbox {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1.5px solid var(--a-line);
+        cursor: pointer;
+        transition: all 220ms ease;
+        user-select: none;
+    }
+    .dark .auth-checkbox { background: rgba(30, 41, 59, 0.5); }
+    .auth-checkbox:hover {
+        border-color: var(--a-line-strong);
+        background: #fafafa;
+    }
+    .dark .auth-checkbox:hover { background: rgba(30, 41, 59, 0.8); }
+    .auth-checkbox input[type="checkbox"] { display: none; }
+    .auth-checkbox-box {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid #9ca3af;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+        transition: all 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        color: transparent;
+        font-size: 0.6rem;
+    }
+    .dark .auth-checkbox-box {
+        background: #1e293b;
+        border-color: #475569;
+    }
+    .auth-checkbox:hover .auth-checkbox-box {
+        border-color: var(--a-brand-600);
+    }
+    .auth-checkbox input:checked ~ .auth-checkbox-box {
+        background: var(--a-brand-700);
+        border-color: var(--a-brand-700);
+        color: #ffffff;
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(15, 41, 34, 0.3);
+    }
+    .dark .auth-checkbox input:checked ~ .auth-checkbox-box {
+        background: var(--a-gold-400);
+        border-color: var(--a-gold-400);
+        color: var(--a-brand-700);
+        box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+    }
+    .auth-checkbox-text {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: #374151;
+    }
+    .dark .auth-checkbox-text { color: #cbd5e1; }
+    .auth-checkbox-text strong {
+        color: #000000;
+        font-weight: 600;
+    }
+    .dark .auth-checkbox-text strong { color: #f1f5f9; }
+
+    /* ═══════════════════════════════════════════════════════
+       SUBMIT BUTTON
+       ═══════════════════════════════════════════════════════ */
+    .auth-submit {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 24px;
+        margin-top: 4px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--a-brand-700) 0%, var(--a-brand-600) 50%, var(--a-brand-800) 100%);
+        background-size: 200% 100%;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow:
+            0 4px 14px rgba(15, 41, 34, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .auth-submit::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+        transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+    .auth-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        background-position: 100% 0;
+        box-shadow:
+            0 8px 24px rgba(15, 41, 34, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .auth-submit:hover:not(:disabled)::before { left: 100%; }
+    .auth-submit:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(15, 41, 34, 0.2);
+    }
+    .auth-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .auth-submit-arrow { transition: transform 300ms ease; }
+    .auth-submit:hover:not(:disabled) .auth-submit-arrow { transform: translateX(4px); }
+    .dark .auth-submit {
+        background: linear-gradient(135deg, var(--a-gold-400) 0%, var(--a-gold-500) 100%);
+        background-size: 200% 100%;
+        color: var(--a-brand-800) !important;
+        -webkit-text-fill-color: var(--a-brand-800) !important;
+        box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
+    }
+    .dark .auth-submit:hover:not(:disabled) {
+        box-shadow: 0 8px 24px rgba(251, 191, 36, 0.35);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MESSAGES
+       ═══════════════════════════════════════════════════════ */
+    .auth-msg {
+        font-size: 0.82rem;
+        text-align: center;
+        line-height: 1.5;
+        min-height: 0;
+        transition: all 250ms ease;
+        border-radius: 10px;
+    }
+    .auth-msg:not(:empty) {
+        padding: 10px 14px;
+        margin-top: 4px;
+    }
+    .auth-msg.text-green-600,
+    .auth-msg.text-green-500 {
+        background: rgba(5, 150, 105, 0.08);
+        border: 1px solid rgba(5, 150, 105, 0.2);
+        color: var(--a-success) !important;
+    }
+    .auth-msg.text-red-600,
+    .auth-msg.text-red-500 {
+        background: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        color: var(--a-error) !important;
+    }
+    .auth-msg.text-blue-600,
+    .auth-msg.text-blue-500 {
+        background: rgba(37, 99, 235, 0.08);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        color: #2563eb !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MODAL LUPA AKUN
+       ═══════════════════════════════════════════════════════ */
+    .auth-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(5, 20, 16, 0.55);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        transition: opacity 300ms ease;
+    }
+    .auth-modal-backdrop:not(.hidden) { opacity: 1; }
+    .auth-modal-backdrop.hidden { display: none !important; }
+    .auth-modal-backdrop.flex { display: flex; }
+
+    .auth-modal-card {
+        width: 100%;
+        max-width: 460px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow:
+            0 24px 60px rgba(0, 0, 0, 0.18),
+            0 8px 24px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--a-line);
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 300ms ease;
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #000000;
+    }
+    .dark .auth-modal-card {
+        background: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    .auth-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .auth-modal-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .auth-modal-icon {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--a-gold-400), var(--a-gold-500));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--a-brand-800);
+        font-size: 1rem;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        flex-shrink: 0;
+    }
+    .auth-modal-title {
+        font-family: 'Amiri', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #000000;
+        margin: 0;
+    }
+    .dark .auth-modal-title { color: #f1f5f9; }
+    .auth-modal-close {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        border: none;
+        color: #4b5563;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        transition: all 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        flex-shrink: 0;
+    }
+    .dark .auth-modal-close {
+        background: #334155;
+        color: #cbd5e1;
+    }
+    .auth-modal-close:hover {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--a-error);
+        transform: rotate(90deg) scale(1.08);
+    }
+
+    .auth-mode-switch {
+        display: flex;
+        gap: 8px;
+        padding: 5px;
+        border-radius: 12px;
+        background: #f3f4f6;
+        margin-bottom: 20px;
+    }
+    .dark .auth-mode-switch {
+        background: rgba(15, 23, 42, 0.5);
+    }
+    .auth-mode-option {
+        flex: 1;
+        position: relative;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #6b7280;
+        transition: all 220ms ease;
+    }
+    .dark .auth-mode-option { color: #94a3b8; }
+    .auth-mode-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .auth-mode-option:has(input:checked) {
+        background: #ffffff;
+        color: var(--a-brand-700);
+        box-shadow: 0 2px 6px rgba(15, 41, 34, 0.08);
+    }
+    .dark .auth-mode-option:has(input:checked) {
+        background: #334155;
+        color: var(--a-gold-400);
+    }
+
+    .auth-modal-desc {
+        font-size: 0.85rem;
+        color: #4b5563;
+        line-height: 1.55;
+        margin: 0 0 16px 0;
+    }
+    .dark .auth-modal-desc { color: #cbd5e1; }
+
+    .auth-modal-step {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .auth-question-box {
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(15, 41, 34, 0.04));
+        border: 1px dashed rgba(251, 191, 36, 0.4);
+    }
+    .auth-question-box p {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #000000;
+        line-height: 1.5;
+    }
+    .dark .auth-question-box p { color: #f1f5f9; }
+
+    .mt-4 { margin-top: 4px; }
+
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════ */
+    @media (max-width: 480px) {
+        .auth-heading-title { font-size: 1.55rem; }
+        .auth-form-inner { padding: 88px 18px 32px; }
+        .auth-back-label { display: none; }
+        .auth-back-link { padding: 8px 12px; }
+        .auth-tab { font-size: 0.85rem; padding: 11px 12px; }
+        .auth-modal-card { padding: 22px 20px; }
+    }
+
+    /* Tablet */
+    @media (min-width: 481px) and (max-width: 767px) {
+        .auth-form-inner { padding: 96px 24px 40px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .auth-split *,
+        .auth-split *::before,
+        .auth-split *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Screen reader only */
+    #form-title.sr-only,
+    .sr-only {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        color: transparent !important;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       ULTIMATE FIX: Force input styling dengan specificity tinggi
+       ══════════════════════════════════════════════════════════════ */
+    html body #auth-content .auth-input-wrap input,
+    html body #auth-content .auth-input-wrap select,
+    html body #auth-wrapper .auth-input-wrap input,
+    html body #auth-wrapper .auth-input-wrap select,
+    html body .auth-split .auth-input-wrap input,
+    html body .auth-split .auth-input-wrap select,
+    #auth-content input[type="text"],
+    #auth-content input[type="password"],
+    #auth-content input[type="tel"],
+    #auth-content input[type="email"],
+    #auth-content select {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        background-image: none !important;
+        background-clip: padding-box !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        caret-color: #000000 !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+
+    html body #auth-content .auth-input-wrap,
+    html body #auth-wrapper .auth-input-wrap,
+    html body .auth-split .auth-input-wrap {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+    }
+
+    html body #auth-content .auth-input-wrap input::placeholder,
+    html body #auth-wrapper .auth-input-wrap input::placeholder,
+    html body .auth-split .auth-input-wrap input::placeholder {
+        color: #9ca3af !important;
+        -webkit-text-fill-color: #9ca3af !important;
+        opacity: 1 !important;
+    }
+
+    html body #auth-content .auth-input-wrap input:-webkit-autofill,
+    html body #auth-content .auth-input-wrap input:-webkit-autofill:hover,
+    html body #auth-content .auth-input-wrap input:-webkit-autofill:focus,
+    html body #auth-wrapper .auth-input-wrap input:-webkit-autofill,
+    html body .auth-split .auth-input-wrap input:-webkit-autofill,
+    #auth-content input:-webkit-autofill,
+    #auth-content input:-webkit-autofill:hover,
+    #auth-content input:-webkit-autofill:focus {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+        box-shadow: 0 0 0 1000px #ffffff inset !important;
+        -webkit-text-fill-color: #000000 !important;
+        color: #000000 !important;
+        caret-color: #000000 !important;
+        transition: background-color 9999s ease-in-out 0s !important;
+    }
+
+    html body #auth-content .auth-input-wrap select,
+    html body #auth-wrapper .auth-input-wrap select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 14px center !important;
+        background-color: #ffffff !important;
+        padding-right: 40px !important;
+    }
+
+    html body.dark #auth-content .auth-input-wrap input,
+    html body.dark #auth-content .auth-input-wrap select,
+    html body.dark #auth-wrapper .auth-input-wrap input,
+    html body.dark #auth-wrapper .auth-input-wrap select,
+    .dark html body #auth-content .auth-input-wrap input,
+    .dark html body #auth-content .auth-input-wrap select,
+    .dark #auth-content input[type="text"],
+    .dark #auth-content input[type="password"],
+    .dark #auth-content input[type="tel"],
+    .dark #auth-content input[type="email"],
+    .dark #auth-content select {
+        background: #1e293b !important;
+        background-color: #1e293b !important;
+        background-image: none !important;
+        color: #f1f5f9 !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+        caret-color: #f1f5f9 !important;
+    }
+
+    html body.dark #auth-content .auth-input-wrap input:-webkit-autofill,
+    html body.dark #auth-wrapper .auth-input-wrap input:-webkit-autofill,
+    .dark html body #auth-content .auth-input-wrap input:-webkit-autofill,
+    .dark #auth-content input:-webkit-autofill {
+        background: #1e293b !important;
+        -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+        box-shadow: 0 0 0 1000px #1e293b inset !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+        color: #f1f5f9 !important;
+    }
+
+    html body.dark #auth-content .auth-input-wrap input::placeholder,
+    .dark #auth-content .auth-input-wrap input::placeholder {
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
+    }
+
+    html body.dark #auth-content .auth-input-wrap select,
+    .dark #auth-content .auth-input-wrap select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+        background-color: #1e293b !important;
+    }
+</style>

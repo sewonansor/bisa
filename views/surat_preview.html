@@ -1,19 +1,35 @@
 <!-- views/surat_preview.html -->
 <!-- Halaman Preview & Cetak Surat Resmi -->
-<!-- Versi: 1.0.1 - Fixed (No Empty Ruleset, Print Ready) -->
+<!-- Logic: js/surat_preview.js | Route: /surat_preview?id=xxx -->
+<!-- Versi: 2.0.0 — CSS print-specific dipertahankan, common styles di css/style.css -->
 
 <div id="main-content">
-    <!-- Toolbar Aksi (Disembunyikan saat print) -->
-    <div class="flex justify-between items-center mb-6 no-print">
-        <h1 class="text-2xl font-bold text-[var(--text-main)] font-amiri">Preview Surat</h1>
-        <div class="flex gap-2">
-            <button id="back-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <button id="print-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-print"></i> Cetak / Simpan PDF</button>
+    <!-- ============================================================ -->
+    <!-- TOOLBAR AKSI (Disembunyikan saat print)                       -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 no-print gap-4">
+        <h1 class="text-2xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-file-alt mr-2"></i>
+            Preview Surat
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="back-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
+            </button>
+            <button id="print-btn"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                <span>Cetak / Simpan PDF</span>
+            </button>
         </div>
     </div>
 
-    <!-- Area Preview Surat -->
-    <div id="surat-preview-container" class="bg-white shadow-2xl rounded-lg p-8 text-black mx-auto" style="font-family: 'Times New Roman', serif; max-width: 900px; line-height: 1.6;">
+    <!-- ============================================================ -->
+    <!-- AREA PREVIEW SURAT                                            -->
+    <!-- ============================================================ -->
+    <div id="surat-preview-container">
         <!-- Loading State -->
         <div id="preview-loading" class="text-center py-20">
             <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
@@ -22,16 +38,16 @@
 
         <!-- KOP SURAT -->
         <div id="kop-surat" class="hidden mb-6">
-            <div class="flex items-center justify-between border-b-4 border-black pb-4">
+            <div class="kop-surat-inner">
                 <!-- Logo Organisasi -->
-                <img src="logo-ansor.webp" alt="Logo Ansor" class="h-24 w-auto object-contain" />
-                
+                <img src="logo-ansor.webp" alt="Logo Ansor" class="kop-logo" />
+
                 <!-- Nama Organisasi & Alamat -->
-                <div class="text-center flex-1">
-                    <h1 class="text-2xl font-bold uppercase leading-tight">Pimpinan Anak Cabang</h1>
-                    <h1 class="text-2xl font-bold uppercase leading-tight">Gerakan Pemuda Ansor</h1>
-                    <h1 class="text-2xl font-bold uppercase leading-tight">Kapanewon Sewon</h1>
-                    <div class="text-xs mt-2">
+                <div class="kop-text">
+                    <h1 class="kop-title">Pimpinan Anak Cabang</h1>
+                    <h1 class="kop-title">Gerakan Pemuda Ansor</h1>
+                    <h1 class="kop-title">Kapanewon Sewon</h1>
+                    <div class="kop-address">
                         <p>Alamat: Komplek Masjid Baitul Hadi Jalan Parangtritis Km 4,5</p>
                         <p>Telp: 083866675221 | Email: sewon.ansor@gmail.com</p>
                     </div>
@@ -46,9 +62,9 @@
 
             <!-- Nomor Surat, Lampiran, Perihal -->
             <div class="space-y-1 text-sm">
-                <p><span class="inline-block w-24">No</span> : <span id="surat-nomor" class="font-semibold"></span></p>
-                <p><span class="inline-block w-24">Lampiran</span> : <span id="surat-lampiran">-</span></p>
-                <p><span class="inline-block w-24">Hal</span> : <span id="surat-perihal" class="font-semibold"></span></p>
+                <p><span class="surat-label">No</span> : <span id="surat-nomor" class="font-semibold"></span></p>
+                <p><span class="surat-label">Lampiran</span> : <span id="surat-lampiran">-</span></p>
+                <p><span class="surat-label">Hal</span> : <span id="surat-perihal" class="font-semibold"></span></p>
             </div>
 
             <!-- Tujuan Surat -->
@@ -65,7 +81,8 @@
             </div>
 
             <!-- Isi Surat Utama -->
-            <div id="surat-isi" class="text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]"></div>
+            <div id="surat-isi"
+                 class="text-sm leading-relaxed whitespace-pre-wrap min-h-[200px]"></div>
 
             <!-- Penutup Surat -->
             <div class="mt-8 text-sm">
@@ -75,30 +92,130 @@
             </div>
 
             <!-- Tanda Tangan -->
-            <div class="text-right mt-10 text-sm">
+            <div class="surat-signature text-sm">
                 <p>Pimpinan Anak Cabang</p>
                 <p>Gerakan Pemuda Ansor Kapanewon Sewon</p>
-                <div class="mt-10 h-8"></div> <!-- Spasi untuk tanda tangan -->
+                <div class="surat-signature-space"></div>
                 <p class="font-bold underline" id="surat-pengirim"></p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Style untuk Preview & Print -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] surat_preview.html loaded — logic handled by js/surat_preview.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view surat_preview saja                 -->
+<!-- CSS ini adalah print-specific, harus tetap ada                -->
+<!-- Common styles (btn-primary, btn-secondary) sudah di style.css -->
+<!-- ============================================================ -->
 <style>
+    /* ═══════════════════════════════════════════════════════════
+       AREA PREVIEW (Screen + Print)
+       ═══════════════════════════════════════════════════════════ */
     #surat-preview-container {
         background-color: #ffffff;
         border-radius: 0.75rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         padding: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+        color: #000000;
+        font-family: 'Times New Roman', 'Amiri', serif;
+        line-height: 1.6;
     }
 
-    /* Tidak ada ruleset kosong untuk .no-print */
+    /* ────────────── KOP SURAT ────────────── */
+    .kop-surat-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 4px solid #000000;
+        padding-bottom: 1rem;
+    }
 
+    .kop-logo {
+        height: 6rem;
+        width: auto;
+        object-fit: contain;
+    }
+
+    .kop-text {
+        text-align: center;
+        flex: 1;
+        margin: 0 1rem;
+    }
+
+    .kop-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        line-height: 1.2;
+        margin: 0;
+        color: #000000;
+    }
+
+    .kop-address {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        color: #000000;
+    }
+    .kop-address p { margin: 0; }
+
+    /* ────────────── LABEL SURAT ────────────── */
+    .surat-label {
+        display: inline-block;
+        width: 6rem;
+    }
+
+    /* ────────────── TANDA TANGAN ────────────── */
+    .surat-signature {
+        text-align: right;
+        margin-top: 2.5rem;
+    }
+    .surat-signature-space {
+        height: 2rem;
+        margin-top: 2.5rem;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        #surat-preview-container {
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        .kop-logo {
+            height: 4rem;
+        }
+        .kop-title {
+            font-size: 1rem;
+        }
+        .kop-address {
+            font-size: 0.65rem;
+        }
+        .surat-label {
+            width: 4.5rem;
+        }
+        .surat-signature-space {
+            height: 1.5rem;
+            margin-top: 1.5rem;
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PRINT STYLES — Untuk Cetak / Export PDF
+       ═══════════════════════════════════════════════════════════ */
     @media print {
-        /* Sembunyikan toolbar dan elemen non-surat */
-        .no-print, #back-btn, #print-btn {
+        .no-print,
+        #back-btn,
+        #print-btn {
             display: none !important;
         }
 
@@ -120,8 +237,9 @@
             width: 100% !important;
         }
 
-        /* Pastikan kop surat dan isi tetap terlihat */
-        #kop-surat, #isi-surat {
+        /* Kop surat & isi harus terlihat saat print */
+        #kop-surat,
+        #isi-surat {
             display: block !important;
         }
     }

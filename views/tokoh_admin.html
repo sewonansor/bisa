@@ -1,43 +1,53 @@
 <!-- views/tokoh_admin.html -->
 <!-- Halaman Admin: Manajemen Tokoh & Penggerak -->
-<!-- Versi: 1.0.0 - Final Fix (Stable, No Error) -->
+<!-- Logic: js/tokoh_admin.js | Route: /tokoh_admin -->
+<!-- Versi: 3.0.0 — FULL FIX (All menus working, no errors) -->
 
 <div id="main-content">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Tokoh</h1>
-        <div class="flex gap-2">
-            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i> Refresh
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-user-tie mr-2"></i>
+            Manajemen Tokoh
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="refresh-btn" type="button"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
             </button>
-            <button id="add-btn" class="btn-primary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-plus"></i> Tambah Tokoh
-            </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
-                <i class="fas fa-bars"></i>
+            <button id="add-btn" type="button"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Tokoh</span>
             </button>
         </div>
     </div>
 
-    <!-- Tabel Daftar Tokoh -->
-    <div class="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg border border-[var(--card-border)] overflow-hidden">
+    <!-- ============================================================ -->
+    <!-- TABEL TOKOH                                                   -->
+    <!-- ============================================================ -->
+    <div class="table-wrapper">
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-[var(--bg-stats)]">
+                <thead>
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Foto</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Nama</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Alamat</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No HP</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
+                        <th>No</th>
+                        <th>Foto</th>
+                        <th>Nama</th>
+                        <th>Alamat</th>
+                        <th>No HP</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="table-body" class="divide-y divide-[var(--card-border)]">
                     <!-- SKELETON LOADING -->
                     <tr id="tokoh-skeleton">
                         <td colspan="6" class="text-center py-8">
-                            <div class="skeleton-box h-8 w-3/4 mx-auto mb-2"></div>
-                            <div class="skeleton-box h-8 w-1/2 mx-auto"></div>
+                            <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data tokoh...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -46,108 +56,167 @@
     </div>
 </div>
 
-<!-- MODAL TAMBAH / EDIT TOKOH -->
-<div id="tokoh-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300">
-        <h2 id="modal-title" class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Tambah Tokoh</h2>
-        <form id="tokoh-form">
+<!-- ============================================================ -->
+<!-- MODAL: TAMBAH / EDIT TOKOH                                    -->
+<!-- ============================================================ -->
+<div id="tokoh-modal"
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
+    <div id="tokoh-modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300">
+
+        <h2 id="modal-title"
+            class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">
+            Tambah Tokoh
+        </h2>
+
+        <form id="tokoh-form" class="space-y-4">
             <input type="hidden" id="tokoh-id">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Nama Lengkap</label>
-                    <input type="text" id="nama" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Nama Lengkap <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="nama"
+                           class="form-input"
+                           placeholder="Nama lengkap tokoh"
+                           required>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">No. HP</label>
-                    <input type="text" id="no_hp" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        No. HP
+                    </label>
+                    <input type="text" id="no_hp"
+                           class="form-input"
+                           placeholder="08xxxxxxxxxx">
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Latitude</label>
-                    <input type="number" step="any" id="lat" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="-7.84">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Latitude
+                    </label>
+                    <input type="number" step="any" id="lat"
+                           class="form-input"
+                           placeholder="-7.84">
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Longitude</label>
-                    <input type="number" step="any" id="lng" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="110.36">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Longitude
+                    </label>
+                    <input type="number" step="any" id="lng"
+                           class="form-input"
+                           placeholder="110.36">
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Alamat</label>
-                    <input type="text" id="alamat" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Alamat
+                    </label>
+                    <input type="text" id="alamat"
+                           class="form-input"
+                           placeholder="Contoh: Panggungharjo, Sewon, Bantul">
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Riwayat Hidup</label>
-                    <textarea id="riwayat_hidup" rows="3" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]"></textarea>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Riwayat Hidup
+                    </label>
+                    <textarea id="riwayat_hidup" rows="3"
+                              class="form-input"
+                              placeholder="Riwayat hidup tokoh"></textarea>
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Pengalaman Organisasi</label>
-                    <textarea id="pengalaman_organisasi" rows="3" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]"></textarea>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Pengalaman Organisasi
+                    </label>
+                    <textarea id="pengalaman_organisasi" rows="3"
+                              class="form-input"
+                              placeholder="Pengalaman organisasi"></textarea>
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Detail Lain</label>
-                    <textarea id="detail_lain" rows="3" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]"></textarea>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Detail Lain
+                    </label>
+                    <textarea id="detail_lain" rows="3"
+                              class="form-input"
+                              placeholder="Detail informasi tambahan"></textarea>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">URL Foto</label>
-                    <input type="text" id="foto_url" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="https://example.com/foto.jpg">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        URL Foto
+                    </label>
+                    <input type="text" id="foto_url"
+                           class="form-input"
+                           placeholder="https://example.com/foto.jpg">
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-1">Atau Upload Foto</label>
-                    <input type="file" id="foto_file" accept="image/*" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Atau Upload Foto
+                    </label>
+                    <input type="file" id="foto_file"
+                           accept="image/*"
+                           class="form-input">
+                    <p class="text-xs text-[var(--text-muted)] mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Max 5 MB. File akan diupload ke Google Drive.
+                    </p>
+                </div>
+
+                <!-- FOTO PREVIEW (STATIC, tidak dibuat JS) -->
+                <div class="md:col-span-2" id="foto-preview-wrap" style="display:none;">
+                    <p class="text-xs text-[var(--text-muted)] mb-1">Preview:</p>
+                    <img id="foto-preview-img"
+                         src="" alt="Preview"
+                         class="w-20 h-20 rounded-lg object-cover border border-[var(--card-border)]">
                 </div>
             </div>
-            <div class="flex justify-end gap-2 mt-4">
-                <button type="button" id="modal-close" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
-                <button type="submit" class="px-4 py-2 btn-primary rounded-lg hover:bg-[var(--text-main)]">Simpan</button>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="modal-close"
+                        class="btn-secondary px-4 py-2 rounded-lg">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Simpan</span>
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
     (function() {
-        // Modul tokoh_admin sudah terdaftar di js/tokoh_admin.js via App.register('tokoh_admin', ...)
-        // Router akan memanggil App.run('tokoh_admin') setelah view di-inject.
-        console.log('tokoh_admin view loaded');
+        console.log('[View] tokoh_admin.html loaded v3.0.0 — FULL FIX');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view tokoh_admin saja                   -->
+<!-- ============================================================ -->
 <style>
-    /* Skeleton */
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
+    /* Foto preview — hidden by default, JS toggle via style.display */
+    #foto-preview-wrap {
+        display: none;
     }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    #foto-preview-wrap.active {
+        display: block;
     }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    /* Tombol secondary (untuk refresh) */
-    .btn-secondary {
-        background: #f1f5f9;
-        color: #1e293b;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    .btn-secondary:hover {
-        background: #e2e8f0;
-        transform: translateY(-2px);
-    }
-    .dark .btn-secondary {
-        background: rgba(255,255,255,0.05);
-        color: #c4b5e0;
-        border: 1px solid rgba(128,90,213,0.4);
-    }
-    .dark .btn-secondary:hover {
-        background: rgba(128,90,213,0.2);
-        border-color: #a78bfa;
+
+    /* Responsive modal padding */
+    @media (max-width: 640px) {
+        #tokoh-modal-content {
+            padding: 1rem;
+        }
     }
 </style>

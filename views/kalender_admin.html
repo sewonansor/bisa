@@ -1,53 +1,97 @@
 <!-- views/kalender_admin.html -->
-<!-- Fragment Kalender Admin (Manajemen Event & Kegiatan) -->
-<!-- Versi: 4.0.2 - Final Fix (Stable, No Loop) -->
+<!-- Halaman Admin: Kalender / Timeline Kegiatan -->
+<!-- Logic: js/kalender_admin.js | Route: /kalender_admin | Libs: fullcalendar -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- Konten Utama -->
 <div id="main-content">
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Kalender / Timeline Kegiatan</h1>
-        <div class="flex gap-2">
-            <button id="manage-kegiatan-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-tasks"></i> Kelola Kegiatan
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            Kalender / Timeline Kegiatan
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="manage-kegiatan-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-tasks"></i>
+                <span>Kelola Kegiatan</span>
             </button>
-            <button id="add-event-btn" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-plus"></i> Tambah Event
+            <button id="add-event-btn"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Event</span>
             </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+            <button id="mobile-menu-btn"
+                    class="md:hidden text-2xl text-[var(--text-muted)]"
+                    aria-label="Buka Menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- KALENDER                                                      -->
+    <!-- ============================================================ -->
     <div id="calendar" class="max-w-6xl mx-auto"></div>
 </div>
 
-<!-- MODAL CRUD EVENT (Rencana) -->
-<div id="event-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 mx-4 transform scale-95 opacity-0 transition-all duration-300" id="event-modal-content">
+<!-- ============================================================ -->
+<!-- MODAL: CRUD EVENT (Rencana)                                   -->
+<!-- ============================================================ -->
+<div id="event-modal"
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
+    <div id="event-modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-[var(--text-main)] font-amiri" id="event-modal-title">Tambah Event</h2>
-            <button id="close-event-modal" class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl">
+            <h2 id="event-modal-title"
+                class="text-2xl font-bold text-[var(--text-main)] font-amiri">
+                Tambah Event
+            </h2>
+            <button id="close-event-modal" type="button"
+                    class="modal-icon-btn"
+                    aria-label="Tutup">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <form id="event-form" class="space-y-4">
             <input type="hidden" id="event-id">
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Judul Event</label>
-                <input type="text" id="event-title" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Judul Event <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="event-title"
+                       class="form-input"
+                       placeholder="Judul event"
+                       required>
             </div>
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Tanggal Mulai</label>
-                <input type="datetime-local" id="event-start" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Tanggal Mulai <span class="text-red-500">*</span>
+                </label>
+                <input type="datetime-local" id="event-start"
+                       class="form-input"
+                       required>
             </div>
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Tanggal Selesai</label>
-                <input type="datetime-local" id="event-end" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Tanggal Selesai
+                </label>
+                <input type="datetime-local" id="event-end"
+                       class="form-input">
             </div>
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Warna Tema</label>
-                <select id="event-color" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Warna Tema
+                </label>
+                <select id="event-color" class="form-input">
                     <option value="#2563eb">Biru (Rencana)</option>
                     <option value="#16a34a">Hijau (Kegiatan)</option>
                     <option value="#dc2626">Merah (Penting)</option>
@@ -55,112 +99,201 @@
                     <option value="#7c3aed">Ungu (Lainnya)</option>
                 </select>
             </div>
+
             <div class="flex justify-between gap-2 pt-2 border-t border-[var(--card-border)]">
-                <button type="button" id="delete-event-btn" class="hidden px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">Hapus Event</button>
+                <button type="button" id="delete-event-btn"
+                        class="hidden px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                    <i class="fas fa-trash mr-1"></i>Hapus Event
+                </button>
                 <div class="flex gap-2 ml-auto">
-                    <button type="button" id="cancel-event-btn" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800">Simpan</button>
+                    <button type="button" id="cancel-event-btn"
+                            class="btn-secondary px-4 py-2 rounded-lg">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="btn-primary px-4 py-2 rounded-lg">
+                        <i class="fas fa-save mr-1"></i>
+                        <span>Simpan</span>
+                    </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
 
-<!-- MODAL CRUD KEGIATAN (LPJ) -->
-<div id="kegiatan-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-3xl w-full p-6 mx-4 max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300" id="kegiatan-modal-content">
+<!-- ============================================================ -->
+<!-- MODAL: CRUD KEGIATAN (LPJ/Logbook)                            -->
+<!-- ============================================================ -->
+<div id="kegiatan-modal"
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
+    <div id="kegiatan-modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-3xl w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-[var(--text-main)] font-amiri" id="kegiatan-modal-title">Kelola Kegiatan</h2>
-            <button id="close-kegiatan-modal" class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl">
+            <h2 id="kegiatan-modal-title"
+                class="text-2xl font-bold text-[var(--text-main)] font-amiri">
+                Kelola Kegiatan
+            </h2>
+            <button id="close-kegiatan-modal" type="button"
+                    class="modal-icon-btn"
+                    aria-label="Tutup">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div id="kegiatan-list" class="mb-4 max-h-60 overflow-y-auto border border-[var(--card-border)] rounded-lg p-2">
+
+        <!-- Daftar Kegiatan -->
+        <div id="kegiatan-list"
+             class="mb-4 max-h-60 overflow-y-auto border border-[var(--card-border)] rounded-lg p-2">
             <p class="text-[var(--text-muted)] text-center py-4">Memuat data...</p>
         </div>
-        <h3 class="text-lg font-bold mb-2 text-[var(--text-main)] font-amiri" id="kegiatan-form-title">Tambah Kegiatan</h3>
+
+        <h3 id="kegiatan-form-title"
+            class="text-lg font-bold mb-2 text-[var(--text-main)] font-amiri">
+            Tambah Kegiatan
+        </h3>
+
         <form id="kegiatan-form" class="space-y-3">
             <input type="hidden" id="kegiatan-id">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Nama Kegiatan</label>
-                    <input type="text" id="kegiatan-nama" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Nama Kegiatan
+                    </label>
+                    <input type="text" id="kegiatan-nama"
+                           class="form-input"
+                           required>
                 </div>
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Tempat</label>
-                    <input type="text" id="kegiatan-tempat" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Tempat
+                    </label>
+                    <input type="text" id="kegiatan-tempat"
+                           class="form-input"
+                           required>
                 </div>
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Tanggal Mulai</label>
-                    <input type="date" id="kegiatan-tanggal-mulai" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Tanggal Mulai
+                    </label>
+                    <input type="date" id="kegiatan-tanggal-mulai"
+                           class="form-input"
+                           required>
                 </div>
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Tanggal Selesai</label>
-                    <input type="date" id="kegiatan-tanggal-selesai" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Tanggal Selesai
+                    </label>
+                    <input type="date" id="kegiatan-tanggal-selesai"
+                           class="form-input"
+                           required>
                 </div>
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Peserta</label>
-                    <input type="number" id="kegiatan-peserta" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Peserta
+                    </label>
+                    <input type="number" id="kegiatan-peserta"
+                           class="form-input"
+                           min="0"
+                           required>
                 </div>
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Anggaran (Rp)</label>
-                    <input type="number" id="kegiatan-anggaran" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                    <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                        Anggaran (Rp)
+                    </label>
+                    <input type="number" id="kegiatan-anggaran"
+                           class="form-input"
+                           min="0"
+                           required>
                 </div>
             </div>
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">Deskripsi</label>
-                <textarea id="kegiatan-deskripsi" rows="2" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required></textarea>
+                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                    Deskripsi
+                </label>
+                <textarea id="kegiatan-deskripsi" rows="2"
+                          class="form-input"
+                          required></textarea>
             </div>
+
             <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">File URL</label>
-                <input type="text" id="kegiatan-file-url" class="w-full px-3 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Opsional">
+                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
+                    File URL <span class="text-xs font-normal">(opsional)</span>
+                </label>
+                <input type="text" id="kegiatan-file-url"
+                       class="form-input"
+                       placeholder="Link file pendukung">
             </div>
+
             <div class="flex justify-end gap-2 pt-2 border-t border-[var(--card-border)]">
-                <button type="button" id="cancel-kegiatan-btn" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-[var(--text-main)]">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800">Simpan Kegiatan</button>
+                <button type="button" id="cancel-kegiatan-btn"
+                        class="btn-secondary px-4 py-2 rounded-lg">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-save mr-1"></i>
+                    <span>Simpan Kegiatan</span>
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
     (function() {
-        // Modul kalender_admin sudah terdaftar di js/kalender_admin.js via App.register('kalender_admin', ...)
-        // Router akan memanggil App.run('kalender_admin') setelah view di-inject.
-        console.log('kalender_admin view loaded');
+        console.log('[View] kalender_admin.html loaded — logic handled by js/kalender_admin.js');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view kalender_admin saja                -->
+<!-- Common styles (btn-primary, btn-secondary, form-input) sudah  -->
+<!-- di css/style.css                                              -->
+<!-- ============================================================ -->
 <style>
-    /* Skeleton (untuk modal jika perlu) */
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
+    /* ────────────── MODAL ICON BUTTON ────────────── */
+    .modal-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 180ms var(--ease-smooth);
     }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    .modal-icon-btn:hover {
+        background: var(--bg-stats);
+        color: var(--text-main);
     }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    /* FullCalendar override (untuk admin) */
+
+    /* ────────────── FULLCALENDAR OVERRIDE (Admin) ────────────── */
     .fc-theme-standard {
         background: var(--card-bg);
         backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border-radius: 1.5rem;
         padding: 1rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         border: 1px solid var(--card-border);
     }
     .fc-theme-standard .fc-col-header-cell { color: var(--text-main); }
     .fc-theme-standard .fc-daygrid-day-number { color: var(--text-muted); }
-    .fc-theme-standard .fc-toolbar-title { color: var(--text-main); }
+    .fc-theme-standard .fc-toolbar-title {
+        color: var(--text-main);
+        font-family: 'Amiri', serif;
+    }
     .fc-daygrid-event-dot { display: none !important; }
+
     .fc-daygrid-event {
         display: block !important;
         white-space: normal !important;
@@ -174,7 +307,7 @@
         color: #ffffff !important;
         font-weight: 700 !important;
         font-size: 0.8rem !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
     }
     .fc-daygrid-event .fc-event-time {
         display: inline-block;
@@ -182,8 +315,20 @@
         margin-right: 4px;
         color: #fff;
     }
-    /* Modal transition */
-    #event-modal, #kegiatan-modal {
+
+    /* ────────────── MODAL TRANSITION ────────────── */
+    #event-modal,
+    #kegiatan-modal {
         transition: all 0.3s ease;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        /* Modal full width di mobile */
+        #event-modal-content,
+        #kegiatan-modal-content {
+            margin: 0.5rem;
+            padding: 1rem;
+        }
     }
 </style>

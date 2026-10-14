@@ -1,151 +1,453 @@
 <!-- views/kalender.html -->
-<!-- Fragment Halaman Kalender Publik -->
-<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+<!-- Halaman Publik: Kalender Kegiatan -->
+<!-- Logic: js/kalender.js | Route: /kalender | Libs: fullcalendar -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
-<section class="hero-light dark:hero-dark py-20">
-    <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-text font-amiri">Kalender Kegiatan</h1>
-        <p class="text-xl md:text-2xl mb-8 opacity-90">Timeline lengkap persiapan, pelaksanaan, dan pasca acara</p>
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="kalender-hero pt-28 pb-12 text-center text-white relative overflow-hidden">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5 text-xs sm:text-sm font-medium">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Timeline Kegiatan</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold font-amiri mb-4 leading-tight">
+            Kalender Kegiatan
+        </h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
+            Timeline lengkap persiapan, pelaksanaan, dan pasca acara PAC GP Ansor Kapanewon Sewon
+        </p>
     </div>
 </section>
 
-<!-- KALENDER -->
-<section class="py-16 bg-gray-100/50 dark:bg-transparent">
+<!-- ============================================================ -->
+<!-- LEGEND WARNA                                                  -->
+<!-- ============================================================ -->
+<section class="py-5 bg-[var(--bg-body)] border-b border-[var(--card-border)]">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-purple-200 glow-text font-amiri">Timeline Kegiatan</h2>
-        <div id="calendar" class="max-w-5xl mx-auto"></div>
+        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #16a34a;"></span>
+                <span class="text-[var(--text-muted)] font-medium">
+                    <i class="fas fa-calendar-check mr-1 text-green-600"></i>Kegiatan (Logbook)
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background: #2563eb;"></span>
+                <span class="text-[var(--text-muted)] font-medium">
+                    <i class="fas fa-calendar-plus mr-1 text-blue-600"></i>Rencana (Event)
+                </span>
+            </div>
+            <span class="hidden sm:inline text-[var(--card-border)]">|</span>
+            <span class="text-[var(--text-muted)] italic text-xs">
+                <i class="fas fa-info-circle mr-1"></i>Klik event untuk melihat detail
+            </span>
+        </div>
     </div>
 </section>
 
-<!-- SCRIPT INLINE (akan dieksekusi oleh router) -->
+<!-- ============================================================ -->
+<!-- KALENDER UTAMA                                                -->
+<!-- ============================================================ -->
+<section class="py-10 sm:py-12 bg-[var(--bg-body)]">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- LOADING STATE -->
+            <div id="kalender-loading" class="text-center py-20">
+                <i class="fas fa-spinner fa-spin text-4xl text-[var(--text-main)]"></i>
+                <p class="text-[var(--text-muted)] mt-4 text-sm">Memuat kalender...</p>
+            </div>
+
+            <!-- ERROR STATE -->
+            <div id="kalender-error" class="hidden text-center py-12">
+                <div class="inline-block p-8 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)]">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                    <p id="kalender-error-msg" class="text-red-500 font-medium mb-4">
+                        Gagal memuat kalender.
+                    </p>
+                    <button id="kalender-retry-btn" type="button"
+                            class="btn-outline px-6 py-2.5 rounded-full inline-flex items-center gap-2">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Coba Lagi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KALENDER CONTAINER -->
+            <div id="calendar" class="hidden"></div>
+
+            <!-- EMPTY STATE -->
+            <div id="kalender-empty" class="hidden text-center py-12">
+                <div class="inline-block p-8 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)]">
+                    <i class="fas fa-calendar-times text-5xl text-[var(--text-muted)] mb-4 opacity-40"></i>
+                    <p class="text-[var(--text-muted)] text-sm">
+                        Belum ada kegiatan atau rencana yang terjadwal.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODAL DETAIL EVENT                                            -->
+<!-- ============================================================ -->
+<div id="event-detail-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+
+    <div id="event-detail-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-lg w-full p-6 transform scale-95 opacity-0 transition-all duration-200 border border-[var(--card-border)]">
+
+        <!-- Modal Header -->
+        <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center gap-3">
+                <div id="event-detail-icon"
+                     class="event-detail-icon event-detail-icon-blue">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <span id="event-detail-badge"
+                          class="event-detail-badge event-detail-badge-blue">
+                        Event
+                    </span>
+                </div>
+            </div>
+            <button id="event-detail-close" type="button"
+                    class="modal-icon-btn"
+                    title="Tutup"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Judul -->
+        <h3 id="event-detail-title"
+            class="text-2xl font-bold text-[var(--text-main)] font-amiri mb-4 leading-tight">
+            Detail Event
+        </h3>
+
+        <!-- Info Grid -->
+        <div class="space-y-4 text-sm">
+            <!-- Tanggal -->
+            <div class="flex items-start gap-3">
+                <i class="fas fa-calendar-day text-[var(--text-main)] mt-0.5 w-5 text-center flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[var(--text-muted)] text-xs uppercase font-bold mb-0.5">Tanggal</p>
+                    <p id="event-detail-tanggal" class="text-[var(--text-main)] leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Tempat -->
+            <div id="event-detail-tempat-wrap" class="flex items-start gap-3">
+                <i class="fas fa-map-marker-alt text-[var(--text-main)] mt-0.5 w-5 text-center flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[var(--text-muted)] text-xs uppercase font-bold mb-0.5">Tempat</p>
+                    <p id="event-detail-tempat" class="text-[var(--text-main)] leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Deskripsi -->
+            <div id="event-detail-deskripsi-wrap" class="flex items-start gap-3">
+                <i class="fas fa-align-left text-[var(--text-main)] mt-0.5 w-5 text-center flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[var(--text-muted)] text-xs uppercase font-bold mb-1">Deskripsi</p>
+                    <div id="event-detail-deskripsi"
+                         class="text-[var(--text-main)] leading-relaxed whitespace-pre-wrap"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end mt-6 pt-4 border-t border-[var(--card-border)]">
+            <button id="event-detail-ok" type="button"
+                    class="btn-primary px-6 py-2 rounded-lg inline-flex items-center gap-2">
+                <i class="fas fa-check"></i>
+                <span>Tutup</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
     (function() {
-        // Daftarkan modul kalender publik
-        App.register('kalender', function() {
-            const calendarEl = document.getElementById('calendar');
-            if (!calendarEl) return;
-
-            // Fungsi load data timeline (sama seperti di admin)
-            async function loadTimelineData() {
-                const [lpjResult, eventsResult] = await Promise.all([
-                    apiCall('getLpj', 'POST', {}),
-                    apiCall('getEvents', 'POST', {})
-                ]);
-
-                const events = [];
-
-                // 1. Dari LPJ (kegiatan yang sudah/sedang berjalan) - warna hijau
-                if (lpjResult.success) {
-                    lpjResult.data.forEach(item => {
-                        events.push({
-                            id: 'lpj_' + item.id,
-                            title: '📋 ' + (item.kegiatan || 'Kegiatan'),
-                            start: item.tanggal_mulai,
-                            end: item.tanggal_selesai,
-                            backgroundColor: '#16a34a',
-                            borderColor: '#16a34a',
-                            textColor: '#ffffff',
-                            extendedProps: {
-                                type: 'kegiatan',
-                                deskripsi: item.deskripsi || '',
-                                tempat: item.tempat || '-'
-                            }
-                        });
-                    });
-                }
-
-                // 2. Dari Events (rencana/persiapan) - warna biru
-                if (eventsResult.success) {
-                    eventsResult.data.forEach(item => {
-                        events.push({
-                            id: 'evt_' + item.id,
-                            title: '📌 ' + (item.title || 'Rencana'),
-                            start: item.start,
-                            end: item.end || item.start,
-                            backgroundColor: '#2563eb',
-                            borderColor: '#2563eb',
-                            textColor: '#ffffff',
-                            extendedProps: {
-                                type: 'rencana'
-                            }
-                        });
-                    });
-                }
-
-                return events;
-            }
-
-            // Inisialisasi kalender
-            function initCalendar(events) {
-                // Deteksi dark mode untuk override warna
-                const isDark = document.documentElement.classList.contains('dark');
-                if (isDark) {
-                    events.forEach(e => {
-                        if (e.extendedProps.type === 'kegiatan') {
-                            e.backgroundColor = '#16a34a';
-                            e.borderColor = '#16a34a';
-                        } else {
-                            e.backgroundColor = '#7c3aed';
-                            e.borderColor = '#7c3aed';
-                        }
-                    });
-                }
-
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,listWeek'
-                    },
-                    events: events,
-                    eventClick: function(info) {
-                        const event = info.event;
-                        let detail = `📅 ${event.title}\n`;
-                        detail += `📆 Mulai: ${event.start.toLocaleDateString('id-ID')}`;
-                        if (event.end && event.end.toDateString() !== event.start.toDateString()) {
-                            detail += `\n📆 Selesai: ${event.end.toLocaleDateString('id-ID')}`;
-                        }
-                        if (event.extendedProps.tempat) {
-                            detail += `\n📍 Tempat: ${event.extendedProps.tempat}`;
-                        }
-                        if (event.extendedProps.deskripsi) {
-                            detail += `\n📝 Deskripsi: ${event.extendedProps.deskripsi}`;
-                        }
-                        alert(detail);
-                    },
-                    windowResize: function(view) {
-                        calendar.render();
-                    }
-                });
-                calendar.render();
-            }
-
-            // Load data dan inisialisasi
-            loadTimelineData().then(events => initCalendar(events));
-        });
-
-        // Modul sudah terdaftar, router akan memanggil App.run('kalender')
-        // Jika kita ingin langsung menjalankan saat view dimuat (tidak perlu menunggu router),
-        // kita bisa panggil App.run('kalender') di sini, tapi router sudah melakukannya.
-        // Untuk keamanan, kita biarkan saja.
+        console.log('[View] kalender.html loaded — logic handled by js/kalender.js');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view kalender saja                      -->
+<!-- Common styles (btn-primary, btn-outline) sudah di style.css   -->
+<!-- ============================================================ -->
 <style>
-    .hero-light { background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); color: #1e293b; }
-    .dark .hero-dark { background: linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 100%); color: #f0eaff; box-shadow: inset 0 0 100px rgba(128, 90, 213, 0.1); }
-    .dark .glow-text { text-shadow: 0 0 20px rgba(167, 139, 250, 0.3); }
-    .dark .fc-theme-standard { background-color: transparent; color: #e0d6f5; }
-    .dark .fc-theme-standard .fc-col-header-cell { background-color: rgba(20, 15, 40, 0.5); border-color: rgba(128, 90, 213, 0.3); }
-    .dark .fc-theme-standard .fc-daygrid-day { border-color: rgba(128, 90, 213, 0.2); }
-    .dark .fc-theme-standard .fc-daygrid-day-number { color: #e0d6f5; }
-    .dark .fc-theme-standard .fc-event { border: none; cursor: pointer; }
-    .dark .fc-theme-standard .fc-button-primary { background: rgba(128, 90, 213, 0.3); border-color: rgba(128, 90, 213, 0.5); color: #e0d6f5; }
-    .dark .fc-theme-standard .fc-button-primary:hover { background: rgba(128, 90, 213, 0.5); border-color: #a78bfa; }
-    .dark .fc-theme-standard .fc-toolbar-title { color: #e0d6f5; }
-    .dark .fc-theme-standard .fc-day-today { background: rgba(128, 90, 213, 0.15) !important; }
-    .fc-theme-standard { background: white; border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+    /* ────────────── HERO ────────────── */
+    .kalender-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 50%, #0f2922 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .kalender-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .kalender-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -15%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.2), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* ────────────── LEGEND DOT ────────────── */
+    .legend-dot {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ────────────── EVENT DETAIL MODAL ────────────── */
+    .event-detail-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    .event-detail-icon-blue  { background: #2563eb; }
+    .event-detail-icon-green { background: #16a34a; }
+
+    .event-detail-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 2px 10px;
+        border-radius: 9999px;
+    }
+    .event-detail-badge-blue  { background: #dbeafe; color: #1e40af; }
+    .event-detail-badge-green { background: #dcfce7; color: #166534; }
+    .dark .event-detail-badge-blue  { background: rgba(30, 64, 175, 0.3); color: #93c5fd; }
+    .dark .event-detail-badge-green { background: rgba(22, 101, 52, 0.3); color: #86efac; }
+
+    .modal-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 180ms var(--ease-smooth);
+    }
+    .modal-icon-btn:hover {
+        background: var(--bg-stats);
+        color: var(--text-main);
+    }
+
+    #event-detail-content {
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    /* ────────────── FULLCALENDAR OVERRIDE ────────────── */
+    /* Semua warna pakai design tokens dari style.css */
+
+    .fc-theme-standard {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1.25rem;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .fc-toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem !important;
+    }
+    .fc-toolbar-title {
+        font-family: 'Amiri', serif !important;
+        font-weight: 700 !important;
+        color: var(--text-main) !important;
+        font-size: 1.5rem !important;
+    }
+
+    .fc-button {
+        background: var(--text-main) !important;
+        border-color: var(--text-main) !important;
+        color: var(--text-inverse) !important;
+        border-radius: 9999px !important;
+        padding: 0.4rem 1rem !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        text-transform: capitalize !important;
+        transition: all 0.15s ease !important;
+        box-shadow: none !important;
+    }
+    .fc-button:hover,
+    .fc-button:focus,
+    .fc-button-active {
+        background: #fbbf24 !important;
+        border-color: #fbbf24 !important;
+        color: #0f2922 !important;
+        transform: translateY(-1px);
+        box-shadow: none !important;
+    }
+    .fc-button:disabled {
+        opacity: 0.4 !important;
+        transform: none !important;
+    }
+
+    .fc-col-header-cell {
+        background: var(--bg-stats) !important;
+        color: var(--text-main) !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 0 !important;
+        border-color: var(--card-border) !important;
+    }
+    .fc-col-header-cell-cushion {
+        color: var(--text-main) !important;
+        text-decoration: none !important;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .fc-daygrid-day {
+        border-color: var(--card-border) !important;
+        transition: background 0.15s ease;
+    }
+    .fc-daygrid-day:hover {
+        background: var(--bg-stats) !important;
+    }
+    .fc-daygrid-day-number {
+        color: var(--text-muted) !important;
+        font-weight: 500 !important;
+        padding: 0.5rem !important;
+        text-decoration: none !important;
+    }
+    .fc-day-today {
+        background: rgba(251, 191, 36, 0.15) !important;
+    }
+    .fc-day-today .fc-daygrid-day-number {
+        color: var(--text-main) !important;
+        font-weight: 800 !important;
+    }
+
+    .fc-event {
+        border: none !important;
+        border-radius: 0.4rem !important;
+        padding: 1px 4px !important;
+        font-size: 0.78rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        margin: 1px 0 !important;
+        transition: transform 0.15s ease !important;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    .fc-daygrid-event-dot { display: none !important; }
+    .fc-list-event:hover td { background: var(--bg-stats) !important; }
+    .fc-list-day-cushion {
+        background: var(--bg-stats) !important;
+        color: var(--text-main) !important;
+    }
+
+    /* ────────────── DARK MODE ────────────── */
+    .dark .fc-theme-standard {
+        background: rgba(30, 41, 59, 0.9);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+    .dark .fc-col-header-cell {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    .dark .fc-col-header-cell-cushion {
+        color: #e2e8f0 !important;
+    }
+    .dark .fc-daygrid-day {
+        border-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    .dark .fc-daygrid-day-number {
+        color: #94a3b8 !important;
+    }
+    .dark .fc-day-today {
+        background: rgba(251, 191, 36, 0.12) !important;
+    }
+    .dark .fc-day-today .fc-daygrid-day-number {
+        color: #fbbf24 !important;
+    }
+    .dark .fc-button {
+        background: rgba(251, 191, 36, 0.15) !important;
+        border-color: rgba(251, 191, 36, 0.4) !important;
+        color: #fbbf24 !important;
+    }
+    .dark .fc-button:hover,
+    .dark .fc-button-active {
+        background: #fbbf24 !important;
+        color: #0f172a !important;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .kalender-hero h1 {
+            font-size: 1.75rem !important;
+        }
+
+        /* FullCalendar toolbar stack */
+        .fc-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .fc-toolbar-chunk {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.4rem;
+        }
+        .fc-toolbar-title {
+            font-size: 1.15rem !important;
+        }
+        .fc-button {
+            padding: 0.3rem 0.7rem !important;
+            font-size: 0.75rem !important;
+        }
+        .fc-theme-standard {
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+        }
+
+        #event-detail-content {
+            padding: 1.25rem;
+        }
+        #event-detail-title {
+            font-size: 1.25rem !important;
+        }
+    }
 </style>

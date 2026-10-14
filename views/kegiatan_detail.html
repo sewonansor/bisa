@@ -1,215 +1,271 @@
 <!-- views/kegiatan_detail.html -->
-<!-- Fragment Halaman Detail Kegiatan Publik - Menggunakan Logbook -->
-<!-- Versi: 4.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+<!-- Halaman Publik: Detail Kegiatan -->
+<!-- Logic: js/kegiatan_detail.js | Route: /kegiatan_detail?id=xxx -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- CONTENT WRAPPER -->
 <div class="container mx-auto px-4 pt-28 pb-12">
-    <div id="detail-content" class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        
-        <!-- Kolom Konten Utama (Kiri) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+
+        <!-- ==================================================== -->
+        <!-- KOLOM KONTEN UTAMA (Kiri)                             -->
+        <!-- ==================================================== -->
         <div class="lg:col-span-2 space-y-4">
+
             <!-- Breadcrumb -->
-            <p class="text-sm text-[var(--text-muted)]">
-                <i class="fas fa-home mr-1 text-[var(--text-main)]"></i> 
-                <a href="/" class="hover:underline">Beranda</a> / 
-                <a href="/kegiatan" class="hover:underline">Kegiatan</a> / 
-                <span id="breadcrumb-title" class="text-[var(--text-main)] font-medium">Memuat...</span>
-            </p>
-            
+            <nav class="text-sm text-[var(--text-muted)]" aria-label="Breadcrumb">
+                <i class="fas fa-home mr-1 text-[var(--text-main)]"></i>
+                <a href="/" class="breadcrumb-link">Beranda</a>
+                <span class="mx-1 text-[var(--card-border)]">/</span>
+                <a href="/kegiatan" class="breadcrumb-link">Kegiatan</a>
+                <span class="mx-1 text-[var(--card-border)]">/</span>
+                <span id="breadcrumb-title" class="text-[var(--text-main)] font-medium">
+                    Memuat...
+                </span>
+            </nav>
+
             <!-- Konten Utama -->
             <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--card-border)] p-6 md:p-8">
+
+                <!-- Loading State (di-replace oleh JS) -->
                 <div id="detail-main">
                     <div class="text-center py-12">
                         <i class="fas fa-spinner fa-spin text-4xl text-[var(--text-main)] mb-4"></i>
-                        <p class="text-[var(--text-muted)]">Sedang memuat detail kegiatan...</p>
+                        <p class="text-[var(--text-muted)] text-sm">
+                            Sedang memuat detail kegiatan...
+                        </p>
                     </div>
                 </div>
             </div>
+
+            <!-- Navigasi Kembali -->
+            <div class="flex justify-start">
+                <a href="/kegiatan" class="kegiatan-back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Kembali ke Daftar Kegiatan</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Kolom Sidebar (Kanan) -->
-        <div class="lg:col-span-1 space-y-6">
-            
-            <!-- Berita Terbaru -->
-            <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--card-border)] p-5 sticky top-24">
-                <h3 class="text-lg font-bold font-amiri text-[var(--text-main)] mb-4 border-b border-[var(--card-border)] pb-3">Kegiatan Terbaru</h3>
+        <!-- ==================================================== -->
+        <!-- KOLOM SIDEBAR (Kanan)                                 -->
+        <!-- ==================================================== -->
+        <aside class="lg:col-span-1 space-y-6">
+
+            <!-- Kegiatan Terbaru -->
+            <div class="sidebar-card lg:sticky lg:top-24">
+                <div class="sidebar-card-header">
+                    <div class="sidebar-card-icon sidebar-card-icon-blue">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="sidebar-card-title">Kegiatan Terbaru</h3>
+                </div>
                 <div id="recent-list" class="space-y-3">
-                    <p class="text-sm text-[var(--text-muted)] text-center py-4">Memuat data...</p>
+                    <p class="text-sm text-[var(--text-muted)] text-center py-4">
+                        <i class="fas fa-spinner fa-spin mr-1"></i>Memuat data...
+                    </p>
                 </div>
             </div>
 
-            <!-- Arsip -->
-            <div class="bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--card-border)] p-5 sticky top-24">
-                <h3 class="text-lg font-bold font-amiri text-[var(--text-main)] mb-4 border-b border-[var(--card-border)] pb-3">Arsip</h3>
-                <div id="archive-list" class="space-y-1 text-sm text-[var(--text-muted)]">
-                    <p class="text-sm text-[var(--text-muted)] text-center py-2">Memuat data...</p>
+            <!-- Arsip per Bulan -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <div class="sidebar-card-icon sidebar-card-icon-purple">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <h3 class="sidebar-card-title">Arsip Kegiatan</h3>
+                </div>
+                <div id="archive-list" class="space-y-1 text-sm">
+                    <p class="text-sm text-[var(--text-muted)] text-center py-2">
+                        <i class="fas fa-spinner fa-spin mr-1"></i>Memuat data...
+                    </p>
                 </div>
             </div>
-        </div>
+
+        </aside>
     </div>
 </div>
 
-<!-- SCRIPT INLINE -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
-    // Daftarkan modul kegiatan_detail ke App registry
-    App.register('kegiatan_detail', function() {
-        // === Logika detail kegiatan ===
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-
-        if (!id) {
-            document.getElementById('detail-main').innerHTML = `<p class="text-red-500 text-center py-8">ID Kegiatan tidak ditemukan di URL.</p>`;
-            return;
-        }
-
-        document.getElementById('breadcrumb-title').textContent = 'Memuat Detail...';
-
-        async function loadDetail() {
-            try {
-                // Menggunakan getLogbook, bukan getLpj
-                const result = await apiCall('getLogbook', 'POST', {});
-                if (result.success && result.data.length > 0) {
-                    const item = result.data.find(l => l.id === id);
-                    if (item) {
-                        renderDetail(item);
-                        renderSidebar(result.data);
-                    } else {
-                        document.getElementById('detail-main').innerHTML = `<p class="text-red-500 text-center py-8">Kegiatan dengan ID ${id} tidak ditemukan.</p>`;
-                    }
-                } else {
-                    document.getElementById('detail-main').innerHTML = `<p class="text-[var(--text-muted)] text-center py-8">Gagal memuat data kegiatan.</p>`;
-                }
-            } catch (error) {
-                document.getElementById('detail-main').innerHTML = `<p class="text-red-500 text-center py-8">Error: ${error.message}</p>`;
-            }
-        }
-
-        function renderDetail(item) {
-            const imgUrl = item.file_url || 'https://placehold.co/1200x600/e2e8f0/475569?text=Kegiatan+Ansor';
-            document.getElementById('breadcrumb-title').textContent = item.kegiatan || 'Kegiatan';
-            
-            document.getElementById('detail-main').innerHTML = `
-                <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-main)] font-amiri mb-4">${item.kegiatan || 'Kegiatan'}</h1>
-                
-                <!-- Meta Info -->
-                <div class="flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)] mb-6 border-b border-[var(--card-border)] pb-4">
-                    <span><i class="far fa-calendar-alt mr-1 text-[var(--text-main)]"></i> ${formatDate(item.tanggal_mulai)} - ${formatDate(item.tanggal_selesai)}</span>
-                    <span class="hidden sm:inline text-[var(--card-border)]">|</span>
-                    <span><i class="fas fa-map-marker-alt mr-1 text-[var(--text-main)]"></i> ${item.tempat || '-'}</span>
-                    <span class="hidden sm:inline text-[var(--card-border)]">|</span>
-                    <span><i class="fas fa-users mr-1 text-[var(--text-main)]"></i> ${item.peserta || 0} Peserta</span>
-                </div>
-
-                <!-- Gambar Utama -->
-                <div class="detail-image-wrapper mb-6">
-                    <img src="${imgUrl}" alt="${item.kegiatan}" loading="lazy" />
-                </div>
-                
-                <!-- Deskripsi -->
-                <div class="prose max-w-none text-[var(--text-muted)] leading-relaxed">
-                    ${item.deskripsi || '<p class="text-[var(--text-muted)] italic">Belum ada deskripsi untuk kegiatan ini.</p>'}
-                </div>
-
-                <!-- Box Anggaran -->
-                ${item.anggaran && Number(item.anggaran) > 0 ? `
-                    <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 flex items-center gap-3">
-                        <i class="fas fa-coins text-xl"></i>
-                        <div>
-                            <span class="block text-sm font-medium">Anggaran Kegiatan</span>
-                            <span class="font-bold text-lg">${formatRupiah(item.anggaran)}</span>
-                        </div>
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        function renderSidebar(allData) {
-            // 5a. Kegiatan Terbaru (3 item teratas)
-            const sorted = [...allData].sort((a, b) => new Date(b.tanggal_mulai) - new Date(a.tanggal_mulai));
-            const recent = sorted.slice(0, 3);
-            
-            const recentContainer = document.getElementById('recent-list');
-            if (recent.length > 0) {
-                recentContainer.innerHTML = recent.map(r => `
-                    <a href="/kegiatan_detail?id=${r.id}" class="block sidebar-item rounded-lg p-2 transition hover:bg-[var(--bg-stats)]">
-                        <div class="flex items-start gap-3">
-                            <div class="w-16 h-12 rounded-lg bg-[var(--bg-stats)] overflow-hidden flex-shrink-0 border border-[var(--card-border)]">
-                                <img src="${r.file_url || 'https://placehold.co/100x80/e2e8f0/475569?text=Img'}" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-[var(--text-main)] line-clamp-1">${r.kegiatan || 'Kegiatan'}</h4>
-                                <p class="text-xs text-[var(--text-muted)] mt-1"><i class="far fa-calendar-alt mr-1"></i> ${formatDate(r.tanggal_mulai)}</p>
-                            </div>
-                        </div>
-                    </a>
-                `).join('');
-            } else {
-                recentContainer.innerHTML = '<p class="text-sm text-[var(--text-muted)] text-center py-4">Belum ada data terbaru.</p>';
-            }
-
-            // 5b. Arsip (Pengelompokan berdasarkan Bulan-Tahun)
-            const archiveContainer = document.getElementById('archive-list');
-            const monthMap = {};
-
-            allData.forEach(item => {
-                if (item.tanggal_mulai) {
-                    const date = new Date(item.tanggal_mulai);
-                    if (!isNaN(date.getTime())) {
-                        const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-                        if (!monthMap[key]) {
-                            monthMap[key] = {
-                                label: date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
-                                count: 0
-                            };
-                        }
-                        monthMap[key].count++;
-                    }
-                }
-            });
-
-            const sortedKeys = Object.keys(monthMap).sort((a, b) => b.localeCompare(a));
-
-            if (sortedKeys.length > 0) {
-                archiveContainer.innerHTML = sortedKeys.map(key => {
-                    const data = monthMap[key];
-                    return `
-                        <div class="flex justify-between items-center py-2 border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--bg-stats)] px-2 rounded transition cursor-pointer">
-                            <span class="text-[var(--text-main)] font-medium">${data.label}</span>
-                            <span class="text-[var(--text-muted)] text-xs bg-[var(--bg-stats)] px-2 py-0.5 rounded-full">${data.count}</span>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                archiveContainer.innerHTML = '<p class="text-sm text-[var(--text-muted)] text-center py-2">Belum ada arsip.</p>';
-            }
-        }
-
-        // Jalankan
-        loadDetail();
-    });
-
-    // Karena router akan memanggil App.run('kegiatan_detail'), modul akan dieksekusi.
-    // Namun, untuk memastikan modul terdaftar sebelum di-run, kita sudah mendaftarkannya di atas.
-    // Jika kita ingin eksekusi langsung tanpa menunggu router, kita bisa panggil App.run('kegiatan_detail') di sini,
-    // tapi router sudah melakukannya. Jadi kita biarkan saja.
+    (function() {
+        console.log('[View] kegiatan_detail.html loaded — logic handled by js/kegiatan_detail.js');
+    })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view kegiatan_detail saja               -->
+<!-- Common styles sudah di css/style.css                          -->
+<!-- ============================================================ -->
 <style>
+    /* ────────────── BREADCRUMB ────────────── */
+    .breadcrumb-link {
+        transition: color 180ms ease;
+        color: inherit;
+        text-decoration: none;
+    }
+    .breadcrumb-link:hover {
+        color: var(--text-main);
+        text-decoration: underline;
+    }
+
+    /* ────────────── BACK LINK ────────────── */
+    .kegiatan-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 180ms ease;
+        font-weight: 500;
+    }
+    .kegiatan-back-link:hover {
+        color: var(--text-main);
+    }
+    .kegiatan-back-link i {
+        transition: transform 180ms ease;
+    }
+    .kegiatan-back-link:hover i {
+        transform: translateX(-4px);
+    }
+
+    /* ────────────── DETAIL IMAGE WRAPPER ────────────── */
     .detail-image-wrapper {
-        max-height: 400px;
+        max-height: 450px;
         overflow: hidden;
         border-radius: 1rem;
+        background: var(--bg-stats);
+        position: relative;
     }
     .detail-image-wrapper img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.5s ease;
     }
+    .detail-image-wrapper:hover img {
+        transform: scale(1.02);
+    }
+
+    /* ────────────── SIDEBAR CARD ────────────── */
+    .sidebar-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    }
+    .sidebar-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .sidebar-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    .sidebar-card-icon-blue {
+        background: linear-gradient(135deg, #60a5fa, #4f46e5);
+    }
+    .sidebar-card-icon-purple {
+        background: linear-gradient(135deg, #c084fc, #c026d3);
+    }
+    .sidebar-card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        font-family: 'Amiri', serif;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    /* ────────────── SIDEBAR ITEM (hover) ────────────── */
     .sidebar-item {
-        transition: all 0.2s;
+        display: block;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        transition: all 180ms ease;
+        text-decoration: none;
     }
     .sidebar-item:hover {
         background: var(--bg-stats);
+        transform: translateX(2px);
+    }
+
+    /* ────────────── PROSE (konten dari JS) ────────────── */
+    #detail-main .prose {
+        line-height: 1.75;
+        color: var(--text-muted);
+    }
+    #detail-main .prose p {
+        margin-bottom: 1rem;
+    }
+    #detail-main .prose h2,
+    #detail-main .prose h3,
+    #detail-main .prose h4 {
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+    }
+    #detail-main .prose ul,
+    #detail-main .prose ol {
+        margin: 0.75rem 0 1rem 1.5rem;
+        padding: 0;
+    }
+    #detail-main .prose li {
+        margin-bottom: 0.35rem;
+    }
+    #detail-main .prose strong {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+    #detail-main .prose img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+    }
+    #detail-main .prose a {
+        color: var(--brand-700);
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 3px;
+    }
+    #detail-main .prose a:hover {
+        color: var(--accent-500);
+    }
+    .dark #detail-main .prose a {
+        color: var(--accent-400);
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 1023px) {
+        aside .lg\:sticky {
+            position: relative !important;
+            top: auto !important;
+        }
+    }
+    @media (max-width: 640px) {
+        .detail-image-wrapper {
+            max-height: 280px;
+        }
+        .sidebar-card {
+            padding: 1rem;
+        }
     }
 </style>

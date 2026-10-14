@@ -1,35 +1,73 @@
 <!-- views/logbook_report.html -->
-<!-- Halaman Laporan Lengkap Logbook - Multi-Halaman, Premium, Siap Cetak -->
-<!-- Versi: 2.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+<!-- Halaman Admin: Laporan Lengkap Logbook (Print-Ready, Multi-Halaman) -->
+<!-- Logic: js/logbook_report.js | Route: /logbook_report | Libs: html2canvas, jspdf, docx -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
 <div id="main-content">
-    <!-- Toolbar Aksi (Disembunyikan saat print) -->
+    <!-- ============================================================ -->
+    <!-- TOOLBAR AKSI (Disembunyikan saat print)                       -->
+    <!-- ============================================================ -->
     <div class="flex flex-wrap justify-between items-center mb-6 no-print">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Laporan Lengkap Logbook</h1>
-        <div class="flex gap-2">
-            <button id="back-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
-            <button id="print-pdf-btn" class="btn-primary px-4 py-2 rounded-lg"><i class="fas fa-file-pdf mr-1"></i> Cetak PDF</button>
-            <button id="export-docx-btn" class="btn-secondary px-4 py-2 rounded-lg"><i class="fas fa-file-word mr-1"></i> Export DOCX</button>
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-file-alt mr-2"></i>
+            Laporan Lengkap Logbook
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="back-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
+            </button>
+            <button id="print-pdf-btn"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-file-pdf"></i>
+                <span>Cetak PDF</span>
+            </button>
+            <button id="export-docx-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-file-word"></i>
+                <span>Export DOCX</span>
+            </button>
         </div>
     </div>
 
-    <!-- Area Laporan -->
-    <div id="report-area" class="bg-white p-4 sm:p-8 shadow-2xl rounded-2xl border border-gray-200 max-w-[900px] mx-auto">
+    <!-- ============================================================ -->
+    <!-- AREA LAPORAN                                                  -->
+    <!-- ============================================================ -->
+    <div id="report-area"
+         class="bg-white p-4 sm:p-8 shadow-2xl rounded-2xl border border-gray-200 max-w-[900px] mx-auto">
         <!-- Loading -->
         <div id="report-loading" class="text-center py-20">
             <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
             <p class="text-gray-500 mt-4">Menyusun laporan...</p>
         </div>
 
-        <!-- Konten Laporan (diisi oleh JS) -->
+        <!-- Konten Laporan (diisi oleh js/logbook_report.js) -->
         <div id="report-content" class="hidden"></div>
     </div>
 </div>
 
-<!-- Style untuk Laporan Premium -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] logbook_report.html loaded — logic handled by js/logbook_report.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view logbook_report saja                -->
+<!-- Semua CSS di sini adalah untuk layout laporan cetak         -->
+<!-- Common styles (btn-primary, btn-secondary) sudah di style.css -->
+<!-- ============================================================ -->
 <style>
-    /* ===================== SCREEN STYLES (untuk tampilan di web) ===================== */
+    /* ═══════════════════════════════════════════════════════════
+       SCREEN STYLES (tampilan di web)
+       ═══════════════════════════════════════════════════════════ */
     @media screen {
+
+        /* ────────────── COVER ────────────── */
         .report-cover {
             background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%);
             border-radius: 1.5rem;
@@ -37,10 +75,10 @@
             text-align: center;
             color: white;
             margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
-            page-break-after: always; /* Cetak: halaman baru setelah cover */
+            page-break-after: always;
         }
         .report-cover::before {
             content: '';
@@ -54,8 +92,8 @@
         }
         .report-cover img {
             width: 120px;
-            margin-bottom: 1.5rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            margin: 0 auto 1.5rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
         }
         .report-cover h1 {
             font-size: 3rem;
@@ -63,7 +101,8 @@
             color: white;
             font-family: 'Amiri', serif;
             margin: 0.5rem 0;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            line-height: 1.1;
         }
         .report-cover p {
             color: #d1fae5;
@@ -76,10 +115,10 @@
             letter-spacing: 1px;
         }
 
-        /* Section headings */
+        /* ────────────── SECTION ────────────── */
         .report-section {
             margin-bottom: 2.5rem;
-            page-break-after: always; /* Setiap section di halaman baru? Atau atur manual */
+            page-break-after: always;
         }
         .report-section:last-child {
             page-break-after: auto;
@@ -101,7 +140,7 @@
             font-size: 1.25rem;
         }
 
-        /* Ringkasan Eksekutif */
+        /* ────────────── RINGKASAN EKSEKUTIF ────────────── */
         .report-summary {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -115,11 +154,11 @@
             padding: 1.25rem;
             text-align: center;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         .report-summary-box:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
         }
         .report-summary-box .icon {
             font-size: 2rem;
@@ -136,9 +175,11 @@
             font-size: 1.75rem;
             font-weight: 800;
             color: #0f2922;
+            line-height: 1.2;
+            margin-top: 0.25rem;
         }
 
-        /* Tabel Premium */
+        /* ────────────── TABEL PREMIUM ────────────── */
         .report-table {
             width: 100%;
             border-collapse: separate;
@@ -156,6 +197,7 @@
             text-transform: uppercase;
             padding: 0.85rem 1rem;
             border: none;
+            text-align: left;
         }
         .report-table td {
             border-bottom: 1px solid #f1f5f9;
@@ -166,11 +208,12 @@
         .report-table tr:last-child td { border-bottom: none; }
         .report-table tbody tr:hover { background-color: #f8fafc; }
 
+        /* ────────────── TEXT COLOR UTILITIES ────────────── */
         .text-green { color: #059669; }
-        .text-red { color: #dc2626; }
-        .text-blue { color: #2563eb; }
+        .text-red   { color: #dc2626; }
+        .text-blue  { color: #2563eb; }
 
-        /* Tanda Tangan */
+        /* ────────────── TANDA TANGAN ────────────── */
         .signature-block {
             display: flex;
             justify-content: space-between;
@@ -195,7 +238,7 @@
             color: #64748b;
         }
 
-        /* Paragraf narasi */
+        /* ────────────── PARAGRAF NARASI ────────────── */
         .report-intro {
             color: #475569;
             line-height: 1.7;
@@ -204,9 +247,16 @@
         }
     }
 
-    /* ===================== PRINT STYLES (Export PDF / Cetak) ===================== */
+    /* ═══════════════════════════════════════════════════════════
+       PRINT STYLES (Export PDF / Cetak)
+       ═══════════════════════════════════════════════════════════ */
     @media print {
-        .no-print, #back-btn, #print-pdf-btn, #export-docx-btn { display: none !important; }
+        .no-print,
+        #back-btn,
+        #print-pdf-btn,
+        #export-docx-btn {
+            display: none !important;
+        }
         #report-area {
             box-shadow: none !important;
             border: none !important;
@@ -215,7 +265,7 @@
             margin: 0 !important;
         }
         body { background: white !important; }
-        
+
         /* Cover Print */
         .report-cover {
             background: white !important;
@@ -224,31 +274,39 @@
             padding: 2rem;
             box-shadow: none !important;
             page-break-after: always;
+            border-radius: 0 !important;
         }
-        .report-cover h1 { color: black !important; text-shadow: none !important; }
+        .report-cover::before { display: none !important; }
+        .report-cover h1 {
+            color: black !important;
+            text-shadow: none !important;
+        }
         .report-cover p { color: #333 !important; }
-        
-        .report-summary-box { background: white !important; color: black !important; box-shadow: none !important; border: 1px solid #ccc; }
+
+        .report-summary-box {
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: 1px solid #ccc;
+        }
         .report-summary-box .label { color: #555 !important; }
         .report-summary-box .value { color: black !important; }
-        
-        .report-table th { background: #ddd !important; color: black !important; }
-        .report-table td { border-bottom: 1px solid #ccc; color: black !important; }
-        .report-section h2 { border-left-color: #333 !important; color: black !important; }
-        
-        .report-section {
-            page-break-after: always;
+
+        .report-table th {
+            background: #ddd !important;
+            color: black !important;
         }
-        .report-section:last-child {
-            page-break-after: auto;
+        .report-table td {
+            border-bottom: 1px solid #ccc;
+            color: black !important;
         }
+        .report-section h2 {
+            border-left-color: #333 !important;
+            color: black !important;
+        }
+
+        .report-section { page-break-after: always; }
+        .report-section:last-child { page-break-after: auto; }
         .signature-block { page-break-inside: avoid; }
     }
 </style>
-
-<!-- Skrip kecil hanya untuk placeholder (tetap di-handle oleh JS) -->
-<script>
-    (function() {
-        console.log('logbook_report view loaded');
-    })();
-</script>

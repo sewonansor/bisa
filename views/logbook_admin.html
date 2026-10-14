@@ -1,114 +1,221 @@
 <!-- views/logbook_admin.html -->
-<!-- Fragment Manajemen Logbook (Laporan Pertanggungjawaban) untuk Admin -->
-<!-- Versi: 4.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+<!-- Halaman Admin: Manajemen Logbook (Laporan Pertanggungjawaban) -->
+<!-- Logic: js/logbook_admin.js | Route: /logbook_admin | Libs: html2canvas, jspdf, docx -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- Konten Utama -->
 <div id="main-content">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Manajemen Logbook</h1>
-        <div class="flex gap-2">
-            <a href="/logbook_report" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-file-alt"></i> Laporan Lengkap
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-book mr-2"></i>
+            Manajemen Logbook
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <a href="/logbook_report"
+               class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-file-alt"></i>
+                <span class="hidden sm:inline">Laporan Lengkap</span>
             </a>
-            <button id="refresh-logbook-btn" class="btn-secondary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i> Refresh Daftar
+            <button id="refresh-logbook-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh Daftar</span>
             </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]">
+            <button id="mobile-menu-btn"
+                    class="md:hidden text-2xl text-[var(--text-muted)]"
+                    aria-label="Buka Menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </div>
 
-    <!-- Form Buat Logbook -->
-    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] mb-8">
-        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Buat Logbook Baru</h2>
-        <form id="logbook-form">
+    <!-- ============================================================ -->
+    <!-- FORM BUAT LOGBOOK                                             -->
+    <!-- ============================================================ -->
+    <div class="logbook-card mb-8">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">
+            <i class="fas fa-plus-circle mr-2 text-[var(--accent-500)]"></i>
+            Buat Logbook Baru
+        </h2>
+
+        <form id="logbook-form" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Nama Kegiatan</label>
-                    <input type="text" id="kegiatan" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Nama Kegiatan <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="kegiatan"
+                           class="form-input"
+                           placeholder="Contoh: Pengajian Rutin"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Tempat</label>
-                    <input type="text" id="tempat" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tempat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="tempat"
+                           class="form-input"
+                           placeholder="Contoh: Masjid Baitul Hadi"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Tanggal Mulai</label>
-                    <input type="date" id="tanggal_mulai" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tanggal Mulai <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="tanggal_mulai"
+                           class="form-input"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Tanggal Selesai</label>
-                    <input type="date" id="tanggal_selesai" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tanggal Selesai <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="tanggal_selesai"
+                           class="form-input"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Peserta (jumlah)</label>
-                    <input type="number" id="peserta" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Peserta (jumlah) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="peserta"
+                           class="form-input"
+                           placeholder="0"
+                           min="0"
+                           required>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-[var(--text-muted)] mb-2">Anggaran (Rp)</label>
-                    <input type="number" id="anggaran" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required>
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Anggaran (Rp) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="anggaran"
+                           class="form-input"
+                           placeholder="0"
+                           min="0"
+                           required>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-[var(--text-muted)] mb-2">Deskripsi Kegiatan</label>
-                <textarea id="deskripsi" rows="4" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" required></textarea>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Deskripsi Kegiatan <span class="text-red-500">*</span>
+                </label>
+                <textarea id="deskripsi" rows="4"
+                          class="form-input"
+                          placeholder="Tulis deskripsi kegiatan secara lengkap..."
+                          required></textarea>
             </div>
-            <div class="mb-4">
-                <label class="block text-[var(--text-muted)] mb-2">File Pendukung (URL)</label>
-                <input type="text" id="file_url" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]" placeholder="Link Google Drive (opsional)">
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    File Pendukung (URL)
+                </label>
+                <input type="text" id="file_url"
+                       class="form-input"
+                       placeholder="Link Google Drive (opsional)">
             </div>
-            <div class="mb-4">
-                <label class="block text-[var(--text-muted)] mb-2">Upload File Pendukung</label>
-                <input type="file" id="logbook_file" class="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg focus:outline-none focus:border-[var(--text-main)] bg-[var(--bg-body)] text-[var(--text-main)]">
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Upload File Pendukung
+                </label>
+                <input type="file" id="logbook_file"
+                       class="form-input"
+                       accept="image/*,.pdf,.doc,.docx">
+                <p class="text-xs text-[var(--text-muted)] mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    File akan diunggah ke Google Drive.
+                </p>
             </div>
-            <div class="flex flex-wrap gap-4 mt-4">
-                <button type="submit" class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition"><i class="fas fa-save mr-2"></i>Simpan Logbook</button>
-                <button type="button" id="preview-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"><i class="fas fa-eye mr-2"></i>Preview</button>
-                <button type="button" id="export-pdf-btn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
-                <button type="button" id="export-docx-btn" class="bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-900 transition"><i class="fas fa-file-word mr-2"></i>Export DOCX</button>
+
+            <div class="flex flex-wrap gap-2 pt-2">
+                <button type="submit"
+                        class="btn-primary px-6 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span>Simpan Logbook</span>
+                </button>
+                <button type="button" id="preview-btn"
+                        class="btn-secondary px-6 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-eye"></i>
+                    <span>Preview</span>
+                </button>
+                <button type="button" id="export-pdf-btn"
+                        class="btn-danger px-6 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Export PDF</span>
+                </button>
+                <button type="button" id="export-docx-btn"
+                        class="btn-primary bg-blue-800 hover:bg-blue-900 px-6 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-file-word"></i>
+                    <span>Export DOCX</span>
+                </button>
             </div>
         </form>
     </div>
 
-    <!-- Preview -->
-    <div id="logbook-preview" class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)] hidden">
-        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Preview Logbook</h2>
-        <div id="logbook-preview-content" class="border border-[var(--card-border)] p-4 rounded-lg text-[var(--text-main)]"></div>
+    <!-- ============================================================ -->
+    <!-- PREVIEW                                                       -->
+    <!-- ============================================================ -->
+    <div id="logbook-preview" class="logbook-card mb-8 hidden">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">
+            <i class="fas fa-eye mr-2 text-[var(--accent-500)]"></i>
+            Preview Logbook
+        </h2>
+        <div id="logbook-preview-content"
+             class="border border-[var(--card-border)] p-4 rounded-lg text-[var(--text-main)]">
+            <!-- Konten di-render oleh js/logbook_admin.js -->
+        </div>
     </div>
 
-    <!-- Daftar Logbook -->
-    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
-        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">Daftar Logbook</h2>
+    <!-- ============================================================ -->
+    <!-- DAFTAR LOGBOOK                                                -->
+    <!-- ============================================================ -->
+    <div class="logbook-card">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-4 font-amiri">
+            <i class="fas fa-list mr-2 text-[var(--accent-500)]"></i>
+            Daftar Logbook
+        </h2>
         <div id="logbook-list" class="space-y-4">
-            <p class="text-[var(--text-muted)]">Memuat data...</p>
+            <p class="text-[var(--text-muted)] text-center py-4">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Memuat data...
+            </p>
         </div>
     </div>
 </div>
 
-<!-- SCRIPT INLINE (hanya konfirmasi modul, tidak ada logika loop) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
     (function() {
-        // Modul logbook_admin sudah terdaftar di js/logbook_admin.js via App.register('logbook_admin', ...)
-        // Router akan memanggil App.run('logbook_admin') setelah view di-inject.
-        console.log('logbook_admin view loaded');
+        console.log('[View] logbook_admin.html loaded — logic handled by js/logbook_admin.js');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view logbook_admin saja                 -->
+<!-- Common styles (btn-primary, btn-secondary, btn-danger,        -->
+<!-- form-input, dst.) sudah di css/style.css                      -->
+<!-- ============================================================ -->
 <style>
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
+    /* ────────────── LOGBOOK CARD (view-specific) ────────────── */
+    .logbook-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: box-shadow 280ms var(--ease-smooth);
     }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    .logbook-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
     }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
+
+    /* ────────────── PREVIEW TABLE ────────────── */
     #logbook-preview-content table {
         width: 100%;
         border-collapse: collapse;
@@ -117,26 +224,37 @@
         padding: 0.5rem 0;
         vertical-align: top;
     }
-    .btn-secondary {
-        background: #f1f5f9;
-        color: #1e293b;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        transition: all 0.3s;
+    #logbook-preview-content .logbook-doc h3 {
+        font-family: 'Amiri', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 1rem;
+        color: var(--text-main);
     }
-    .btn-secondary:hover {
-        background: #e2e8f0;
-        transform: translateY(-2px);
+    #logbook-preview-content .logbook-doc .subtitle {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
     }
-    .dark .btn-secondary {
-        background: rgba(255,255,255,0.05);
-        color: #c4b5e0;
-        border: 1px solid rgba(128,90,213,0.4);
+    #logbook-preview-content .logbook-doc .doc-label {
+        font-weight: 700;
+        width: 33%;
+        color: var(--text-main);
     }
-    .dark .btn-secondary:hover {
-        background: rgba(128,90,213,0.2);
-        border-color: #a78bfa;
+    #logbook-preview-content .logbook-doc .whitespace-pre-wrap {
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .logbook-card {
+            padding: 1rem;
+        }
+        #logbook-preview-content {
+            padding: 0.75rem;
+        }
     }
 </style>

@@ -1,128 +1,159 @@
 <!-- views/kegiatan.html -->
-<!-- Fragment Halaman Daftar Kegiatan Publik - Menggunakan Logbook -->
-<!-- Versi: 4.1.0 - Final Fix (Stable, No Loop, Sinkron dengan Backend) -->
+<!-- Halaman Publik: Daftar Kegiatan -->
+<!-- Logic: js/kegiatan.js | Route: /kegiatan -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
-<section class="pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
-    <div class="container mx-auto px-4">
-        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Kegiatan Terbaru</h1>
-        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="kegiatan-hero pt-28 pb-16 text-white text-center relative overflow-hidden">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5 text-xs sm:text-sm font-medium">
+            <i class="fas fa-calendar-check"></i>
+            <span>Dokumentasi Kegiatan</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold font-amiri mb-4 leading-tight">
+            Kegiatan Terbaru
+        </h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
             Dokumentasi kegiatan sosial, keagamaan, dan kemasyarakatan PAC GP Ansor Kapanewon Sewon.
         </p>
     </div>
 </section>
 
-<!-- DAFTAR KEGIATAN (GRID) dengan Skeleton -->
+<!-- ============================================================ -->
+<!-- DAFTAR KEGIATAN                                               -->
+<!-- ============================================================ -->
 <section class="py-12 container mx-auto px-4">
-    <div id="kegiatan-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <!-- Skeleton Loading -->
-        <div id="kegiatan-skeleton" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
-            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
-            <div class="kegiatan-card"><div class="skeleton-box h-64 w-full"></div></div>
-        </div>
-        <!-- Konten Asli -->
-        <div id="kegiatan-content" class="col-span-full hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
-                <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
-                <p>Memuat data kegiatan...</p>
+    <div id="kegiatan-grid"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+        <!-- SKELETON LOADING -->
+        <div id="kegiatan-skeleton"
+             class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
             </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                    <div class="skeleton-box h-4 w-3/4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KONTEN ASLI (diisi oleh js/kegiatan.js) -->
+        <div id="kegiatan-content"
+             class="col-span-full hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Placeholder — akan di-replace oleh JavaScript -->
         </div>
     </div>
 </section>
 
-<!-- SCRIPT INLINE -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
-    (async function() {
-        // DOM elements
-        const skeleton = document.getElementById('kegiatan-skeleton');
-        const content = document.getElementById('kegiatan-content');
-        
-        // Tampilkan skeleton, sembunyikan konten
-        skeleton.classList.remove('hidden');
-        content.classList.add('hidden');
-
-        try {
-            // Ambil data kegiatan dari Logbook (bukan LPJ)
-            const result = await apiCall('getLogbook', 'POST', {});
-            
-            // Sembunyikan skeleton, tampilkan konten
-            skeleton.classList.add('hidden');
-            content.classList.remove('hidden');
-
-            if (result.success && result.data.length > 0) {
-                let html = '';
-                result.data.forEach(item => {
-                    let descPlain = item.deskripsi ? item.deskripsi.replace(/<[^>]*>?/gm, '') : '';
-                    let shortDesc = descPlain.length > 100 ? descPlain.substring(0, 100) + '...' : (descPlain || 'Klik untuk membaca detail.');
-                    const imgUrl = item.file_url || 'https://placehold.co/600x400/e2e8f0/475569?text=Kegiatan+Ansor';
-                    
-                    html += `
-                        <a href="/kegiatan_detail?id=${item.id}" class="kegiatan-card group">
-                            <div class="img-wrapper">
-                                <img src="${imgUrl}" alt="${item.kegiatan || 'Kegiatan'}" />
-                            </div>
-                            <div class="p-5">
-                                <div class="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-2">
-                                    <i class="far fa-calendar-alt"></i>
-                                    <span>${formatDate(item.tanggal_mulai)}</span>
-                                    <span class="text-gray-300">|</span>
-                                    <span>${item.tempat || '-'}</span>
-                                </div>
-                                <h3 class="text-lg font-bold text-[var(--text-main)] font-amiri mb-2 group-hover:text-[#0f2922] transition-colors">
-                                    ${item.kegiatan || 'Kegiatan'}
-                                </h3>
-                                <p class="text-sm text-[var(--text-muted)] line-clamp-2 mb-3">${shortDesc}</p>
-                                <span class="text-sm font-semibold text-[var(--text-main)] inline-flex items-center gap-2 group-hover:gap-3 transition-all">
-                                    Baca Selengkapnya <i class="fas fa-arrow-right text-xs"></i>
-                                </span>
-                            </div>
-                        </a>
-                    `;
-                });
-                content.innerHTML = html;
-            } else if (result.success && result.data.length === 0) {
-                content.innerHTML = `
-                    <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
-                        <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
-                        <p>Belum ada kegiatan yang tercatat.</p>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <div class="col-span-full text-center py-12 text-red-500">
-                        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-                        <p>Gagal memuat data kegiatan. Silakan refresh halaman.</p>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            skeleton.classList.add('hidden');
-            content.classList.remove('hidden');
-            content.innerHTML = `
-                <div class="col-span-full text-center py-12 text-red-500">
-                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-                    <p>Error: ${error.message}</p>
-                </div>
-            `;
-        }
+    (function() {
+        console.log('[View] kegiatan.html loaded — logic handled by js/kegiatan.js');
     })();
 </script>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global, tapi disertakan agar fragment mandiri) -->
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view kegiatan saja                      -->
+<!-- Common styles (skeleton-box, dst.) sudah di css/style.css     -->
+<!-- ============================================================ -->
 <style>
+    /* ────────────── HERO ────────────── */
+    .kegiatan-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 50%, #0f2922 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .kegiatan-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .kegiatan-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -15%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.2), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* ────────────── CARD ────────────── */
     .kegiatan-card {
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: 1rem;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
         overflow: hidden;
+        transition: transform 0.3s ease,
+                    box-shadow 0.3s ease,
+                    border-color 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         display: block;
+        will-change: transform, box-shadow;
     }
     .kegiatan-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
         border-color: var(--text-main);
     }
     .kegiatan-card .img-wrapper {
@@ -140,17 +171,14 @@
     .kegiatan-card:hover .img-wrapper img {
         transform: scale(1.05);
     }
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
-    }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
-    }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .kegiatan-hero h1 {
+            font-size: 1.75rem !important;
+        }
+        .kegiatan-card .img-wrapper {
+            height: 180px;
+        }
     }
 </style>

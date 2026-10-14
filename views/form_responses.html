@@ -1,0 +1,188 @@
+<!-- views/form_responses.html -->
+<!-- Response Viewer — Form Builder -->
+<!-- Logic: js/form_responses.js | Route: /form_responses?id=formId -->
+<!-- Versi: 2.0.0 — CSS di css/forms.css (prefix fr-*) -->
+
+<div id="main-content" class="fr-wrapper">
+
+    <!-- ═══════════════════════════════════════════════════════
+         HEADER
+         ═══════════════════════════════════════════════════════ -->
+    <header class="fr-header">
+        <div class="fr-header-left">
+            <button id="back-to-forms-btn" type="button"
+                    class="fr-btn fr-btn-icon"
+                    title="Kembali ke daftar form"
+                    aria-label="Kembali">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="fr-header-title-wrap">
+                <h1 class="fr-title" id="responses-title">Respon Form</h1>
+                <p class="fr-subtitle">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="responses-subtitle">Memuat informasi form...</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="fr-header-actions">
+            <button id="export-responses-btn" type="button"
+                    class="fr-btn fr-btn-secondary"
+                    title="Export CSV">
+                <i class="fas fa-download"></i>
+                <span class="fr-btn-label">Export CSV</span>
+            </button>
+            <button id="share-form-btn-2" type="button"
+                    class="fr-btn fr-btn-primary"
+                    title="Bagikan link form">
+                <i class="fas fa-share-alt"></i>
+                <span class="fr-btn-label">Share Form</span>
+            </button>
+            <button id="refresh-responses-btn" type="button"
+                    class="fr-btn fr-btn-icon"
+                    title="Refresh data"
+                    aria-label="Refresh">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="mobile-menu-btn" type="button"
+                    class="fr-mobile-btn md:hidden"
+                    aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════
+         STATS CARDS
+         ═══════════════════════════════════════════════════════ -->
+    <section class="fr-stats">
+        <div class="fr-stat-card fr-stat-blue">
+            <div class="fr-stat-info">
+                <p class="fr-stat-label">Total Respon</p>
+                <p class="fr-stat-value" id="stat-total">0</p>
+            </div>
+            <div class="fr-stat-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+        </div>
+
+        <div class="fr-stat-card fr-stat-green">
+            <div class="fr-stat-info">
+                <p class="fr-stat-label">Hari Ini</p>
+                <p class="fr-stat-value" id="stat-today">0</p>
+            </div>
+            <div class="fr-stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+        </div>
+
+        <div class="fr-stat-card fr-stat-purple">
+            <div class="fr-stat-info">
+                <p class="fr-stat-label">7 Hari Terakhir</p>
+                <p class="fr-stat-value" id="stat-week">0</p>
+            </div>
+            <div class="fr-stat-icon">
+                <i class="fas fa-calendar-week"></i>
+            </div>
+        </div>
+
+        <div class="fr-stat-card fr-stat-gold">
+            <div class="fr-stat-info">
+                <p class="fr-stat-label">Email Terkumpul</p>
+                <p class="fr-stat-value" id="stat-emails">0</p>
+            </div>
+            <div class="fr-stat-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SEARCH & FILTER BAR
+         ═══════════════════════════════════════════════════════ -->
+    <section class="fr-filters">
+        <div class="fr-search-wrap">
+            <i class="fas fa-search fr-search-icon"></i>
+            <input type="text" id="response-search"
+                   placeholder="Cari berdasarkan nama atau email responden..."
+                   class="fr-search-input"
+                   autocomplete="off">
+            <button type="button" id="fr-clear-search"
+                    class="fr-search-clear hidden"
+                    aria-label="Hapus pencarian">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         TABLE
+         ═══════════════════════════════════════════════════════ -->
+    <section class="fr-table-section">
+        <div class="fr-table-wrapper">
+            <div class="fr-table-inner">
+                <table class="fr-table">
+                    <thead class="fr-table-thead">
+                        <tr id="responses-thead">
+                            <th class="fr-th">No</th>
+                            <th class="fr-th">Nama</th>
+                            <th class="fr-th">Waktu</th>
+                            <th class="fr-th fr-th-actions">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responses-table-body" class="fr-table-tbody">
+                        <!-- Loading state -->
+                        <tr>
+                            <td colspan="10" class="fr-table-loading-cell">
+                                <div class="fr-loading-wrap">
+                                    <div class="fr-spinner"></div>
+                                    <p>Memuat data respon...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: RESPONSE DETAIL
+     ═══════════════════════════════════════════════════════════ -->
+<div id="response-detail-modal" class="fr-modal-backdrop hidden">
+    <div id="response-detail-content" class="fr-modal-content">
+
+        <!-- Header -->
+        <div class="fr-modal-header">
+            <div class="fr-modal-header-left">
+                <div class="fr-modal-icon">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <h3 class="fr-modal-title">Detail Respon</h3>
+                    <p class="fr-modal-subtitle">Semua jawaban responden</p>
+                </div>
+            </div>
+            <button id="response-detail-close" type="button"
+                    class="fr-icon-btn"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div id="response-detail-body" class="fr-modal-body">
+            <!-- Konten diisi oleh js/form_responses.js -->
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPT INLINE — Konfirmasi saja (no emoji)
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        console.log('[View] form_responses.html loaded v2.0.0 — CSS di css/forms.css');
+    })();
+</script>

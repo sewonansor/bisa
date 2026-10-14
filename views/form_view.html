@@ -1,0 +1,150 @@
+<!-- views/form_view.html -->
+<!-- Form Publik — Halaman Isi Form -->
+<!-- Logic: js/form_view.js | Route: /form_view?id=slug -->
+<!-- Versi: 2.0.0 — CSS di css/forms.css (prefix fv-*) -->
+
+<section class="fv-section">
+    <div class="fv-container">
+
+        <!-- ═══════════════════════════════════════════════════════
+             LOADING STATE
+             ═══════════════════════════════════════════════════════ -->
+        <div id="form-loading" class="fv-state fv-state-loading">
+            <div class="fv-spinner-wrap">
+                <div class="fv-spinner"></div>
+            </div>
+            <p class="fv-loading-text">Memuat formulir...</p>
+            <p class="fv-loading-subtext">Mohon tunggu sebentar</p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             FORM CONTENT
+             ═══════════════════════════════════════════════════════ -->
+        <div id="form-content" class="fv-state hidden">
+            <div class="fv-card">
+
+                <!-- Header Form (di-render oleh JS) -->
+                <div id="form-header" class="fv-card-header"></div>
+
+                <!-- Form Body (di-render oleh JS) -->
+                <form id="public-form" class="fv-form-body" novalidate></form>
+
+                <!-- Submit Bar -->
+                <div class="fv-submit-bar">
+                    <button type="submit" form="public-form"
+                            id="fv-submit-btn"
+                            class="fv-submit-btn">
+                        <span class="fv-submit-text">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Kirim Jawaban</span>
+                        </span>
+                        <i class="fas fa-arrow-right fv-submit-arrow"></i>
+                    </button>
+                    <p class="fv-submit-hint">
+                        <i class="fas fa-shield-alt"></i>
+                        Data Anda aman dan tidak akan dibagikan ke pihak lain.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Brand -->
+            <div class="fv-footer-brand">
+                <img src="logo-ansor.webp" alt="Logo Ansor" class="fv-footer-logo">
+                <p class="fv-footer-text">
+                    Powered by <strong>PAC GP Ansor Kapanewon Sewon</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             SUCCESS STATE
+             ═══════════════════════════════════════════════════════ -->
+        <div id="form-success" class="fv-state hidden">
+            <div class="fv-success-card">
+                <div class="fv-success-icon-wrap">
+                    <div class="fv-success-icon-outer">
+                        <div class="fv-success-icon-inner">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <!-- Decorative rings -->
+                    <span class="fv-ring fv-ring-1"></span>
+                    <span class="fv-ring fv-ring-2"></span>
+                    <span class="fv-ring fv-ring-3"></span>
+                </div>
+
+                <h2 class="fv-success-title">Terima Kasih!</h2>
+                <p class="fv-success-msg" id="success-msg">
+                    Jawaban Anda telah kami terima.
+                </p>
+
+                <div class="fv-success-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Jika perlu, Anda bisa menghubungi admin jika ada
+                        pertanyaan lebih lanjut.
+                    </span>
+                </div>
+
+                <div class="fv-success-actions">
+                    <a href="/" class="fv-btn fv-btn-primary">
+                        <i class="fas fa-home"></i>
+                        <span>Kembali ke Beranda</span>
+                    </a>
+                    <button type="button" id="fv-fill-again-btn"
+                            class="fv-btn fv-btn-secondary">
+                        <i class="fas fa-redo-alt"></i>
+                        <span>Isi Lagi</span>
+                    </button>
+                </div>
+
+                <div class="fv-success-footer">
+                    <img src="logo-ansor.webp" alt="Logo"
+                         class="fv-success-footer-logo">
+                    <p>PAC GP Ansor Kapanewon Sewon</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             ERROR STATE
+             ═══════════════════════════════════════════════════════ -->
+        <div id="form-error" class="fv-state hidden">
+            <div class="fv-error-card">
+                <div class="fv-error-icon-wrap">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h2 class="fv-error-title">Form Tidak Tersedia</h2>
+                <p class="fv-error-msg" id="error-msg">
+                    Form tidak ditemukan atau sudah ditutup.
+                </p>
+
+                <div class="fv-error-actions">
+                    <a href="/" class="fv-btn fv-btn-primary">
+                        <i class="fas fa-home"></i>
+                        <span>Kembali ke Beranda</span>
+                    </a>
+                    <button type="button" id="fv-error-retry-btn"
+                            class="fv-btn fv-btn-secondary">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Coba Lagi</span>
+                    </button>
+                </div>
+
+                <div class="fv-error-footer">
+                    <p>Jika Anda yakin ini kesalahan, silakan hubungi admin.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPT INLINE — Konfirmasi saja (no emoji)
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        console.log('[View] form_view.html loaded v2.0.0 — CSS di css/forms.css');
+    })();
+</script>

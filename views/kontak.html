@@ -1,30 +1,41 @@
 <!-- views/kontak.html -->
-<!-- Fragment Halaman Kontak Publik -->
-<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+<!-- Halaman Publik: Kontak & Lokasi -->
+<!-- Logic: static (tanpa JS module) | Route: /kontak -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
-<section class="pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="kontak-hero pt-28 pb-12 text-center text-white">
     <div class="container mx-auto px-4">
-        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Kontak Kami</h1>
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">
+            <i class="fas fa-envelope mr-2"></i>
+            Kontak Kami
+        </h1>
         <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
             Hubungi kami untuk informasi lebih lanjut atau kerjasama.
         </p>
     </div>
 </section>
 
-<!-- KONTEN UTAMA -->
+<!-- ============================================================ -->
+<!-- KONTEN UTAMA                                                  -->
+<!-- ============================================================ -->
 <section class="py-12 container mx-auto px-4">
     <div class="max-w-5xl mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
             <!-- Alamat -->
             <div class="glass-card p-6 rounded-2xl" data-aos="fade-right">
                 <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0">
+                    <div class="kontak-icon">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-[var(--text-main)] text-lg">Alamat</h4>
-                        <p class="text-sm text-[var(--text-muted)]">Jl. Contoh No. 123, Kapanewon Sewon, Bantul, Yogyakarta</p>
+                        <h4 class="font-semibold text-[var(--text-main)] text-lg mb-1">Alamat</h4>
+                        <p class="text-sm text-[var(--text-muted)]">
+                            Jl. Contoh No. 123, Kapanewon Sewon, Bantul, Yogyakarta
+                        </p>
                     </div>
                 </div>
             </div>
@@ -32,12 +43,14 @@
             <!-- Telepon -->
             <div class="glass-card p-6 rounded-2xl" data-aos="fade-left">
                 <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0">
+                    <div class="kontak-icon">
                         <i class="fas fa-phone"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-[var(--text-main)] text-lg">Telepon</h4>
-                        <p class="text-sm text-[var(--text-muted)]">+62 812 3456 7890</p>
+                        <h4 class="font-semibold text-[var(--text-main)] text-lg mb-1">Telepon</h4>
+                        <p class="text-sm text-[var(--text-muted)]">
+                            +62 812 3456 7890
+                        </p>
                     </div>
                 </div>
             </div>
@@ -45,12 +58,14 @@
             <!-- Email -->
             <div class="glass-card p-6 rounded-2xl" data-aos="fade-right">
                 <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0">
+                    <div class="kontak-icon">
                         <i class="fas fa-envelope"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-[var(--text-main)] text-lg">Email</h4>
-                        <p class="text-sm text-[var(--text-muted)]">ansor.sewon@gmail.com</p>
+                        <h4 class="font-semibold text-[var(--text-main)] text-lg mb-1">Email</h4>
+                        <p class="text-sm text-[var(--text-muted)]">
+                            ansor.sewon@gmail.com
+                        </p>
                     </div>
                 </div>
             </div>
@@ -58,22 +73,92 @@
             <!-- Media Sosial -->
             <div class="glass-card p-6 rounded-2xl" data-aos="fade-left">
                 <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0">
+                    <div class="kontak-icon">
                         <i class="fas fa-globe"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-[var(--text-main)] text-lg">Media Sosial</h4>
+                        <h4 class="font-semibold text-[var(--text-main)] text-lg mb-1">Media Sosial</h4>
                         <div class="flex space-x-4 text-2xl mt-1">
-                            <a href="#" class="text-blue-500 hover:text-blue-600 transition"><i class="fab fa-facebook"></i></a>
-                            <a href="#" class="text-blue-400 hover:text-blue-500 transition"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="text-pink-500 hover:text-pink-600 transition"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="text-red-500 hover:text-red-600 transition"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="kontak-social kontak-social-fb" title="Facebook">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a href="#" class="kontak-social kontak-social-tw" title="Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="kontak-social kontak-social-ig" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="kontak-social kontak-social-yt" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </section>
 
-<!-- TIDAK ADA SCRIPT KHUSUS (halaman statis) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] kontak.html loaded — static page, no JS module');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view kontak saja                        -->
+<!-- Common styles (glass-card) sudah di css/style.css             -->
+<!-- ============================================================ -->
+<style>
+    /* ────────────── HERO ────────────── */
+    .kontak-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%);
+    }
+
+    /* ────────────── ICON CIRCLE ────────────── */
+    .kontak-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--bg-stats);
+        border: 1px solid var(--card-border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        transition: all 220ms var(--ease-spring);
+    }
+    .glass-card:hover .kontak-icon {
+        transform: rotate(-8deg) scale(1.08);
+        background: linear-gradient(135deg, var(--accent-400), var(--accent-500));
+        color: var(--brand-900);
+        border-color: transparent;
+    }
+
+    /* ────────────── SOCIAL ICONS ────────────── */
+    .kontak-social {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 220ms var(--ease-spring),
+                    color 220ms ease;
+        text-decoration: none;
+    }
+    .kontak-social:hover {
+        transform: translateY(-3px) scale(1.12);
+    }
+    .kontak-social-fb { color: #1877F2; }
+    .kontak-social-fb:hover { color: #0d5bbd; }
+    .kontak-social-tw { color: #1DA1F2; }
+    .kontak-social-tw:hover { color: #0c85d0; }
+    .kontak-social-ig { color: #E4405F; }
+    .kontak-social-ig:hover { color: #c02646; }
+    .kontak-social-yt { color: #FF0000; }
+    .kontak-social-yt:hover { color: #cc0000; }
+</style>

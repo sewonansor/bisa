@@ -1,77 +1,126 @@
 <!-- views/keuangan.html -->
-<!-- Halaman Keuangan Publik - Transparansi & Akuntabilitas -->
+<!-- Halaman Publik: Transparansi Keuangan -->
+<!-- Logic: js/keuangan.js | Route: /keuangan -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
-<section class="hero-bg pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="keuangan-hero pt-28 pb-12 text-center text-white">
     <div class="container mx-auto px-4">
-        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Keuangan Transparan</h1>
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">
+            Keuangan Transparan
+        </h1>
         <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
-            Kami menyajikan laporan keuangan secara terbuka untuk memastikan akuntabilitas dan transparansi pengelolaan dana organisasi.
+            Kami menyajikan laporan keuangan secara terbuka untuk memastikan
+            akuntabilitas dan transparansi pengelolaan dana organisasi.
         </p>
     </div>
 </section>
 
-<!-- RINGKASAN KEUANGAN -->
+<!-- ============================================================ -->
+<!-- RINGKASAN KEUANGAN                                            -->
+<!-- ============================================================ -->
 <section class="py-12 container mx-auto px-4">
     <div class="max-w-5xl mx-auto">
-        <h2 class="text-2xl font-bold text-center mb-8 text-[var(--text-main)] font-amiri">Ringkasan Keuangan</h2>
-        
-        <!-- Kartu Statistik -->
+        <h2 class="text-2xl font-bold text-center mb-8 text-[var(--text-main)] font-amiri">
+            Ringkasan Keuangan
+        </h2>
+
+        <!-- Kartu Statistik (di-render oleh JS) -->
         <div id="keuangan-summary" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-            <!-- Diisi oleh JavaScript -->
+            <!-- Placeholder — JS akan render 4 kartu -->
         </div>
 
         <!-- Grafik Batang Pemasukan vs Pengeluaran -->
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/30 dark:border-gray-700/50 mb-10">
-            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri text-center">Grafik Pemasukan vs Pengeluaran</h3>
+        <div class="keuangan-chart-card mb-10">
+            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri text-center">
+                <i class="fas fa-chart-bar mr-2 text-[var(--accent-500)]"></i>
+                Grafik Pemasukan vs Pengeluaran
+            </h3>
             <div id="keuangan-chart" class="flex items-end justify-around h-64 space-x-4 px-4">
-                <!-- Diisi oleh JavaScript -->
+                <!-- Diisi oleh JS -->
             </div>
         </div>
 
+        <!-- Top Kategori (auto-inject oleh JS) -->
+        <!-- Container akan disisipkan otomatis oleh JS setelah chart -->
+
         <!-- Transaksi Terbaru -->
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/30 dark:border-gray-700/50">
-            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri">Transaksi Terbaru</h3>
+        <div class="keuangan-recent-card">
+            <h3 class="text-xl font-bold text-[var(--text-main)] mb-6 font-amiri">
+                <i class="fas fa-receipt mr-2 text-[var(--accent-500)]"></i>
+                Transaksi Terbaru
+            </h3>
             <div id="keuangan-recent" class="space-y-3">
-                <!-- Diisi oleh JavaScript -->
+                <!-- Diisi oleh JS -->
             </div>
         </div>
     </div>
 </section>
 
-<!-- STYLE INLINE -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] keuangan.html loaded — logic handled by js/keuangan.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view keuangan saja                      -->
+<!-- Common styles (btn-primary, dst.) sudah di css/style.css      -->
+<!-- ============================================================ -->
 <style>
-    .hero-bg { background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%); }
-    
-    .stat-card {
+    /* ────────────── HERO ────────────── */
+    .keuangan-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%);
+    }
+
+    /* ────────────── CHART CARD & RECENT CARD ────────────── */
+    .keuangan-chart-card,
+    .keuangan-recent-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ────────────── STAT CARD (JS inject) — fallback kalau tidak pakai style.css ────────────── */
+    #keuangan-summary .stat-card {
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: 1rem;
         padding: 1.5rem;
         text-align: center;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
-    .stat-card:hover {
+    #keuangan-summary .stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
     }
-    .stat-card .icon {
+    #keuangan-summary .stat-card .icon {
         font-size: 2.5rem;
         margin-bottom: 0.5rem;
     }
-    .stat-card .value {
+    #keuangan-summary .stat-card .value {
         font-size: 1.75rem;
         font-weight: 700;
         color: var(--text-main);
     }
-    .stat-card .label {
+    #keuangan-summary .stat-card .label {
         font-size: 0.875rem;
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
+    /* ────────────── CHART BAR (JS inject) ────────────── */
     .chart-bar {
         width: 80px;
         border-radius: 0.5rem 0.5rem 0 0;
@@ -79,7 +128,7 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        overflow: hidden;
+        overflow: visible;
         transition: height 0.5s ease;
     }
     .chart-bar .bar-label {
@@ -99,8 +148,10 @@
         font-size: 0.875rem;
         font-weight: 600;
         color: var(--text-main);
+        white-space: nowrap;
     }
 
+    /* ────────────── TRANSACTION ITEM (JS inject) ────────────── */
     .transaction-item {
         display: flex;
         justify-content: space-between;
@@ -146,20 +197,20 @@
         font-weight: 700;
         font-size: 0.875rem;
     }
-    .txn-amount.income {
-        color: #059669;
-    }
-    .txn-amount.expense {
-        color: #dc2626;
-    }
+    .txn-amount.income { color: #059669; }
+    .txn-amount.expense { color: #dc2626; }
 
-    /* Responsive untuk mobile */
+    /* ────────────── RESPONSIVE ────────────── */
     @media (max-width: 640px) {
         #keuangan-summary {
-            grid-template-columns: 1fr; /* Satu kolom di layar kecil */
+            grid-template-columns: 1fr;
         }
         .chart-bar {
             width: 60px;
+        }
+        .keuangan-chart-card,
+        .keuangan-recent-card {
+            padding: 1rem;
         }
     }
 </style>

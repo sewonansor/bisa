@@ -1,192 +1,450 @@
 <!-- views/dashboard_admin.html -->
-<!-- Fragment Dashboard Admin - Final (Render Instan, Data Lengkap, No Skeleton Stuck) -->
-<!-- Versi: 8.0.0 -->
+<!-- Dashboard Admin - Statistik & Recent Data -->
+<!-- Logic: js/dashboard_admin.js | Route: /dashboard_admin -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
 <div id="dashboard-wrapper">
-    <!-- Header -->
-    <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Dashboard Admin</h1>
+    <!-- ============================================================ -->
+    <!-- HEADER: Greeting + Refresh                                    -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri flex items-center gap-2">
+                <i class="fas fa-chart-pie text-[#0f2922] dark:text-[#fbbf24]"></i>
+                Dashboard Admin
+            </h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1">
+                <i class="far fa-calendar-alt mr-1"></i>
+                <span id="dashboard-date-info">Ringkasan lengkap data organisasi</span>
+            </p>
+        </div>
         <div class="flex items-center gap-3 flex-wrap">
-            <button id="dashboard-refresh-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2 text-sm">
-                <i class="fas fa-sync-alt"></i> Refresh Data
+            <button id="dashboard-refresh-btn"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh Data</span>
             </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]"><i class="fas fa-bars"></i></button>
+            <button id="mobile-menu-btn"
+                    class="md:hidden text-2xl text-[var(--text-muted)] hover:text-[var(--text-main)] transition"
+                    aria-label="Buka Menu">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </div>
 
-    <!-- Skeleton (Hidden, hanya untuk kompatibilitas) -->
+    <!-- ============================================================ -->
+    <!-- SKELETON (hidden by default, JS akan toggle)                  -->
+    <!-- ============================================================ -->
     <div id="dashboard-skeleton" class="hidden">
-        <!-- Tidak perlu isi -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="premium-card p-6 rounded-2xl">
+                <div class="skeleton-box h-8 w-3/4 mb-3"></div>
+                <div class="skeleton-box h-12 w-1/2"></div>
+            </div>
+            <div class="premium-card p-6 rounded-2xl">
+                <div class="skeleton-box h-8 w-3/4 mb-3"></div>
+                <div class="skeleton-box h-12 w-1/2"></div>
+            </div>
+            <div class="premium-card p-6 rounded-2xl">
+                <div class="skeleton-box h-8 w-3/4 mb-3"></div>
+                <div class="skeleton-box h-12 w-1/2"></div>
+            </div>
+            <div class="premium-card p-6 rounded-2xl">
+                <div class="skeleton-box h-8 w-3/4 mb-3"></div>
+                <div class="skeleton-box h-12 w-1/2"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Konten Dashboard – Langsung tampil -->
+    <!-- ============================================================ -->
+    <!-- KONTEN DASHBOARD                                              -->
+    <!-- ============================================================ -->
     <div id="dashboard-content">
-        <!-- Kartu Statistik (4 kolom) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        <!-- ===== SECTION 1: KARTU STATISTIK UTAMA (4 kartu) ===== -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+
+            <!-- Total Surat -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Surat</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Surat
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-surat">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-file-alt text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-green">
+                        <i class="fas fa-file-alt text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total Logbook -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Logbook</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Logbook
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-logbook">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-file-pdf text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-blue">
+                        <i class="fas fa-book text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total Anggota -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Anggota</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Anggota
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-anggota">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-users text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-amber">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total Kegiatan -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Kegiatan</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Kegiatan
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-kegiatan">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-calendar text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-purple">
+                        <i class="fas fa-calendar-check text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 2: KARTU STATISTIK SEKUNDER (7 kartu) ===== -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Saldo Keuangan -->
+            <div class="premium-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Saldo Keuangan
+                        </p>
+                        <p class="text-2xl font-bold text-[var(--text-main)] mt-1 truncate" id="saldo-keuangan">
+                            Rp 0
+                        </p>
+                    </div>
+                    <div class="stat-icon-gradient stat-icon-yellow">
+                        <i class="fas fa-coins text-xl"></i>
+                    </div>
                 </div>
             </div>
 
+            <!-- Total Barang -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Saldo Keuangan</p>
-                        <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="saldo-keuangan">Rp 0</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-coins text-xl"></i></div>
-                </div>
-            </div>
-            <div class="premium-card p-6 rounded-2xl">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Barang</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Barang
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-barang">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-boxes text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-cyan">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total Media -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Media</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Media
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-media">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-images text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-fuchsia">
+                        <i class="fas fa-images text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Program Kerja -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Program Kerja</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Program Kerja
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-proker">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-tasks text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-pink">
+                        <i class="fas fa-tasks text-xl"></i>
+                    </div>
                 </div>
             </div>
 
+            <!-- Topik Forum -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Topik Forum</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Topik Forum
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-topik-forum">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-comments text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-indigo">
+                        <i class="fas fa-comments text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Total Tokoh -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Total Tokoh</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Total Tokoh
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-tokoh">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-user-tie text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-teal">
+                        <i class="fas fa-user-tie text-xl"></i>
+                    </div>
                 </div>
             </div>
+
+            <!-- Sedang Dipinjam -->
             <div class="premium-card p-6 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-[var(--text-muted)]">Sedang Dipinjam</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                            Sedang Dipinjam
+                        </p>
                         <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="total-peminjaman">0</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center text-white shadow-md"><i class="fas fa-hand-holding text-xl"></i></div>
+                    <div class="stat-icon-gradient stat-icon-orange">
+                        <i class="fas fa-hand-holding text-xl"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Sections -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
-                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fas fa-file-alt text-green-600"></i> Surat Terbaru
-                </h2>
+        <!-- ===== SECTION 3: RECENT SECTIONS (2x2 Grid) ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+            <!-- Surat Terbaru -->
+            <div class="recent-card">
+                <div class="recent-card-header">
+                    <h2 class="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                        <i class="fas fa-file-alt text-green-600"></i>
+                        Surat Terbaru
+                    </h2>
+                    <a href="/surat_admin" class="recent-card-link">
+                        Lihat semua <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
                 <div id="recent-surat" class="space-y-3">
-                    <p class="text-[var(--text-muted)]">Memuat data...</p>
+                    <p class="recent-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                    </p>
                 </div>
             </div>
-            <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
-                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fas fa-file-pdf text-blue-600"></i> Logbook Terbaru
-                </h2>
+
+            <!-- Logbook Terbaru -->
+            <div class="recent-card">
+                <div class="recent-card-header">
+                    <h2 class="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                        <i class="fas fa-book text-blue-600"></i>
+                        Logbook Terbaru
+                    </h2>
+                    <a href="/logbook_admin" class="recent-card-link">
+                        Lihat semua <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
                 <div id="recent-logbook" class="space-y-3">
-                    <p class="text-[var(--text-muted)]">Memuat data...</p>
+                    <p class="recent-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
-                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fas fa-coins text-yellow-600"></i> Transaksi Keuangan Terbaru
-                </h2>
+        <!-- ===== SECTION 4: RECENT SECTIONS (2nd Row) ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Transaksi Keuangan Terbaru -->
+            <div class="recent-card">
+                <div class="recent-card-header">
+                    <h2 class="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                        <i class="fas fa-coins text-yellow-600"></i>
+                        Transaksi Keuangan
+                    </h2>
+                    <a href="/keuangan_admin" class="recent-card-link">
+                        Lihat semua <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
                 <div id="recent-keuangan" class="space-y-3">
-                    <p class="text-[var(--text-muted)]">Memuat data...</p>
+                    <p class="recent-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                    </p>
                 </div>
             </div>
-            <div class="bg-[var(--card-bg)] backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-[var(--card-border)]">
-                <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fas fa-hand-holding text-orange-600"></i> Peminjaman Inventaris Terbaru
-                </h2>
+
+            <!-- Peminjaman Inventaris Terbaru -->
+            <div class="recent-card">
+                <div class="recent-card-header">
+                    <h2 class="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                        <i class="fas fa-hand-holding text-orange-600"></i>
+                        Peminjaman Inventaris
+                    </h2>
+                    <a href="/inventaris_admin" class="recent-card-link">
+                        Lihat semua <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
                 <div id="recent-pinjam" class="space-y-3">
-                    <p class="text-[var(--text-muted)]">Memuat data...</p>
+                    <p class="recent-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- STYLE (bisa digabung ke CSS global, tapi disertakan agar mandiri) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi + auto-fill tanggal                -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] dashboard_admin.html loaded — logic handled by js/dashboard_admin.js');
+
+        // Auto-fill tanggal di header
+        const dateInfo = document.getElementById('dashboard-date-info');
+        if (dateInfo) {
+            const now = new Date();
+            const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            dateInfo.textContent = now.toLocaleDateString('id-ID', opts);
+        }
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view dashboard_admin saja               -->
+<!-- Common styles (premium-card, skeleton, btn-primary, dst.)     -->
+<!-- sudah di-load dari css/style.css                              -->
+<!-- ============================================================ -->
 <style>
-    .premium-card {
+    /* ────────────── STAT ICON GRADIENT (varian warna) ────────────── */
+    .stat-icon-gradient {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+        transition: transform 280ms var(--ease-spring);
+    }
+    .premium-card:hover .stat-icon-gradient {
+        transform: rotate(-8deg) scale(1.08);
+    }
+
+    .stat-icon-green   { background: linear-gradient(135deg, #34d399, #059669); }
+    .stat-icon-blue    { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+    .stat-icon-amber   { background: linear-gradient(135deg, #fbbf24, #d97706); }
+    .stat-icon-purple  { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
+    .stat-icon-yellow  { background: linear-gradient(135deg, #fde047, #ca8a04); }
+    .stat-icon-cyan    { background: linear-gradient(135deg, #22d3ee, #0891b2); }
+    .stat-icon-fuchsia { background: linear-gradient(135deg, #e879f9, #c026d3); }
+    .stat-icon-pink    { background: linear-gradient(135deg, #f472b6, #db2777); }
+    .stat-icon-indigo  { background: linear-gradient(135deg, #818cf8, #4f46e5); }
+    .stat-icon-teal    { background: linear-gradient(135deg, #2dd4bf, #0d9488); }
+    .stat-icon-orange  { background: linear-gradient(135deg, #fb923c, #ea580c); }
+
+    /* ────────────── RECENT CARD ────────────── */
+    .recent-card {
         background: var(--card-bg);
         backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border: 1px solid var(--card-border);
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.03), 0 8px 32px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: box-shadow 280ms var(--ease-smooth);
     }
-    .premium-card:hover {
-        transform: translateY(-6px) scale(1.02);
-        box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.12);
+    .recent-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
-    /* Skeleton hidden di default, jika masih ada */
-    #dashboard-skeleton {
-        display: none !important;
+
+    .recent-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .recent-card-link {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: color 180ms ease;
+    }
+    .recent-card-link:hover {
+        color: var(--text-main);
+    }
+
+    .recent-loading {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    /* ────────────── RECENT LIST ITEM HOVER ────────────── */
+    #recent-surat p,
+    #recent-logbook p,
+    #recent-keuangan p,
+    #recent-pinjam p {
+        transition: all 200ms ease;
+    }
+    #recent-surat p:hover,
+    #recent-logbook p:hover,
+    #recent-keuangan p:hover,
+    #recent-pinjam p:hover {
+        transform: translateX(2px);
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .premium-card {
+            padding: 1rem;
+        }
+        .premium-card .text-3xl {
+            font-size: 1.5rem;
+        }
+        .stat-icon-gradient {
+            width: 40px;
+            height: 40px;
+            font-size: 0.9rem;
+        }
+        .recent-card {
+            padding: 1rem;
+        }
     }
 </style>
-
-<!-- SCRIPT INLINE – HANYA KONFIRMASI, TIDAK ADA MODUL -->
-<script>
-    console.log('dashboard_admin view loaded');
-</script>

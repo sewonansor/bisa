@@ -1,52 +1,110 @@
 <!-- views/ringkasan.html -->
-<!-- Halaman Ringkasan Data - Preview Semua Modul Sebelum Kompilasi Laporan -->
+<!-- Halaman Admin: Ringkasan Data (Preview Semua Modul) -->
+<!-- Logic: js/ringkasan.js | Route: /ringkasan -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
 <div id="main-content">
-    <!-- Header -->
-    <div class="flex flex-wrap justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">Ringkasan Data</h1>
-        <div class="flex gap-2">
-            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg">
-                <i class="fas fa-sync-alt mr-1"></i> Refresh
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
+            <i class="fas fa-chart-bar mr-2"></i>
+            Ringkasan Data
+        </h1>
+        <div class="flex flex-wrap gap-2">
+            <button id="refresh-btn"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
             </button>
-            <a href="/lpj_report" class="btn-primary px-4 py-2 rounded-lg">
-                <i class="fas fa-file-alt mr-1"></i> Kompilasi Laporan
+            <a href="/logbook_report"
+               class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                <i class="fas fa-file-alt"></i>
+                <span>Kompilasi Laporan</span>
             </a>
         </div>
     </div>
 
-    <!-- Navigasi cepat ke modul -->
+    <!-- ============================================================ -->
+    <!-- NAVIGASI CEPAT                                                -->
+    <!-- ============================================================ -->
     <div class="flex flex-wrap gap-2 mb-6">
-        <a href="/surat_admin" class="btn-outline text-xs px-3 py-1">Surat</a>
-        <a href="/lpj_admin" class="btn-outline text-xs px-3 py-1">LPJ</a>
-        <a href="/keuangan_admin" class="btn-outline text-xs px-3 py-1">Keuangan</a>
-        <a href="/inventaris_admin" class="btn-outline text-xs px-3 py-1">Inventaris</a>
-        <a href="/galeri_admin" class="btn-outline text-xs px-3 py-1">Galeri</a>
-        <a href="/proker_admin" class="btn-outline text-xs px-3 py-1">Proker</a>
-        <a href="/forum_admin" class="btn-outline text-xs px-3 py-1">Forum</a>
-        <a href="/anggota_admin" class="btn-outline text-xs px-3 py-1">Anggota</a>
-        <a href="/tokoh_admin" class="btn-outline text-xs px-3 py-1">Tokoh</a>
-        <a href="/absensi_admin" class="btn-outline text-xs px-3 py-1">Absensi</a>
-        <a href="/profil_admin" class="btn-outline text-xs px-3 py-1">Profil/Struktur</a>
+        <a href="/surat_admin" class="quick-nav-link">Surat</a>
+        <a href="/logbook_admin" class="quick-nav-link">Logbook</a>
+        <a href="/keuangan_admin" class="quick-nav-link">Keuangan</a>
+        <a href="/inventaris_admin" class="quick-nav-link">Inventaris</a>
+        <a href="/galeri_admin" class="quick-nav-link">Galeri</a>
+        <a href="/proker_admin" class="quick-nav-link">Proker</a>
+        <a href="/forum_admin" class="quick-nav-link">Forum</a>
+        <a href="/anggota_admin" class="quick-nav-link">Anggota</a>
+        <a href="/tokoh_admin" class="quick-nav-link">Tokoh</a>
+        <a href="/absensi_admin" class="quick-nav-link">Absensi</a>
+        <a href="/profil_admin" class="quick-nav-link">Profil/Struktur</a>
     </div>
 
-    <!-- Container untuk preview data -->
+    <!-- ============================================================ -->
+    <!-- CONTAINER PREVIEW DATA                                        -->
+    <!-- ============================================================ -->
     <div id="ringkasan-data" class="space-y-8">
-        <!-- Akan diisi oleh JavaScript -->
+        <!-- Akan di-render oleh js/ringkasan.js -->
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] ringkasan.html loaded — logic handled by js/ringkasan.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view ringkasan saja                     -->
+<!-- Common styles (btn-primary, btn-secondary) sudah di           -->
+<!-- css/style.css                                                 -->
+<!-- ============================================================ -->
 <style>
+    /* ────────────── QUICK NAV LINK ────────────── */
+    .quick-nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 9999px;
+        background: var(--card-bg);
+        color: var(--text-main);
+        border: 1px solid var(--card-border);
+        text-decoration: none;
+        transition: all 180ms var(--ease-smooth);
+    }
+    .quick-nav-link:hover {
+        background: var(--brand-700);
+        color: #ffffff;
+        border-color: var(--brand-700);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(15, 41, 34, 0.15);
+    }
+    .dark .quick-nav-link:hover {
+        background: var(--accent-400);
+        color: var(--brand-800);
+        border-color: var(--accent-400);
+    }
+
+    /* ────────────── PREVIEW CARD (di-render oleh JS) ────────────── */
     .preview-card {
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: 1rem;
         padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s var(--ease-smooth);
     }
     .preview-card:hover {
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
     .preview-card h3 {
         font-size: 1.25rem;
@@ -82,7 +140,8 @@
         border-collapse: collapse;
         font-size: 0.85rem;
     }
-    .preview-card th, .preview-card td {
+    .preview-card th,
+    .preview-card td {
         padding: 0.5rem 0.75rem;
         border-bottom: 1px solid var(--card-border);
         text-align: left;
@@ -110,6 +169,8 @@
         color: var(--text-main);
         text-decoration: underline;
     }
+
+    /* ────────────── LOADING SPINNER (state awal) ────────────── */
     .loading-spinner {
         display: flex;
         justify-content: center;
@@ -117,9 +178,3 @@
         min-height: 300px;
     }
 </style>
-
-<script>
-    (function() {
-        console.log('ringkasan view loaded');
-    })();
-</script>

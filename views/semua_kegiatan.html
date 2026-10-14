@@ -1,0 +1,201 @@
+<!-- views/semua_kegiatan.html -->
+<!-- Halaman Publik: Semua Kegiatan -->
+<!-- Logic: js/semua_kegiatan.js | Route: /semua_kegiatan -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
+
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="semua-kegiatan-hero pt-28 pb-16 text-white text-center relative overflow-hidden">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5 text-xs sm:text-sm font-medium">
+            <i class="fas fa-calendar-check"></i>
+            <span>Katalog Kegiatan</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold font-amiri mb-4 leading-tight">
+            Semua Kegiatan
+        </h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
+            Kumpulan lengkap kegiatan sosial, keagamaan, dan kemasyarakatan
+            PAC GP Ansor Kapanewon Sewon.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DAFTAR KEGIATAN                                               -->
+<!-- ============================================================ -->
+<section class="py-12 container mx-auto px-4">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- SKELETON LOADING -->
+        <div id="semua-kegiatan-skeleton"
+             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- Featured Skeleton (span 2 kolom) -->
+            <div class="kegiatan-card md:col-span-2 lg:col-span-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-72 md:h-96 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/3"></div>
+                    <div class="skeleton-box h-8 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+
+            <!-- Grid Skeleton -->
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="kegiatan-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="p-5 space-y-2">
+                    <div class="skeleton-box h-4 w-1/2"></div>
+                    <div class="skeleton-box h-6 w-4/5"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KONTEN ASLI (diisi oleh js/semua_kegiatan.js) -->
+        <div id="semua-kegiatan-list"
+             class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Placeholder — akan di-replace oleh JavaScript -->
+        </div>
+
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] semua_kegiatan.html loaded — logic handled by js/semua_kegiatan.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view semua_kegiatan saja                -->
+<!-- Common styles (skeleton-box, dst.) sudah di css/style.css     -->
+<!-- ============================================================ -->
+<style>
+    /* ────────────── HERO ────────────── */
+    .semua-kegiatan-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 50%, #0f2922 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .semua-kegiatan-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .semua-kegiatan-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -15%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.2), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* ────────────── KEGIATAN CARD ────────────── */
+    .kegiatan-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: transform 0.3s ease,
+                    box-shadow 0.3s ease,
+                    border-color 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        display: block;
+        text-decoration: none;
+        will-change: transform, box-shadow;
+    }
+    .kegiatan-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        border-color: var(--text-main);
+    }
+
+    /* ────────────── CARD IMG WRAPPER (regular) ────────────── */
+    .kegiatan-card .img-wrapper {
+        height: 200px;
+        overflow: hidden;
+        background: var(--bg-stats);
+        position: relative;
+    }
+    .kegiatan-card .img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .kegiatan-card:hover .img-wrapper img {
+        transform: scale(1.05);
+    }
+
+    /* ────────────── FEATURED CARD IMAGE (lebih tinggi) ────────────── */
+    .kegiatan-featured .img-wrapper {
+        height: 280px;
+    }
+    .kegiatan-featured .img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .kegiatan-featured:hover .img-wrapper img {
+        transform: scale(1.05);
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .semua-kegiatan-hero h1 {
+            font-size: 1.75rem !important;
+        }
+        .kegiatan-card .img-wrapper,
+        .kegiatan-featured .img-wrapper {
+            height: 200px;
+        }
+    }
+</style>

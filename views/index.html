@@ -1,128 +1,325 @@
 <!-- views/index.html -->
-<!-- Halaman Beranda Publik - Menampilkan Berita Terbaru -->
-<!-- Versi: 2.0.0 - Final (Berita, Bebas Error) -->
+<!-- Premium Redesign v3.5.0 — Mint Green Elegant + All Sections -->
+<!-- Semua ID dipertahankan agar js/index.js tetap kompatibel -->
 
-<!-- HERO SECTION -->
-<section id="hero" class="w-full pt-32 pb-20 sm:pb-24 relative" style="background: var(--bg-hero);">
-    <div class="container mx-auto px-4 sm:px-6 text-center max-w-4xl relative z-10">
-        <div class="inline-block rounded-full px-4 py-1 text-xs sm:text-sm font-medium mb-6 bg-yellow-100/50 border border-yellow-200/50 text-amber-700 backdrop-blur-sm" data-aos="fade-up">
-            <i class="fas fa-leaf mr-2"></i> Organisasi Pemuda Islami
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- HERO SECTION — Soft Mint Green (Light) / Dark Emerald (Dark) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="hero" class="hero-section">
+    <div class="hero-bg" aria-hidden="true">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <svg class="hero-pattern" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <pattern id="heroGrid" width="80" height="80" patternUnits="userSpaceOnUse">
+                    <path d="M 80 0 L 0 0 0 80" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.4"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#heroGrid)"/>
+        </svg>
+    </div>
+
+    <div class="hero-container" id="hero-content">
+
+        <div class="hero-badge" data-aos="fade-up">
+            <i class="fas fa-star-and-crescent"></i>
+            <span>Organisasi Pemuda Islami</span>
         </div>
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-[var(--text-main)] leading-tight font-amiri" data-aos="fade-up" data-aos-delay="100">
-            PAC GP Ansor <br /> Kapanewon Sewon
+
+        <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">
+            <span class="hero-title-line1">PAC GP Ansor</span>
+            <span class="hero-title-line2">Kapanewon Sewon</span>
         </h1>
-        <p class="text-lg sm:text-xl md:text-2xl mb-8 text-[var(--text-muted)] font-light max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="200">
-            Mengabdi untuk Umat, Berjuang untuk Bangsa
+
+        <div class="hero-divider" data-aos="fade-up" data-aos-delay="150"></div>
+
+        <p class="hero-tagline" data-aos="fade-up" data-aos-delay="200">
+            "Mengabdi untuk Umat, Berjuang untuk Bangsa"
         </p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4" data-aos="fade-up" data-aos-delay="400">
-            <a href="/semua_berita" class="btn-outline text-sm sm:text-base w-full sm:w-auto text-center">Lihat Berita</a>
-            <a href="/absensi" class="btn-primary text-sm sm:text-base w-full sm:w-auto text-center">Absensi Digital</a>
+
+        <p class="hero-desc" data-aos="fade-up" data-aos-delay="250">
+            Bersama membangun generasi muda yang berkhidmat, profesional, dan berakhlak mulia.
+        </p>
+
+        <div class="hero-cta" data-aos="fade-up" data-aos-delay="300">
+            <a href="/semua_berita" class="btn-hero btn-hero-primary">
+                <span>Lihat Berita</span>
+            </a>
+            <a href="/absensi" class="btn-hero btn-hero-outline">
+                <span>Absensi Digital</span>
+            </a>
         </div>
+
+        <div class="hero-trust" data-aos="fade-up" data-aos-delay="400">
+            <div class="trust-item">
+                <div class="trust-value">4</div>
+                <div class="trust-label">Kalurahan</div>
+            </div>
+            <span class="trust-sep"></span>
+            <div class="trust-item">
+                <div class="trust-value">24/7</div>
+                <div class="trust-label">Portal Digital</div>
+            </div>
+            <span class="trust-sep"></span>
+            <div class="trust-item">
+                <div class="trust-value"><i class="fas fa-shield-alt"></i></div>
+                <div class="trust-label">Terpercaya</div>
+            </div>
+        </div>
+
     </div>
 </section>
 
-<!-- PROFIL SECTION -->
-<section id="profil" class="w-full py-16 sm:py-20" style="background: var(--bg-profil);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Profil Organisasi</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
-            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-right">
-                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Sejarah</h3>
-                <div id="profil-sejarah" class="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">
-                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PROFIL SECTION                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="profil" class="section">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-address-card"></i>
+                Tentang Kami
+            </span>
+            <h2 class="section-title">Profil Organisasi</h2>
+            <p class="section-subtitle">
+                Mengenal lebih dekat sejarah, visi misi, dan struktur kepengurusan kami.
+            </p>
+        </header>
+
+        <div class="profil-grid">
+            <article class="premium-card profil-card" data-aos="fade-up">
+                <div class="profil-card-header">
+                    <div class="card-icon card-icon-teal">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Sejarah</h3>
+                        <p class="card-subtitle">Jejak langkah organisasi</p>
+                    </div>
+                </div>
+                <div id="profil-sejarah" class="profil-card-body">
+                    <div class="skeleton-stack">
+                        <div class="skeleton-box h-6 w-full"></div>
+                        <div class="skeleton-box h-6 w-5/6"></div>
+                        <div class="skeleton-box h-6 w-4/6"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="premium-card profil-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="profil-card-header">
+                    <div class="card-icon card-icon-blue">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Visi &amp; Misi</h3>
+                        <p class="card-subtitle">Arah perjuangan kami</p>
+                    </div>
+                </div>
+                <div id="profil-visi-misi" class="profil-card-body">
+                    <div class="skeleton-stack">
+                        <div class="skeleton-box h-6 w-full"></div>
+                        <div class="skeleton-box h-6 w-5/6"></div>
+                        <div class="skeleton-box h-6 w-4/6"></div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <article class="premium-card struktur-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="profil-card-header struktur-header">
+                <div class="struktur-header-left">
+                    <div class="card-icon card-icon-purple">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Struktur Organisasi</h3>
+                        <p class="card-subtitle">Pengurus inti periode saat ini</p>
+                    </div>
                 </div>
             </div>
-            <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-left">
-                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Visi & Misi</h3>
-                <div id="profil-visi-misi" class="text-[var(--text-muted)] text-sm sm:text-base">
-                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+
+            <div id="profil-struktur" class="struktur-grid">
+                <div class="struktur-skeleton"></div>
+                <div class="struktur-skeleton"></div>
+                <div class="struktur-skeleton"></div>
+                <div class="struktur-skeleton"></div>
+                <div class="struktur-skeleton"></div>
+            </div>
+
+            <div class="struktur-footer">
+                <button id="show-full-structure" type="button" class="btn-pill">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Lihat Struktur Lengkap</span>
+                    <i class="fas fa-arrow-right btn-pill-arrow"></i>
+                </button>
+            </div>
+        </article>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- KEUANGAN SECTION                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="keuangan" class="section section-alt">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-coins"></i>
+                Transparansi
+            </span>
+            <h2 class="section-title">Keuangan Organisasi</h2>
+            <p class="section-subtitle">
+                Laporan keuangan yang transparan dan akuntabel untuk seluruh anggota.
+            </p>
+        </header>
+
+        <div id="keuangan-summary" class="keuangan-summary">
+            <div class="premium-card k-card">
+                <div class="skeleton-box h-12 w-full mb-3"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto"></div>
+            </div>
+            <div class="premium-card k-card">
+                <div class="skeleton-box h-12 w-full mb-3"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto"></div>
+            </div>
+            <div class="premium-card k-card">
+                <div class="skeleton-box h-12 w-full mb-3"></div>
+                <div class="skeleton-box h-6 w-2/3 mx-auto"></div>
+            </div>
+        </div>
+
+        <div class="keuangan-cta" data-aos="fade-up">
+            <a href="/keuangan" class="btn-pill">
+                <i class="fas fa-chart-line"></i>
+                <span>Lihat Detail Keuangan</span>
+                <i class="fas fa-arrow-right btn-pill-arrow"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- STATS SECTION — Anggota per Ranting                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="stats" class="section">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-users"></i>
+                Sumber Daya Manusia
+            </span>
+            <h2 class="section-title">Anggota per Ranting</h2>
+            <p class="section-subtitle">
+                Sebaran anggota aktif PAC GP Ansor Kapanewon Sewon di setiap kalurahan.
+            </p>
+        </header>
+
+        <div id="village-stats" class="stats-grid">
+            <div class="premium-card stat-card">
+                <div class="skeleton-box h-20 w-full"></div>
+            </div>
+            <div class="premium-card stat-card">
+                <div class="skeleton-box h-20 w-full"></div>
+            </div>
+            <div class="premium-card stat-card">
+                <div class="skeleton-box h-20 w-full"></div>
+            </div>
+            <div class="premium-card stat-card">
+                <div class="skeleton-box h-20 w-full"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- BERITA SECTION                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="berita" class="section section-alt">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-newspaper"></i>
+                Publikasi
+            </span>
+            <h2 class="section-title">Berita Terbaru</h2>
+            <p class="section-subtitle">
+                Kabar terkini seputar kegiatan dan program organisasi.
+            </p>
+        </header>
+
+        <div id="berita-list" class="berita-grid">
+            <div class="premium-card berita-skeleton">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="berita-skeleton-body">
+                    <div class="skeleton-box h-4 w-1/3 mb-3"></div>
+                    <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="premium-card berita-skeleton">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="berita-skeleton-body">
+                    <div class="skeleton-box h-4 w-1/3 mb-3"></div>
+                    <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
+                </div>
+            </div>
+            <div class="premium-card berita-skeleton">
+                <div class="skeleton-box h-48 w-full"></div>
+                <div class="berita-skeleton-body">
+                    <div class="skeleton-box h-4 w-1/3 mb-3"></div>
+                    <div class="skeleton-box h-6 w-3/4 mb-2"></div>
+                    <div class="skeleton-box h-4 w-full"></div>
                 </div>
             </div>
         </div>
-        <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-up">
-            <h3 class="text-xl sm:text-2xl font-bold mb-8 text-[var(--text-main)] text-center font-amiri">Struktur Organisasi</h3>
-            <div id="profil-struktur" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-                <!-- Skeleton Loading -->
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-            </div>
-            <div class="text-center mt-8">
-                <button id="show-full-structure" class="btn-outline text-sm">Lihat Selengkapnya</button>
-            </div>
+
+        <div class="section-cta" data-aos="fade-up">
+            <a href="/semua_berita" class="btn-pill">
+                <i class="fas fa-newspaper"></i>
+                <span>Lihat Semua Berita</span>
+                <i class="fas fa-arrow-right btn-pill-arrow"></i>
+            </a>
         </div>
     </div>
 </section>
 
-<!-- TRANSPARANSI KEUANGAN -->
-<section id="keuangan" class="w-full py-16 sm:py-20" style="background: var(--bg-stats);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">
-            Transparansi Keuangan
-        </h2>
-        <div id="keuangan-summary" class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            <!-- Kartu akan diisi oleh JavaScript -->
-            <div class="glass-card p-6 rounded-2xl text-center">
-                <div class="skeleton-box h-12 w-full"></div>
-                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
-            </div>
-            <div class="glass-card p-6 rounded-2xl text-center">
-                <div class="skeleton-box h-12 w-full"></div>
-                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
-            </div>
-            <div class="glass-card p-6 rounded-2xl text-center">
-                <div class="skeleton-box h-12 w-full"></div>
-                <div class="skeleton-box h-6 w-2/3 mx-auto mt-2"></div>
-            </div>
-        </div>
-        <div class="text-center" data-aos="fade-up">
-            <a href="/keuangan" class="btn-outline text-sm">Lihat Detail Keuangan</a>
-        </div>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- GALERI SECTION                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="galeri" class="section galeri-section">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-images"></i>
+                Dokumentasi
+            </span>
+            <h2 class="section-title">Galeri Kegiatan</h2>
+            <p class="section-subtitle">
+                Kumpulan momen berharga dari kegiatan dan program kami.
+            </p>
+        </header>
     </div>
-</section>
 
-<!-- JUMLAH ANGGOTA PER RANTING -->
-<section id="stats" class="w-full py-16 sm:py-20" style="background: var(--bg-stats);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Jumlah Anggota per Ranting</h2>
-        <div id="village-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
-            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
-            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
-            <div class="stat-card p-6 rounded-2xl text-center"><div class="skeleton-box h-16 w-full"></div></div>
-        </div>
-    </div>
-</section>
-
-<!-- BERITA TERBARU (menggantikan Kegiatan Terbaru) -->
-<section id="berita" class="w-full py-16 sm:py-20" style="background: var(--bg-kegiatan);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Berita Terbaru</h2>
-        <div id="berita-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Skeleton loading items -->
-            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
-            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
-            <div class="berita-card"><div class="skeleton-box h-40 w-full"></div><div class="p-4"><div class="skeleton-box h-4 w-3/4 mb-2"></div><div class="skeleton-box h-3 w-1/2"></div></div></div>
-        </div>
-        <div class="text-center mt-8" data-aos="fade-up">
-            <a href="/semua_berita" class="btn-outline text-sm">Lihat Berita Selengkapnya</a>
-        </div>
-    </div>
-</section>
-
-<!-- GALERI DOKUMENTASI -->
-<section id="galeri" class="w-full py-16 sm:py-20 overflow-hidden" style="background: var(--bg-galeri);">
-    <div class="w-full px-0">
-        <div class="container mx-auto px-4 sm:px-6 mb-12">
-            <h2 class="text-3xl sm:text-4xl font-bold text-center text-[var(--text-main)] font-amiri" data-aos="fade-up">Galeri Dokumentasi</h2>
-        </div>
-        <div class="swiper galeriSwiper !px-4 sm:!px-6 pb-8">
+    <div class="galeri-swiper-wrap" data-aos="fade-up">
+        <div class="swiper galeriSwiper">
             <div class="swiper-wrapper" id="galeri-wrapper">
-                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
-                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
-                <div class="swiper-slide h-[300px] sm:h-[400px]"><div class="skeleton-box w-full h-full"></div></div>
+                <div class="swiper-slide">
+                    <div class="galeri-slide-skeleton">
+                        <div class="skeleton-box w-full h-full rounded-2xl"></div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="galeri-slide-skeleton">
+                        <div class="skeleton-box w-full h-full rounded-2xl"></div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="galeri-slide-skeleton">
+                        <div class="skeleton-box w-full h-full rounded-2xl"></div>
+                    </div>
+                </div>
             </div>
             <div class="swiper-pagination"></div>
             <div class="swiper-button-next"></div>
@@ -131,108 +328,1212 @@
     </div>
 </section>
 
-<!-- KALENDER / TIMELINE -->
-<section id="kalender" class="w-full py-16 sm:py-20" style="background: var(--bg-kalender);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Kalender / Timeline Kegiatan</h2>
-        <div id="calendar" class="max-w-full mx-auto bg-[var(--card-bg)] backdrop-blur-sm p-4 rounded-2xl border border-[var(--card-border)] shadow-sm"></div>
-    </div>
-</section>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- KALENDER SECTION                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="kalender" class="section section-alt">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-calendar-alt"></i>
+                Timeline
+            </span>
+            <h2 class="section-title">Kalender Kegiatan</h2>
+            <p class="section-subtitle">
+                Agenda dan jadwal kegiatan yang akan datang.
+            </p>
+        </header>
 
-<!-- ARSIP DOKUMEN -->
-<section id="dokumen" class="w-full py-16 sm:py-20" style="background: var(--bg-dokumen);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Arsip Dokumen</h2>
-        <div id="arsip-dokumen-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-32 w-full"></div></div>
-            <div class="glass-card p-6 rounded-2xl"><div class="skeleton-box h-32 w-full"></div></div>
+        <div class="kalender-card" data-aos="fade-up" data-aos-delay="100">
+            <div id="calendar"></div>
         </div>
     </div>
 </section>
 
-<!-- KONTAK -->
-<section id="kontak" class="w-full py-16 sm:py-20" style="background: var(--bg-kontak);">
-    <div class="container mx-auto px-4 sm:px-6 max-w-5xl">
-        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 text-[var(--text-main)] font-amiri" data-aos="fade-up">Kontak Kami</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div class="glass-card p-6 flex items-center space-x-4 rounded-2xl" data-aos="fade-right">
-                <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0"><i class="fas fa-map-marker-alt"></i></div>
-                <div><h4 class="font-semibold text-[var(--text-main)]">Alamat</h4><p class="text-sm text-[var(--text-muted)]">Jl. Contoh No. 123, Kapanewon Sewon, Bantul</p></div>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- DOKUMEN SECTION                                             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="dokumen" class="section">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-archive"></i>
+                Arsip Digital
+            </span>
+            <h2 class="section-title">Dokumen Terbaru</h2>
+            <p class="section-subtitle">
+                Dokumen resmi, laporan, dan arsip digital organisasi.
+            </p>
+        </header>
+
+        <div id="arsip-dokumen-list" class="dokumen-grid">
+            <div class="premium-card dokumen-skeleton">
+                <div class="skeleton-box h-32 w-full"></div>
             </div>
-            <div class="glass-card p-6 flex items-center space-x-4 rounded-2xl" data-aos="fade-left">
-                <div class="w-12 h-12 rounded-full bg-[var(--card-border)] flex items-center justify-center text-[var(--text-main)] text-xl flex-shrink-0"><i class="fas fa-phone"></i></div>
-                <div><h4 class="font-semibold text-[var(--text-main)]">Telepon</h4><p class="text-sm text-[var(--text-muted)]">+62 812 3456 7890</p></div>
+            <div class="premium-card dokumen-skeleton">
+                <div class="skeleton-box h-32 w-full"></div>
             </div>
+        </div>
+
+        <div class="section-cta" data-aos="fade-up">
+            <a href="/arsip" class="btn-pill">
+                <i class="fas fa-folder-open"></i>
+                <span>Lihat Semua Arsip</span>
+                <i class="fas fa-arrow-right btn-pill-arrow"></i>
+            </a>
         </div>
     </div>
 </section>
 
-<!-- MODAL STRUKTUR -->
-<div id="structure-modal" class="hidden">
-    <div id="structure-modal-content">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold font-amiri">Diagram Struktur Organisasi</h2>
-            <button id="close-structure-modal" class="text-2xl">
-                <i class="fas fa-times"></i>
-            </button>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- KONTAK SECTION                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="kontak" class="section section-alt">
+    <div class="container">
+        <header class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">
+                <i class="fas fa-envelope"></i>
+                Hubungi Kami
+            </span>
+            <h2 class="section-title">Kontak &amp; Lokasi</h2>
+            <p class="section-subtitle">
+                Silakan hubungi kami untuk informasi, kerjasama, atau pertanyaan.
+            </p>
+        </header>
+
+        <div class="kontak-grid">
+            <div class="premium-card kontak-card" data-aos="fade-up">
+                <div class="kontak-icon kontak-icon-teal">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="kontak-body">
+                    <h4 class="kontak-title">Alamat</h4>
+                    <p class="kontak-text">Sewon, Bantul, Daerah Istimewa Yogyakarta</p>
+                </div>
+            </div>
+
+            <div class="premium-card kontak-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="kontak-icon kontak-icon-blue">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="kontak-body">
+                    <h4 class="kontak-title">Email</h4>
+                    <p class="kontak-text">sewon.ansor@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="premium-card kontak-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="kontak-icon kontak-icon-purple">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="kontak-body">
+                    <h4 class="kontak-title">Telepon</h4>
+                    <p class="kontak-text">+62 xxx xxxx xxxx</p>
+                </div>
+            </div>
+
+            <div class="premium-card kontak-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="kontak-icon kontak-icon-pink">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <div class="kontak-body">
+                    <h4 class="kontak-title">Media Sosial</h4>
+                    <div class="kontak-social">
+                        <a href="#" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link" title="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-link" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="diagram-container" class="w-full min-h-[500px] border-2 border-dashed border-[var(--card-border)] rounded-lg p-4 relative bg-[var(--bg-stats)]">
-            <div id="diagram-loading" class="text-center py-4 text-[var(--text-muted)]">Memuat diagram...</div>
+
+        <div class="section-cta" data-aos="fade-up">
+            <a href="/kontak" class="btn-pill">
+                <i class="fas fa-paper-plane"></i>
+                <span>Halaman Kontak</span>
+                <i class="fas fa-arrow-right btn-pill-arrow"></i>
+            </a>
         </div>
     </div>
-</div>
+</section>
 
-<!-- SCROLL TO TOP BUTTON (mungkin di luar konten, tapi disertakan agar konsisten) -->
-<button id="scroll-top-btn" class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[#0f2922] text-white shadow-xl hover:bg-[#1a4038] hover:scale-110 transition-all duration-300 flex items-center justify-center border border-white/20 backdrop-blur-sm hidden opacity-0 translate-y-5">
-    <i class="fas fa-chevron-up text-lg"></i>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL STRUKTUR (placeholder — di-manage oleh js/index.js)   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="structure-modal" class="hidden"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SCROLL TO TOP BUTTON                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<button id="scroll-top-btn" type="button" class="scroll-top-btn" aria-label="Kembali ke atas">
+    <i class="fas fa-chevron-up"></i>
 </button>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- STYLE — Mint Green Elegant                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <style>
-    section[id] { scroll-margin-top: 80px; }
+    /* ═══════════════════════════════════════════════════════════
+       DESIGN TOKENS
+       ═══════════════════════════════════════════════════════════ */
+    #hero, #profil, #keuangan, #stats, #berita, #galeri, #kalender, #dokumen, #kontak {
+        --i-brand-900: #051410;
+        --i-brand-800: #0a1e19;
+        --i-brand-700: #0f2922;
+        --i-brand-600: #1a4038;
+        --i-gold-400: #fbbf24;
+        --i-gold-500: #f59e0b;
+        --i-text: #0f172a;
+        --i-text-muted: #4b5563;
+        --i-text-dim: #9ca3af;
+        --i-bg: #ffffff;
+        --i-bg-alt: #f9fafb;
+        --i-line: #e5e7eb;
+        --i-card-shadow: 0 1px 3px rgba(15, 41, 34, 0.04), 0 4px 12px rgba(15, 41, 34, 0.06);
+        --i-card-shadow-hover: 0 4px 12px rgba(15, 41, 34, 0.08), 0 12px 32px rgba(15, 41, 34, 0.1);
+        --i-radius-sm: 10px;
+        --i-radius-md: 16px;
+        --i-radius-lg: 20px;
+        --i-radius-xl: 24px;
+    }
+
+    .dark #hero, .dark #profil, .dark #keuangan, .dark #stats,
+    .dark #berita, .dark #galeri, .dark #kalender, .dark #dokumen, .dark #kontak {
+        --i-text: #f1f5f9;
+        --i-text-muted: #cbd5e1;
+        --i-text-dim: #64748b;
+        --i-bg: #0f172a;
+        --i-bg-alt: #0a0f1e;
+        --i-line: #1e293b;
+        --i-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+        --i-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HERO — SOFT MINT GREEN
+       ═══════════════════════════════════════════════════════════ */
+    .hero-section {
+        position: relative;
+        overflow: hidden;
+        padding: 130px 24px 110px;
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* MINT GREEN LIGHT MODE */
+        background: linear-gradient(160deg, #ffffff 0%, #ecfdf5 45%, #d1fae5 100%);
+        color: #0f2922;
+        isolation: isolate;
+    }
+    /* DARK MODE = hijau gelap */
+    .dark .hero-section {
+        background: linear-gradient(160deg, #0a0f1e 0%, #0f1f1a 50%, #0a1e19 100%);
+        color: #f1f5f9;
+    }
+
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+        color: #0f2922;
+    }
+    .dark .hero-bg { color: #fbbf24; }
+
+    .hero-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(110px);
+        pointer-events: none;
+    }
+    .hero-orb-1 {
+        width: 520px; height: 520px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+        top: -200px; left: -160px;
+        animation: heroFloat1 22s ease-in-out infinite;
+    }
+    .hero-orb-2 {
+        width: 480px; height: 480px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.22), transparent 70%);
+        bottom: -200px; right: -160px;
+        animation: heroFloat2 26s ease-in-out infinite;
+    }
+    @keyframes heroFloat1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50%      { transform: translate(40px, 30px) scale(1.12); }
+    }
+    @keyframes heroFloat2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50%      { transform: translate(-40px, -30px) scale(1.12); }
+    }
+
+    .hero-pattern {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.25;
+    }
+    .dark .hero-pattern { opacity: 0.15; }
+
+    .hero-container {
+        position: relative;
+        z-index: 2;
+        max-width: 920px;
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    /* BADGE */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 18px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(16, 185, 129, 0.22);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #065f46;
+        margin-bottom: 32px;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
+    }
+    .dark .hero-badge {
+        background: rgba(30, 41, 59, 0.6);
+        border-color: rgba(251, 191, 36, 0.25);
+        color: #fbbf24;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+    .hero-badge i { font-size: 0.72rem; color: #059669; }
+    .dark .hero-badge i { color: #fbbf24; }
+
+    /* TITLE */
+    .hero-title {
+        font-family: 'Amiri', 'Times New Roman', serif;
+        font-weight: 700;
+        font-size: clamp(2.5rem, 7.5vw, 5.25rem);
+        line-height: 1.02;
+        letter-spacing: -0.028em;
+        margin: 0 0 28px;
+        color: #0f2922;
+        text-wrap: balance;
+    }
+    .dark .hero-title { color: #ffffff; }
+
+    .hero-title-line1 {
+        display: block;
+        color: #0f2922;
+        font-weight: 700;
+    }
+    .dark .hero-title-line1 { color: #f1f5f9; }
+
+    .hero-title-line2 {
+        display: block;
+        margin-top: 6px;
+        font-style: italic;
+        background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #0f2922 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .dark .hero-title-line2 {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* DIVIDER */
+    .hero-divider {
+        width: 72px;
+        height: 2px;
+        margin: 0 auto 30px;
+        background: linear-gradient(90deg, transparent, #10b981, transparent);
+        border-radius: 9999px;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    }
+    .dark .hero-divider {
+        background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+    }
+
+    /* TAGLINE */
+    .hero-tagline {
+        font-family: 'Amiri', serif;
+        font-style: italic;
+        font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+        line-height: 1.55;
+        color: #334155;
+        margin: 0 0 14px;
+        letter-spacing: 0.005em;
+        text-wrap: balance;
+    }
+    .dark .hero-tagline { color: #cbd5e1; }
+
+    /* DESCRIPTION */
+    .hero-desc {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: clamp(0.92rem, 1.9vw, 1rem);
+        line-height: 1.7;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto 44px;
+        text-wrap: pretty;
+    }
+    .dark .hero-desc { color: #94a3b8; }
+
+    /* CTA */
+    .hero-cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 60px;
+    }
+
+    .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 32px;
+        border-radius: 9999px;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        letter-spacing: 0.005em;
+        text-decoration: none;
+        transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        white-space: nowrap;
+        cursor: pointer;
+        min-width: 140px;
+    }
+
+    /* Primary — hijau gelap solid */
+    .btn-hero-primary {
+        background: #0f2922;
+        color: #ffffff;
+        box-shadow: 0 8px 24px rgba(15, 41, 34, 0.22);
+    }
+    .btn-hero-primary:hover {
+        background: #1a4038;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15, 41, 34, 0.32);
+    }
+
+    /* Outline — transparent border hijau gelap */
+    .btn-hero-outline {
+        background: rgba(255, 255, 255, 0.85);
+        color: #0f2922;
+        border: 1.5px solid rgba(15, 41, 34, 0.28);
+    }
+    .btn-hero-outline:hover {
+        background: #0f2922;
+        color: #ffffff;
+        border-color: #0f2922;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15, 41, 34, 0.22);
+    }
+
+    /* Dark mode */
+    .dark .btn-hero-primary {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #0f2922;
+        box-shadow: 0 8px 24px rgba(251, 191, 36, 0.28);
+    }
+    .dark .btn-hero-outline {
+        background: rgba(30, 41, 59, 0.5);
+        color: #fbbf24;
+        border-color: rgba(251, 191, 36, 0.35);
+    }
+    .dark .btn-hero-outline:hover {
+        background: #fbbf24;
+        color: #0f2922;
+        border-color: #fbbf24;
+    }
+
+    /* TRUST PILL */
+    .hero-trust {
+        display: inline-flex;
+        align-items: center;
+        gap: 44px;
+        padding: 22px 48px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+        backdrop-filter: blur(16px) saturate(150%);
+        -webkit-backdrop-filter: blur(16px) saturate(150%);
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+    }
+    .dark .hero-trust {
+        background: rgba(30, 41, 59, 0.5);
+        border-color: rgba(251, 191, 36, 0.15);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .trust-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 60px; }
+    .trust-value {
+        font-family: 'Amiri', serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #0f2922;
+        letter-spacing: -0.02em;
+    }
+    .dark .trust-value { color: #fbbf24; }
+    .trust-value i { font-size: 1.35rem; color: #059669; display: inline-block; line-height: 1; }
+    .dark .trust-value i { color: #fbbf24; }
+    .trust-label {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #64748b;
+        white-space: nowrap;
+    }
+    .dark .trust-label { color: #94a3b8; }
+    .trust-sep {
+        width: 1px;
+        height: 36px;
+        background: linear-gradient(180deg, transparent, rgba(16, 185, 129, 0.25), transparent);
+    }
+    .dark .trust-sep {
+        background: linear-gradient(180deg, transparent, rgba(251, 191, 36, 0.25), transparent);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SECTION LAYOUT
+       ═══════════════════════════════════════════════════════════ */
+    .section {
+        padding: 80px 24px;
+        background: var(--i-bg);
+        color: var(--i-text);
+        transition: background-color 300ms ease;
+    }
+    .section-alt { background: var(--i-bg-alt); }
+    @media (max-width: 640px) {
+        .section { padding: 56px 20px; }
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .section-header {
+        text-align: center;
+        max-width: 640px;
+        margin: 0 auto 56px;
+    }
+    .section-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #065f46;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 16px;
+    }
+    .dark .section-eyebrow {
+        background: rgba(251, 191, 36, 0.08);
+        border-color: rgba(251, 191, 36, 0.2);
+        color: var(--i-gold-400);
+    }
+    .section-eyebrow i { color: #059669; font-size: 0.7rem; }
+    .dark .section-eyebrow i { color: var(--i-gold-500); }
+
+    .section-title {
+        font-family: 'Amiri', serif;
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.15;
+        color: var(--i-text);
+        margin: 0 0 12px;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+    }
+    .section-subtitle {
+        font-size: 1rem;
+        line-height: 1.65;
+        color: var(--i-text-muted);
+        margin: 0;
+        text-wrap: pretty;
+    }
+
+    .section-cta { text-align: center; margin-top: 48px; }
+
+    /* PREMIUM CARD */
+    .premium-card {
+        background: var(--i-bg);
+        border: 1px solid var(--i-line);
+        border-radius: var(--i-radius-lg);
+        box-shadow: var(--i-card-shadow);
+        transition: all 320ms cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    .premium-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--i-card-shadow-hover);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    /* PROFIL */
+    .profil-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    @media (min-width: 768px) {
+        .profil-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .profil-card { padding: 32px; height: 100%; }
+    .profil-card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--i-line);
+    }
+
+    .card-icon {
+        width: 48px; height: 48px;
+        border-radius: var(--i-radius-sm);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+    .card-icon-teal {
+        background: linear-gradient(135deg, #14b8a6, #059669);
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+    }
+    .card-icon-blue {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    }
+    .card-icon-purple {
+        background: linear-gradient(135deg, #a855f7, #7c3aed);
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    }
+
+    .card-title {
+        font-family: 'Amiri', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--i-text);
+        margin: 0 0 2px;
+        line-height: 1.2;
+    }
+    .card-subtitle {
+        font-size: 0.8rem;
+        color: var(--i-text-dim);
+        margin: 0;
+    }
+
+    .profil-card-body {
+        font-size: 0.95rem;
+        line-height: 1.75;
+        color: var(--i-text-muted);
+    }
+    .profil-card-body p { margin: 0 0 12px; }
+    .profil-card-body p:last-child { margin-bottom: 0; }
+    .profil-card-body h2, .profil-card-body h3, .profil-card-body h4 {
+        font-family: 'Amiri', serif;
+        color: var(--i-text);
+        margin: 16px 0 8px;
+        font-weight: 700;
+    }
+    .profil-card-body h2 { font-size: 1.2rem; }
+    .profil-card-body h3 { font-size: 1.05rem; }
+    .profil-card-body ul, .profil-card-body ol {
+        margin: 8px 0 12px 20px;
+        padding: 0;
+    }
+    .profil-card-body li { margin-bottom: 4px; }
+    .profil-card-body strong { color: var(--i-text); font-weight: 600; }
+    .profil-card-body a { color: #0f2922; text-decoration: underline; }
+    .dark .profil-card-body a { color: var(--i-gold-400); }
+
+    .struktur-card { padding: 32px; }
+    .struktur-header { border-bottom: none; padding-bottom: 0; margin-bottom: 24px; }
+    .struktur-header-left { display: flex; align-items: center; gap: 16px; }
+
+    .struktur-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    @media (min-width: 640px) { .struktur-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .struktur-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .struktur-skeleton {
+        aspect-ratio: 1;
+        border-radius: var(--i-radius-md);
+        background: linear-gradient(90deg, var(--i-line) 25%, var(--i-bg-alt) 50%, var(--i-line) 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.8s infinite;
+    }
+
+    .struktur-footer {
+        text-align: center;
+        padding-top: 24px;
+        border-top: 1px solid var(--i-line);
+    }
+
+    /* BUTTONS */
+    .btn-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 28px;
+        border-radius: 9999px;
+        background: var(--i-bg);
+        border: 1.5px solid #0f2922;
+        color: #0f2922;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-family: inherit;
+    }
+    .btn-pill:hover {
+        background: #0f2922;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 41, 34, 0.2);
+    }
+    .btn-pill-arrow { transition: transform 280ms ease; }
+    .btn-pill:hover .btn-pill-arrow { transform: translateX(4px); }
+    .dark .btn-pill {
+        border-color: var(--i-gold-400);
+        color: var(--i-gold-400);
+        background: transparent;
+    }
+    .dark .btn-pill:hover {
+        background: var(--i-gold-400);
+        color: var(--i-brand-800);
+    }
+
+    /* KEUANGAN */
+    .keuangan-summary {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    @media (min-width: 768px) {
+        .keuangan-summary { grid-template-columns: repeat(3, 1fr); }
+    }
+    .k-card { padding: 28px; text-align: center; }
+    .keuangan-cta { text-align: center; }
+
+    /* STATS */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    @media (min-width: 768px) {
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-card { padding: 28px 20px; text-align: center; }
+
+    /* BERITA */
+    .berita-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    @media (min-width: 768px) { .berita-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1024px) { .berita-grid { grid-template-columns: repeat(3, 1fr); } }
+    .berita-skeleton-body { padding: 20px; }
+
+    /* GALERI */
+    .galeri-section { overflow: hidden; }
+    .galeri-swiper-wrap {
+        padding: 0 24px;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+    .galeriSwiper { padding-bottom: 48px !important; }
+    .galeriSwiper .swiper-slide {
+        height: 320px;
+        border-radius: var(--i-radius-lg);
+        overflow: hidden;
+        background: var(--i-bg-alt);
+    }
+    @media (min-width: 640px) {
+        .galeriSwiper .swiper-slide { height: 400px; }
+    }
+    .galeri-slide-skeleton { width: 100%; height: 100%; }
+    .galeriSwiper .swiper-pagination-bullet {
+        background: var(--i-text-dim);
+        opacity: 0.5;
+    }
+    .galeriSwiper .swiper-pagination-bullet-active {
+        background: #059669;
+        opacity: 1;
+        width: 24px;
+        border-radius: 6px;
+    }
+    .dark .galeriSwiper .swiper-pagination-bullet-active {
+        background: var(--i-gold-500);
+    }
+    .galeriSwiper .swiper-button-next,
+    .galeriSwiper .swiper-button-prev {
+        color: #0f2922;
+        background: rgba(255, 255, 255, 0.9);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(8px);
+    }
+    .galeriSwiper .swiper-button-next::after,
+    .galeriSwiper .swiper-button-prev::after {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .dark .galeriSwiper .swiper-button-next,
+    .dark .galeriSwiper .swiper-button-prev {
+        color: var(--i-gold-400);
+        background: rgba(30, 41, 59, 0.9);
+    }
+
+    /* KALENDER */
+    .kalender-card {
+        background: var(--i-bg);
+        border: 1px solid var(--i-line);
+        border-radius: var(--i-radius-xl);
+        padding: 24px;
+        box-shadow: var(--i-card-shadow);
+        overflow: hidden;
+    }
+    @media (max-width: 640px) {
+        .kalender-card { padding: 12px; }
+    }
+
+    /* DOKUMEN */
+    .dokumen-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    @media (min-width: 768px) {
+        .dokumen-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .dokumen-skeleton { padding: 24px; }
+
+    /* KONTAK */
+    .kontak-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    @media (min-width: 640px) {
+        .kontak-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .kontak-card {
+        padding: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .kontak-icon {
+        width: 48px; height: 48px;
+        border-radius: var(--i-radius-sm);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+    .kontak-icon-teal { background: linear-gradient(135deg, #14b8a6, #059669); }
+    .kontak-icon-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .kontak-icon-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .kontak-icon-pink { background: linear-gradient(135deg, #ec4899, #db2777); }
+    .kontak-body { flex: 1; min-width: 0; }
+    .kontak-title {
+        font-family: 'Amiri', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--i-text);
+        margin: 0 0 6px;
+    }
+    .kontak-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--i-text-muted);
+        margin: 0;
+    }
+    .kontak-social { display: flex; gap: 10px; margin-top: 4px; }
+    .social-link {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--i-bg-alt);
+        border: 1px solid var(--i-line);
+        color: var(--i-text-muted);
+        text-decoration: none;
+        transition: all 220ms ease;
+        font-size: 0.9rem;
+    }
+    .social-link:hover {
+        background: #0f2922;
+        color: #ffffff;
+        border-color: #0f2922;
+        transform: translateY(-2px);
+    }
+    .dark .social-link:hover {
+        background: var(--i-gold-400);
+        color: #0f2922;
+        border-color: var(--i-gold-400);
+    }
+
+    /* SCROLL TOP BUTTON */
+    .scroll-top-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0f2922 0%, #1a4038 100%);
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        box-shadow: 0 8px 24px rgba(15, 41, 34, 0.25);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        transition: all 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 40;
+    }
+    .scroll-top-btn.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .scroll-top-btn:hover {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 12px 32px rgba(15, 41, 34, 0.35);
+    }
+    .dark .scroll-top-btn {
+        background: linear-gradient(135deg, var(--i-gold-400) 0%, var(--i-gold-500) 100%);
+        color: var(--i-brand-800);
+    }
+
+    /* SKELETON */
     .skeleton-box {
         background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
         background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
+        animation: skeletonShimmer 1.8s infinite;
+        border-radius: 8px;
     }
     .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+        background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+        background-size: 200% 100%;
     }
-    @keyframes shimmer {
+    @keyframes skeletonShimmer {
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
     }
-    #scroll-top-btn.show {
-        display: flex !important;
-        opacity: 1;
-        transform: translateY(0);
+
+    .skeleton-stack { display: flex; flex-direction: column; gap: 10px; }
+    .skeleton-stack .h-6 { height: 24px; }
+    .skeleton-box.h-4 { height: 16px; }
+    .skeleton-box.h-6 { height: 24px; }
+    .skeleton-box.h-12 { height: 48px; }
+    .skeleton-box.h-20 { height: 80px; }
+    .skeleton-box.h-32 { height: 128px; }
+    .skeleton-box.h-48 { height: 192px; }
+    .w-full { width: 100%; }
+    .w-5\/6 { width: 83.33%; }
+    .w-4\/6 { width: 66.67%; }
+    .w-3\/4 { width: 75%; }
+    .w-2\/3 { width: 66.67%; }
+    .w-1\/2 { width: 50%; }
+    .w-1\/3 { width: 33.33%; }
+    .w-1\/4 { width: 25%; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+        .hero-section {
+            padding: 100px 20px 80px;
+            min-height: auto;
+        }
+        .hero-badge {
+            font-size: 0.65rem;
+            padding: 6px 14px;
+            letter-spacing: 0.1em;
+            margin-bottom: 24px;
+        }
+        .hero-title { margin-bottom: 22px; }
+        .hero-title-line2 { margin-top: 4px; }
+        .hero-divider { width: 60px; margin-bottom: 24px; }
+        .hero-tagline { font-size: 1rem; }
+        .hero-desc { font-size: 0.88rem; margin-bottom: 36px; }
+        .hero-cta {
+            flex-direction: column;
+            align-items: stretch;
+            max-width: 300px;
+            margin: 0 auto 44px;
+        }
+        .btn-hero { justify-content: center; padding: 13px 24px; }
+        .hero-trust {
+            flex-direction: column;
+            gap: 18px;
+            padding: 22px 32px;
+            border-radius: 22px;
+            width: 100%;
+            max-width: 280px;
+        }
+        .trust-sep {
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.25), transparent);
+        }
+        .dark .trust-sep {
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.25), transparent);
+        }
+        .trust-value { font-size: 1.6rem; }
+        .profil-card, .struktur-card { padding: 24px; }
+        .section-header { margin-bottom: 40px; }
     }
-    .berita-card {
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 1rem;
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-orb, .hero-bg, .btn-hero, .btn-hero-arrow, .premium-card, .btn-pill {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* SECTION SCROLL MARGIN */
+    section[id] { scroll-margin-top: 90px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       FULLCALENDAR — MINT GREEN THEME
+       ═══════════════════════════════════════════════════════════ */
+    .kalender-card #calendar {
+        width: 100%;
+        max-width: 100%;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
-    .berita-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-        border-color: var(--text-main);
+    .kalender-card .fc {
+        font-family: 'Inter', system-ui, sans-serif !important;
+        --fc-border-color: var(--i-line);
+        --fc-today-bg-color: rgba(16, 185, 129, 0.1);
+        --fc-page-bg-color: transparent;
+        --fc-neutral-bg-color: var(--i-bg-alt);
+        --fc-list-event-hover-bg-color: var(--i-bg-alt);
     }
-    .berita-card .skeleton-box {
-        height: 200px;
+    .kalender-card .fc-theme-standard,
+    .kalender-card .fc-theme-standard td,
+    .kalender-card .fc-theme-standard th {
+        border-color: var(--i-line) !important;
     }
-    /* Responsive grid for berita */
-    #berita-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
+    .kalender-card .fc .fc-toolbar {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        margin-bottom: 16px !important;
+    }
+    .kalender-card .fc .fc-toolbar-chunk {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+    }
+    .kalender-card .fc .fc-toolbar-title {
+        font-family: 'Amiri', serif !important;
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
+        color: var(--i-text) !important;
+        text-transform: capitalize !important;
+        margin: 0 !important;
+    }
+    .kalender-card .fc .fc-button {
+        background: #0f2922 !important;
+        border: 1px solid #0f2922 !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        padding: 8px 14px !important;
+        font-family: inherit !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        text-transform: capitalize !important;
+        box-shadow: 0 2px 6px rgba(15, 41, 34, 0.15) !important;
+        transition: all 220ms ease !important;
+        line-height: 1 !important;
+        height: auto !important;
+        cursor: pointer;
+    }
+    .kalender-card .fc .fc-button:hover,
+    .kalender-card .fc .fc-button-active {
+        background: #059669 !important;
+        border-color: #059669 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+    .kalender-card .fc .fc-button:disabled {
+        opacity: 0.5 !important;
+        transform: none !important;
+    }
+    .kalender-card .fc .fc-col-header-cell {
+        background: var(--i-bg-alt) !important;
+        padding: 8px 4px !important;
+    }
+    .kalender-card .fc .fc-col-header-cell-cushion {
+        color: var(--i-text) !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        text-decoration: none !important;
+        padding: 4px 2px !important;
+    }
+    .kalender-card .fc .fc-daygrid-day-number {
+        color: var(--i-text-muted) !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        padding: 6px !important;
+        text-decoration: none !important;
+    }
+    .kalender-card .fc .fc-daygrid-day-frame { min-height: 60px !important; }
+    .kalender-card .fc .fc-day-today { background: rgba(16, 185, 129, 0.08) !important; }
+    .kalender-card .fc .fc-day-today .fc-daygrid-day-number {
+        color: #0f2922 !important;
+        font-weight: 800 !important;
+    }
+    .dark .kalender-card .fc .fc-day-today .fc-daygrid-day-number {
+        color: #fbbf24 !important;
+    }
+    .kalender-card .fc .fc-daygrid-event {
+        border-radius: 4px !important;
+        padding: 2px 5px !important;
+        font-size: 0.7rem !important;
+        font-weight: 500 !important;
+        margin: 1px 0 !important;
+        border: none !important;
+    }
+    .kalender-card .fc .fc-event-title {
+        font-weight: 500 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dark .kalender-card .fc .fc-button {
+        background: var(--i-gold-400) !important;
+        border-color: var(--i-gold-400) !important;
+        color: #0f2922 !important;
+    }
+    .dark .kalender-card .fc .fc-button:hover,
+    .dark .kalender-card .fc .fc-button-active {
+        background: var(--i-gold-500) !important;
+        border-color: var(--i-gold-500) !important;
+    }
+    .dark .kalender-card .fc .fc-toolbar-title {
+        color: var(--i-gold-400) !important;
+    }
+
+    @media (max-width: 640px) {
+        .kalender-card { padding: 12px 10px !important; border-radius: 16px !important; }
+        .kalender-card .fc .fc-toolbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+        }
+        .kalender-card .fc .fc-toolbar-chunk {
+            justify-content: center !important;
+            width: 100% !important;
+        }
+        .kalender-card .fc .fc-toolbar-chunk:first-child,
+        .kalender-card .fc .fc-toolbar-chunk:nth-child(3) { order: 2; }
+        .kalender-card .fc .fc-toolbar-chunk:nth-child(2) {
+            order: 1;
+            margin-bottom: 4px !important;
+        }
+        .kalender-card .fc .fc-toolbar-title {
+            font-size: 1.1rem !important;
+            text-align: center !important;
+            width: 100%;
+        }
+        .kalender-card .fc .fc-button {
+            padding: 6px 10px !important;
+            font-size: 0.72rem !important;
+            border-radius: 6px !important;
+        }
+        .kalender-card .fc .fc-col-header-cell-cushion {
+            font-size: 0.65rem !important;
+            padding: 4px 1px !important;
+        }
+        .kalender-card .fc .fc-daygrid-day-number {
+            font-size: 0.75rem !important;
+            padding: 4px !important;
+        }
+        .kalender-card .fc .fc-daygrid-day-frame { min-height: 48px !important; }
+        .kalender-card .fc .fc-daygrid-event {
+            font-size: 0.6rem !important;
+            padding: 1px 3px !important;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .kalender-card .fc .fc-toolbar-title { font-size: 1rem !important; }
+        .kalender-card .fc .fc-button {
+            padding: 5px 8px !important;
+            font-size: 0.68rem !important;
+        }
+        .kalender-card .fc .fc-daygrid-event .fc-event-title { display: none; }
+        .kalender-card .fc .fc-daygrid-event {
+            min-height: 4px !important;
+            padding: 0 !important;
+            border-radius: 2px !important;
+        }
     }
 </style>
 
-<!-- SCRIPT INLINE (hanya konfirmasi, tidak mendaftarkan modul) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SCRIPT INLINE — Konfirmasi saja                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
 <script>
-    console.log('index view loaded');
+    (function() {
+        console.log('[View] views/index.html premium v3.5.0 (Mint Green Final) loaded');
+    })();
 </script>

@@ -1,61 +1,91 @@
 <!-- views/tokoh.html -->
 <!-- Halaman Publik: Daftar Tokoh & Penggerak -->
+<!-- Logic: js/tokoh.js | Route: /tokoh -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO SECTION -->
-<section class="hero-bg pt-28 pb-12 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="tokoh-hero pt-28 pb-12 text-center text-white">
     <div class="container mx-auto px-4">
-        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Tokoh & Penggerak</h1>
+        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">
+            <i class="fas fa-user-tie mr-2"></i>
+            Tokoh &amp; Penggerak
+        </h1>
         <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
             Profil tokoh, ulama, dan penggerak organisasi PAC GP Ansor Kapanewon Sewon.
         </p>
     </div>
 </section>
 
-<!-- DAFTAR TOKOH -->
+<!-- ============================================================ -->
+<!-- DAFTAR TOKOH                                                  -->
+<!-- ============================================================ -->
 <section class="py-12 container mx-auto px-4">
-    <div id="tokoh-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Skeleton Loading -->
+    <div id="tokoh-list"
+         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <!-- SKELETON LOADING (3 kartu placeholder) -->
         <div class="tokoh-card skeleton-card">
             <div class="skeleton-box h-56 w-full"></div>
-            <div class="p-4">
-                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
-                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+            <div class="p-4 space-y-2">
+                <div class="skeleton-box h-6 w-3/4"></div>
+                <div class="skeleton-box h-4 w-1/2"></div>
                 <div class="skeleton-box h-4 w-2/3"></div>
             </div>
         </div>
         <div class="tokoh-card skeleton-card">
             <div class="skeleton-box h-56 w-full"></div>
-            <div class="p-4">
-                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
-                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+            <div class="p-4 space-y-2">
+                <div class="skeleton-box h-6 w-3/4"></div>
+                <div class="skeleton-box h-4 w-1/2"></div>
                 <div class="skeleton-box h-4 w-2/3"></div>
             </div>
         </div>
         <div class="tokoh-card skeleton-card">
             <div class="skeleton-box h-56 w-full"></div>
-            <div class="p-4">
-                <div class="skeleton-box h-6 w-3/4 mb-2"></div>
-                <div class="skeleton-box h-4 w-1/2 mb-2"></div>
+            <div class="p-4 space-y-2">
+                <div class="skeleton-box h-6 w-3/4"></div>
+                <div class="skeleton-box h-4 w-1/2"></div>
                 <div class="skeleton-box h-4 w-2/3"></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- STYLE INLINE (bisa digabung ke CSS global) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        console.log('[View] tokoh.html loaded — logic handled by js/tokoh.js');
+    })();
+</script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view tokoh saja                         -->
+<!-- Common styles (skeleton-box) sudah di css/style.css           -->
+<!-- ============================================================ -->
 <style>
-    .hero-bg { background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%); }
+    /* ────────────── HERO ────────────── */
+    .tokoh-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 100%);
+    }
+
+    /* ────────────── TOKOH CARD ────────────── */
     .tokoh-card {
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: 1rem;
         overflow: hidden;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: block;
+        will-change: transform, box-shadow;
     }
     .tokoh-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
         border-color: var(--text-main);
     }
     .tokoh-card img {
@@ -85,17 +115,9 @@
         padding-top: 0.75rem;
         margin-top: 0.75rem;
     }
-    .skeleton-box {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.8s infinite;
-        border-radius: 0.75rem;
-    }
-    .dark .skeleton-box {
-        background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
-    }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
+
+    /* ────────────── SKELETON CARD (placeholder) ────────────── */
+    .skeleton-card {
+        pointer-events: none;
     }
 </style>

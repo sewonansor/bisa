@@ -1,197 +1,367 @@
 <!-- views/profil.html -->
-<!-- Fragment Halaman Profil Publik -->
-<!-- Terbaru lengkap semua menu berfungsi tanpa error siap pakai SPA -->
+<!-- Halaman Publik: Profil Organisasi -->
+<!-- Logic: js/profil.js | Route: /profil | Libs: jsplumb -->
+<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
 
-<!-- HERO -->
-<section class="w-full py-16 sm:py-20 bg-gradient-to-br from-green-900 to-green-800 text-white text-center">
-    <div class="container mx-auto px-4">
-        <h1 class="text-3xl sm:text-4xl font-bold font-amiri mb-4">Profil Organisasi</h1>
-        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base">
-            Mengenal lebih dekat PAC GP Ansor Kapanewon Sewon
+<!-- ============================================================ -->
+<!-- HERO SECTION                                                  -->
+<!-- ============================================================ -->
+<section class="profil-hero pt-28 pb-16 text-white text-center relative overflow-hidden">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5 text-xs sm:text-sm font-medium">
+            <i class="fas fa-mosque"></i>
+            <span>Profil Organisasi</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold font-amiri mb-4 leading-tight">
+            PAC GP Ansor Kapanewon Sewon
+        </h1>
+        <p class="text-green-100 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
+            Mengenal lebih dekat sejarah, visi misi, dan struktur organisasi kami
         </p>
     </div>
 </section>
 
-<!-- KONTEN UTAMA -->
+<!-- ============================================================ -->
+<!-- KONTEN UTAMA                                                  -->
+<!-- ============================================================ -->
 <div class="container mx-auto px-4 py-12">
     <div class="max-w-7xl mx-auto">
-        
-        <!-- Sejarah & Visi Misi -->
+
+        <!-- ===== Sejarah & Visi Misi ===== -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
+
+            <!-- Sejarah -->
             <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-right">
-                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Sejarah</h3>
-                <div id="profil-sejarah" class="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">
-                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--card-border)]">
+                    <div class="profil-card-icon profil-card-icon-teal">
+                        <i class="fas fa-history text-lg"></i>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-[var(--text-main)] font-amiri">
+                        Sejarah
+                    </h3>
+                </div>
+                <div id="profil-sejarah"
+                     class="text-[var(--text-muted)] leading-relaxed text-sm sm:text-base">
+                    <!-- SKELETON LOADING -->
+                    <div class="space-y-2">
+                        <div class="skeleton-box h-6 w-full"></div>
+                        <div class="skeleton-box h-6 w-5/6"></div>
+                        <div class="skeleton-box h-6 w-4/6"></div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Visi & Misi -->
             <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-left">
-                <h3 class="text-xl sm:text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">Visi & Misi</h3>
-                <div id="profil-visi-misi" class="text-[var(--text-muted)] text-sm sm:text-base">
-                    <div class="space-y-2"><div class="skeleton-box h-6 w-full"></div><div class="skeleton-box h-6 w-5/6"></div><div class="skeleton-box h-6 w-4/6"></div></div>
+                <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--card-border)]">
+                    <div class="profil-card-icon profil-card-icon-blue">
+                        <i class="fas fa-bullseye text-lg"></i>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-[var(--text-main)] font-amiri">
+                        Visi &amp; Misi
+                    </h3>
+                </div>
+                <div id="profil-visi-misi"
+                     class="text-[var(--text-muted)] text-sm sm:text-base">
+                    <!-- SKELETON LOADING -->
+                    <div class="space-y-2">
+                        <div class="skeleton-box h-6 w-full"></div>
+                        <div class="skeleton-box h-6 w-5/6"></div>
+                        <div class="skeleton-box h-6 w-4/6"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Struktur Organisasi -->
-        <div class="glass-card p-6 sm:p-8 rounded-2xl" data-aos="fade-up">
-            <h3 class="text-xl sm:text-2xl font-bold mb-8 text-[var(--text-main)] text-center font-amiri">Struktur Organisasi</h3>
-            <div id="profil-struktur" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-                <!-- Skeleton Loading -->
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
-                <div class="flex flex-col items-center text-center p-3"><div class="skeleton-box w-20 h-20 rounded-full mb-3"></div><div class="skeleton-box h-4 w-20"></div><div class="skeleton-box h-3 w-16 mt-1"></div></div>
+        <!-- ===== Struktur Organisasi ===== -->
+        <div class="glass-card p-6 sm:p-8 rounded-2xl mb-12" data-aos="fade-up">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-8 pb-4 border-b border-[var(--card-border)]">
+                <div class="flex items-center gap-3">
+                    <div class="profil-card-icon profil-card-icon-purple">
+                        <i class="fas fa-sitemap text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-[var(--text-main)] font-amiri">
+                            Struktur Organisasi
+                        </h3>
+                        <p class="text-xs sm:text-sm text-[var(--text-muted)]">
+                            Pengurus inti periode saat ini
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="text-center mt-8">
-                <button id="show-full-structure" class="btn-outline text-sm">Lihat Selengkapnya</button>
+
+            <div id="profil-struktur"
+                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                <!-- SKELETON LOADING (5 placeholder) -->
+                <div class="struktur-skeleton-wrap">
+                    <div class="skeleton-box w-20 h-20 rounded-full mb-3"></div>
+                    <div class="skeleton-box h-4 w-20 mb-1"></div>
+                    <div class="skeleton-box h-3 w-16"></div>
+                </div>
+                <div class="struktur-skeleton-wrap">
+                    <div class="skeleton-box w-20 h-20 rounded-full mb-3"></div>
+                    <div class="skeleton-box h-4 w-20 mb-1"></div>
+                    <div class="skeleton-box h-3 w-16"></div>
+                </div>
+                <div class="struktur-skeleton-wrap">
+                    <div class="skeleton-box w-20 h-20 rounded-full mb-3"></div>
+                    <div class="skeleton-box h-4 w-20 mb-1"></div>
+                    <div class="skeleton-box h-3 w-16"></div>
+                </div>
+                <div class="struktur-skeleton-wrap">
+                    <div class="skeleton-box w-20 h-20 rounded-full mb-3"></div>
+                    <div class="skeleton-box h-4 w-20 mb-1"></div>
+                    <div class="skeleton-box h-3 w-16"></div>
+                </div>
+                <div class="struktur-skeleton-wrap">
+                    <div class="skeleton-box w-20 h-20 rounded-full mb-3"></div>
+                    <div class="skeleton-box h-4 w-20 mb-1"></div>
+                    <div class="skeleton-box h-3 w-16"></div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8 pt-6 border-t border-[var(--card-border)]">
+                <button id="show-full-structure" type="button"
+                        class="btn-outline text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Lihat Diagram Lengkap</span>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL STRUKTUR -->
-<div id="structure-modal" class="hidden">
-    <div id="structure-modal-content">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold font-amiri">Diagram Struktur Organisasi</h2>
-            <button id="close-structure-modal" class="text-2xl">
+<!-- ============================================================ -->
+<!-- MODAL STRUKTUR LENGKAP                                        -->
+<!-- ============================================================ -->
+<div id="structure-modal"
+     class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm items-center justify-center p-4">
+
+    <div class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-5 border-b border-[var(--card-border)] flex-shrink-0">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold font-amiri text-[var(--text-main)]">
+                    Diagram Struktur Organisasi
+                </h2>
+                <p class="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
+                    Klik dan drag untuk melihat diagram lengkap
+                </p>
+            </div>
+            <button id="close-structure-modal" type="button"
+                    class="modal-icon-btn"
+                    title="Tutup"
+                    aria-label="Tutup">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div id="diagram-container" class="w-full min-h-[500px] border-2 border-dashed border-[var(--card-border)] rounded-lg p-4 relative bg-[var(--bg-stats)]">
-            <div id="diagram-loading" class="text-center py-4 text-[var(--text-muted)]">Memuat diagram...</div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-auto p-4">
+            <div id="diagram-container">
+                <div id="diagram-loading" class="text-center py-8 text-[var(--text-muted)]">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>Memuat diagram...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-[var(--card-border)] flex justify-end gap-2 flex-shrink-0 bg-[var(--bg-stats)]">
+            <button type="button"
+                    onclick="document.getElementById('close-structure-modal').click()"
+                    class="btn-primary px-6 py-2 rounded-lg">
+                <i class="fas fa-check mr-1"></i>
+                <span>Tutup</span>
+            </button>
         </div>
     </div>
 </div>
 
-<!-- SCRIPT INLINE (akan dieksekusi saat halaman di-inject) -->
+<!-- ============================================================ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- ============================================================ -->
 <script>
-    // Inisialisasi modul profil (bisa juga menggunakan App.register jika ada js/profil.js)
-    // Karena ini inline, kita jalankan langsung.
-    (async function() {
-        // Pastikan kita berada di halaman profil
-        console.log('Profil view loaded');
-
-        // Fungsi formatDate (fallback jika belum ada)
-        function formatDate(d) {
-            if (!d) return '-';
-            const date = new Date(d);
-            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        }
-
-        // Load data profil (sejarah & visi misi)
-        async function loadProfilData() {
-            try {
-                const res = await apiCall('getProfil', 'POST', {});
-                if (res.success && res.data) {
-                    const map = {};
-                    res.data.forEach(i => { map[i.key] = i.content; });
-                    const sejarahEl = document.getElementById('profil-sejarah');
-                    const visiMisiEl = document.getElementById('profil-visi-misi');
-                    if (sejarahEl) sejarahEl.innerHTML = map['sejarah'] || '<p class="text-[var(--text-muted)] italic">Belum ada data sejarah.</p>';
-                    if (visiMisiEl) visiMisiEl.innerHTML = map['visi_misi'] || '<p class="text-[var(--text-muted)] italic">Belum ada data visi misi.</p>';
-                }
-            } catch (e) {
-                console.error('Error loading profil:', e);
-            }
-        }
-
-        // Load struktur organisasi (daftar pengurus)
-        async function loadStruktur() {
-            const container = document.getElementById('profil-struktur');
-            try {
-                const res = await apiCall('getStruktur', 'POST', {});
-                if (res.success && res.data.length > 0) {
-                    // Tampilkan maksimal 5 pengurus
-                    const limited = res.data.slice(0, 5);
-                    container.innerHTML = limited.map(item => `
-                        <div class="flex flex-col items-center text-center p-3 rounded-lg hover:bg-[var(--card-border)] transition">
-                            <img src="${item.foto_url || 'https://i.pravatar.cc/150?img=' + (Math.floor(Math.random() * 70) + 1)}" alt="${item.nama}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mb-3 shadow-sm border border-[var(--card-border)]">
-                            <div class="font-medium text-xs sm:text-sm text-[var(--text-main)]">${item.nama || '-'}</div>
-                            <div class="text-xs text-[var(--text-muted)] font-medium">${item.jabatan || '-'}</div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = `<p class="text-[var(--text-muted)] col-span-full text-center py-8 italic">Belum ada data struktur organisasi.</p>`;
-                }
-            } catch (e) {
-                console.error('Error loading struktur:', e);
-            }
-        }
-
-        // Load diagram struktur (jsPlumb) – di dalam modal
-        let diagramInstance = null;
-        async function loadDiagram() {
-            const container = document.getElementById('diagram-container');
-            const loading = document.getElementById('diagram-loading');
-            if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
-            if (container) container.innerHTML = '';
-            if (loading) { loading.style.display = 'block'; loading.textContent = 'Memuat diagram...'; }
-            try {
-                const res = await apiCall('getProfil', 'POST', {});
-                if (res.success && container && loading) {
-                    const item = res.data.find(p => p.key === 'struktur_diagram');
-                    if (item && item.content) {
-                        const data = JSON.parse(item.content);
-                        loading.style.display = 'none';
-                        if (typeof jsPlumb === 'undefined') {
-                            loading.textContent = '⚠️ Pustaka diagram (jsPlumb) gagal dimuat.';
-                            return;
-                        }
-                        diagramInstance = jsPlumb.getInstance({
-                            Connector: ["Straight", { gap: 5 }], PaintStyle: { strokeWidth: 2, stroke: "#0f2922" },
-                            Endpoint: ["Rectangle", { width: 12, height: 12 }], EndpointStyle: { fill: "#0f2922" },
-                            Anchors: ["Right", "Left", "Top", "Bottom"], Container: container
-                        });
-                        data.nodes.forEach(nodeData => {
-                            const node = document.createElement('div');
-                            node.id = nodeData.id; node.className = 'node-box';
-                            node.style.left = nodeData.x + 'px'; node.style.top = nodeData.y + 'px';
-                            node.style.width = nodeData.width + 'px'; node.style.height = nodeData.height + 'px';
-                            node.textContent = nodeData.label; container.appendChild(node);
-                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Right", uuid: nodeData.id + "-right" });
-                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Left", uuid: nodeData.id + "-left" });
-                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Top", uuid: nodeData.id + "-top" });
-                            diagramInstance.addEndpoint(nodeData.id, { anchor: "Bottom", uuid: nodeData.id + "-bottom" });
-                        });
-                        data.connections.forEach(conn => diagramInstance.connect({ uuids: [conn.source + "-bottom", conn.target + "-top"] }));
-                        setTimeout(() => diagramInstance.repaintEverything(), 100);
-                    } else { loading.textContent = 'Belum ada diagram struktur.'; }
-                }
-            } catch (error) { if (loading) loading.textContent = 'Error: ' + error.message; }
-        }
-
-        // Event listeners untuk modal struktur
-        const showBtn = document.getElementById('show-full-structure');
-        const modal = document.getElementById('structure-modal');
-        const closeBtn = document.getElementById('close-structure-modal');
-        if (showBtn && modal) {
-            showBtn.addEventListener('click', function() {
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                loadDiagram();
-            });
-        }
-        if (closeBtn && modal) {
-            closeBtn.addEventListener('click', function() {
-                modal.classList.add('hidden');
-                document.body.style.overflow = '';
-                if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
-            });
-        }
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === e.currentTarget) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                    if (diagramInstance) { diagramInstance.reset(); diagramInstance = null; }
-                }
-            });
-        }
-
-        // Jalankan loading data
-        await loadProfilData();
-        await loadStruktur();
+    (function() {
+        console.log('[View] profil.html loaded — logic handled by js/profil.js');
     })();
 </script>
+
+<!-- ============================================================ -->
+<!-- STYLE INLINE — Khusus view profil saja                        -->
+<!-- Common styles (glass-card, btn-primary, btn-outline,          -->
+<!-- skeleton-box) sudah di css/style.css                          -->
+<!-- ============================================================ -->
+<style>
+    /* ────────────── HERO ────────────── */
+    .profil-hero {
+        background: linear-gradient(135deg, #0f2922 0%, #1a3c34 50%, #0f2922 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .profil-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .profil-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -15%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.2), transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* ────────────── PROFIL CARD ICON ────────────── */
+    .profil-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .profil-card-icon-teal   { background: linear-gradient(135deg, #2dd4bf, #059669); }
+    .profil-card-icon-blue   { background: linear-gradient(135deg, #60a5fa, #4f46e5); }
+    .profil-card-icon-purple { background: linear-gradient(135deg, #c084fc, #c026d3); }
+
+    /* ────────────── STRUKTUR SKELETON WRAP ────────────── */
+    .struktur-skeleton-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0.75rem;
+    }
+
+    /* ────────────── PROSE (konten dari backend) ────────────── */
+    #profil-sejarah,
+    #profil-visi-misi {
+        line-height: 1.7;
+    }
+    #profil-sejarah h2,
+    #profil-sejarah h3,
+    #profil-visi-misi h2,
+    #profil-visi-misi h3 {
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+        line-height: 1.3;
+    }
+    #profil-sejarah p,
+    #profil-visi-misi p {
+        margin-bottom: 0.75rem;
+    }
+    #profil-sejarah ul,
+    #profil-visi-misi ul,
+    #profil-sejarah ol,
+    #profil-visi-misi ol {
+        margin: 0.5rem 0 0.75rem 1.5rem;
+        padding: 0;
+    }
+    #profil-sejarah li,
+    #profil-visi-misi li {
+        margin-bottom: 0.25rem;
+    }
+    #profil-sejarah strong,
+    #profil-visi-misi strong {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+    #profil-sejarah a,
+    #profil-visi-misi a {
+        color: var(--brand-700);
+        text-decoration: underline;
+    }
+    .dark #profil-sejarah a,
+    .dark #profil-visi-misi a {
+        color: var(--accent-400);
+    }
+
+    /* ────────────── NODE BOX (jsPlumb) ────────────── */
+    .node-box {
+        position: absolute;
+        min-width: 100px;
+        min-height: 45px;
+        background: var(--card-bg);
+        border: 2px solid #0f2922;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        cursor: move;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+    }
+    .dark .node-box {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-color: #94a3b8;
+    }
+
+    /* ────────────── DIAGRAM CONTAINER ────────────── */
+    #diagram-container {
+        width: 100%;
+        min-height: 500px;
+        border: 2px dashed var(--card-border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        background: var(--bg-stats);
+        position: relative;
+        overflow: auto;
+    }
+
+    /* ────────────── MODAL ICON BUTTON ────────────── */
+    .modal-icon-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-stats);
+        border: 1px solid var(--card-border);
+        color: var(--text-muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all 220ms var(--ease-spring);
+        flex-shrink: 0;
+    }
+    .modal-icon-btn:hover {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--error-600);
+        border-color: rgba(220, 38, 38, 0.3);
+        transform: rotate(90deg) scale(1.05);
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        .profil-hero h1 {
+            font-size: 1.75rem !important;
+        }
+        #diagram-container {
+            min-height: 400px;
+        }
+    }
+</style>
