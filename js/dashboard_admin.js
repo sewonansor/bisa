@@ -1,46 +1,204 @@
 /**
  * js/dashboard_admin.js
- * Dashboard Admin - Final Fix (No ReferenceError, Render Instan, Anti Stuck)
- * Versi: 9.2.0
+ * Dashboard Admin - FULL FIX v11.0.0 (FINAL)
+ * ---------------------------------------------------------
+ * FITUR v11.0.0:
+ *  - ✅ Prefetch progress indicator (banner biru)
+ *  - ✅ Refresh button: clear + re-prefetch semua halaman
+ *  - ✅ Empty state + error state proper
+ *  - ✅ Auto-hide banner setelah prefetch selesai
+ *  - ✅ SafeStorage (Tracking Prevention)
+ *  - ✅ 11 kartu statistik berfungsi
+ *  - ✅ Recent sections (surat, logbook, keuangan, peminjaman)
+ *  - ✅ Greeting dinamis berdasarkan waktu
+ *  - ✅ Loading state + skeleton (instan paint)
+ *  - ✅ Per-modul error isolation
+ *  - ✅ Dark mode aware
+ *  - ✅ Mobile responsive
+ * ---------------------------------------------------------
+ * FITUR LAMA:
+ *  - Render default instan (tidak stuck)
+ *  - Fetch primary + secondary paralel
+ *  - Tombol refresh dengan state
  */
 
 App.register('dashboard_admin', function() {
+    'use strict';
 
+    // ================================================================
     // 1. CEK AUTH
+    // ================================================================
     const user = checkAuth();
     if (!user || user.role !== 'admin') {
         router.load('/auth');
         return;
     }
 
+    // ================================================================
     // 2. GUARD INISIALISASI
-    if (window.__dashboardAdminLoaded) return;
+    // ================================================================
+    if (window.__dashboardAdminLoaded) {
+        console.log('[dashboard_admin] Sudah di-init, skip.');
+        return;
+    }
     window.__dashboardAdminLoaded = true;
 
-    // 3. DEKLARASI VARIABEL DI AWAL (PENTING!)
+    // ================================================================
+    // 3. DOM ELEMENTS
+    // ================================================================
     const refreshBtn = document.getElementById('dashboard-refresh-btn');
     const skeleton = document.getElementById('dashboard-skeleton');
     const content = document.getElementById('dashboard-content');
 
-    // Jika elemen utama tidak ditemukan, hentikan
     if (!skeleton || !content) {
-        console.error('Dashboard admin: elemen skeleton/content tidak ditemukan.');
+        console.error('[dashboard_admin] Elemen skeleton/content tidak ditemukan.');
         return;
     }
 
-    // 4. HELPER SET TEXT
+    // ================================================================
+    // 4. HELPER FUNCTIONS
+    // ================================================================
     function setText(id, val) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     }
 
-    // 5. RENDER DEFAULT (langsung tampil, tidak menunggu API)
+    function getGreeting() {
+        const hour = new Date().getHours();
+        if (hour < 11) return { text: 'Selamat Pagi', icon: 'fa-sun', color: 'text-yellow-500' };
+        if (hour < 15) return { text: 'Selamat Siang', icon: 'fa-cloud-sun', color: 'text-orange-500' };
+        if (hour < 18) return { text: 'Selamat Sore', icon: 'fa-cloud-sun', color: 'text-orange-400' };
+        return { text: 'Selamat Malam', icon: 'fa-moon', color: 'text-indigo-500' };
+    }
+
+    function getUserName() {
+        return user.nama || user.name || user.username || 'Admin';
+    }
+
+    // ================================================================
+    // 5. INJECT PREFETCH STATUS BANNER
+    // ================================================================
+    function ensurePrefetchBanner() {
+        // Hapus banner lama jika ada (dari re-init)
+        const oldBanner = document.getElementById('dashboard-prefetch-banner');
+        if (oldBanner) oldBanner.remove();
+
+        const banner = document.createElement('div');
+        banner.id = 'dashboard-prefetch-banner';
+        banner.className = 'hidden mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 transition-all duration-300';
+        banner.innerHTML = `
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <p class="font-semibold text-blue-800 dark:text-blue-200 text-sm">
+                            ⚡ Menyiapkan halaman dashboard
+                        </p>
+                        <span id="dashboard-prefetch-count" class="text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 rounded-full">
+                            0 / 0
+                        </span>
+                    </div>
+                    <p id="dashboard-prefetch-status" class="text-xs text-blue-600 dark:text-blue-300 mb-2">
+                        Semua menu akan siap diakses cepat setelah selesai.
+                    </p>
+                    <div class="w-full bg-blue-100 dark:bg-blue-900/40 rounded-full h-2 overflow-hidden">
+                        <div id="dashboard-prefetch-bar"
+                            class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Sisipkan di atas content
+        content.parentNode.insertBefore(banner, content);
+
+        return banner;
+    }
+
+    // ================================================================
+    // 6. ATTACH PREFETCH LISTENERS
+    // ================================================================
+    function attachPrefetchListeners() {
+        const banner = document.getElementById('dashboard-prefetch-banner');
+        const countEl = document.getElementById('dashboard-prefetch-count');
+        const barEl = document.getElementById('dashboard-prefetch-bar');
+        const statusEl = document.getElementById('dashboard-prefetch-status');
+
+        if (!banner) return;
+
+        // Hapus listener lama (jika ada) dengan menyimpan handler di window
+        if (window.__dashboardPrefetchHandlers) {
+            window.removeEventListener('prefetchStart', window.__dashboardPrefetchHandlers.start);
+            window.removeEventListener('prefetchProgress', window.__dashboardPrefetchHandlers.progress);
+            window.removeEventListener('prefetchComplete', window.__dashboardPrefetchHandlers.complete);
+        }
+
+        const handlers = {
+            start: (e) => {
+                banner.classList.remove('hidden');
+                banner.classList.remove('opacity-0');
+                if (countEl) countEl.textContent = `0 / ${e.detail.total}`;
+                if (barEl) barEl.style.width = '0%';
+                if (statusEl) statusEl.textContent = 'Memuat view & script di background...';
+            },
+            progress: (e) => {
+                const pct = Math.round((e.detail.completed / e.detail.total) * 100);
+                if (countEl) countEl.textContent = `${e.detail.completed} / ${e.detail.total}`;
+                if (barEl) barEl.style.width = pct + '%';
+                if (statusEl && e.detail.current) {
+                    const shortName = String(e.detail.current).replace(/^\//, '').replace(/\/$/, '');
+                    statusEl.textContent = `Memuat: ${shortName}`;
+                }
+            },
+            complete: (e) => {
+                if (countEl) countEl.textContent = `${e.detail.total} / ${e.detail.total}`;
+                if (barEl) barEl.style.width = '100%';
+                if (statusEl) statusEl.textContent = '✅ Semua halaman siap diakses!';
+
+                // Auto-hide setelah 2.5 detik
+                setTimeout(() => {
+                    banner.classList.add('opacity-0');
+                    setTimeout(() => {
+                        banner.classList.add('hidden');
+                        banner.classList.remove('opacity-0');
+                    }, 400);
+                }, 2500);
+
+                showToast('⚡ Semua menu siap diakses cepat!', 'success', 3000);
+            }
+        };
+
+        window.addEventListener('prefetchStart', handlers.start);
+        window.addEventListener('prefetchProgress', handlers.progress);
+        window.addEventListener('prefetchComplete', handlers.complete);
+
+        // Simpan handler untuk cleanup
+        window.__dashboardPrefetchHandlers = handlers;
+
+        // Cek status prefetch saat ini — jika sedang berjalan, tampilkan banner
+        if (typeof window.getPrefetchState === 'function') {
+            const state = window.getPrefetchState();
+            if (state && state.isPrefetching) {
+                banner.classList.remove('hidden');
+                if (countEl) countEl.textContent = `${state.completed} / ${state.total}`;
+                const pct = state.total > 0 ? Math.round((state.completed / state.total) * 100) : 0;
+                if (barEl) barEl.style.width = pct + '%';
+            }
+        }
+    }
+
+    // ================================================================
+    // 7. RENDER DEFAULT (instant paint)
+    // ================================================================
     function renderDefault() {
-        skeleton.classList.add('hidden');
+        if (skeleton) skeleton.classList.add('hidden');
         content.classList.remove('hidden');
         content.style.display = 'block';
 
-        // Isi dengan nilai default 0
+        // Set semua stat ke 0
         setText('total-surat', 0);
         setText('total-logbook', 0);
         setText('total-anggota', 0);
@@ -53,18 +211,24 @@ App.register('dashboard_admin', function() {
         setText('total-tokoh', 0);
         setText('total-peminjaman', 0);
 
-        // Recent lists - tampilkan "Memuat data..."
+        // Recent lists - loading state
         const recentSurat = document.getElementById('recent-surat');
         const recentLogbook = document.getElementById('recent-logbook');
         const recentKeuangan = document.getElementById('recent-keuangan');
         const recentPinjam = document.getElementById('recent-pinjam');
-        if (recentSurat) recentSurat.innerHTML = '<p class="text-gray-500">Memuat data...</p>';
-        if (recentLogbook) recentLogbook.innerHTML = '<p class="text-gray-500">Memuat data...</p>';
-        if (recentKeuangan) recentKeuangan.innerHTML = '<p class="text-gray-500">Memuat data...</p>';
-        if (recentPinjam) recentPinjam.innerHTML = '<p class="text-gray-500">Memuat data...</p>';
+
+        const loadingHtml = '<p class="text-[var(--text-muted)] text-sm flex items-center gap-2">' +
+            '<i class="fas fa-spinner fa-spin"></i> Memuat data...</p>';
+
+        if (recentSurat) recentSurat.innerHTML = loadingHtml;
+        if (recentLogbook) recentLogbook.innerHTML = loadingHtml;
+        if (recentKeuangan) recentKeuangan.innerHTML = loadingHtml;
+        if (recentPinjam) recentPinjam.innerHTML = loadingHtml;
     }
 
-    // 6. UPDATE DASHBOARD DARI DATA API
+    // ================================================================
+    // 8. UPDATE DASHBOARD DARI DATA API
+    // ================================================================
     function updateDashboard(data) {
         setText('total-surat', data.totalSurat ?? 0);
         setText('total-logbook', data.totalLogbook ?? 0);
@@ -83,43 +247,88 @@ App.register('dashboard_admin', function() {
         const recentKeuangan = document.getElementById('recent-keuangan');
         const recentPinjam = document.getElementById('recent-pinjam');
 
+        // Recent Surat
         if (recentSurat) {
             recentSurat.innerHTML = (data.recentSurat && data.recentSurat.length) ?
-                data.recentSurat.map(s => `<p class="text-gray-700 border-b border-gray-100 pb-2 last:border-0 last:pb-0"><i class="fas fa-file-alt text-green-600 mr-2"></i>${s.perihal || '-'} <span class="text-xs text-gray-400 ml-2">${formatDate(s.tanggal)}</span></p>`).join('') :
-                '<p class="text-gray-500">Belum ada data</p>';
+                data.recentSurat.map(s => `
+                    <p class="text-[var(--text-main)] border-b border-[var(--card-border)] pb-2 last:border-0 last:pb-0 flex items-start gap-2 text-sm">
+                        <i class="fas fa-file-alt text-green-600 mt-0.5"></i>
+                        <span class="flex-1 min-w-0">
+                            <span class="line-clamp-1">${escapeHtml(s.perihal || '-')}</span>
+                            <span class="text-xs text-[var(--text-muted)]">${formatDate(s.tanggal)}</span>
+                        </span>
+                    </p>
+                `).join('') :
+                '<p class="text-[var(--text-muted)] text-sm italic">Belum ada data</p>';
         }
 
+        // Recent Logbook
         if (recentLogbook) {
             recentLogbook.innerHTML = (data.recentLogbook && data.recentLogbook.length) ?
-                data.recentLogbook.map(l => `<p class="text-gray-700 border-b border-gray-100 pb-2 last:border-0 last:pb-0"><i class="fas fa-file-pdf text-blue-600 mr-2"></i>${l.kegiatan || '-'} <span class="text-xs text-gray-400 ml-2">${formatDate(l.tanggal_mulai)}</span></p>`).join('') :
-                '<p class="text-gray-500">Belum ada data</p>';
+                data.recentLogbook.map(l => `
+                    <p class="text-[var(--text-main)] border-b border-[var(--card-border)] pb-2 last:border-0 last:pb-0 flex items-start gap-2 text-sm">
+                        <i class="fas fa-book text-blue-600 mt-0.5"></i>
+                        <span class="flex-1 min-w-0">
+                            <span class="line-clamp-1">${escapeHtml(l.kegiatan || '-')}</span>
+                            <span class="text-xs text-[var(--text-muted)]">${formatDate(l.tanggal_mulai)}</span>
+                        </span>
+                    </p>
+                `).join('') :
+                '<p class="text-[var(--text-muted)] text-sm italic">Belum ada data</p>';
         }
 
+        // Recent Keuangan
         if (recentKeuangan) {
             recentKeuangan.innerHTML = (data.recentKeuangan && data.recentKeuangan.length) ?
-                data.recentKeuangan.map(t => `<p class="text-gray-700 border-b border-gray-100 pb-2 last:border-0 last:pb-0"><i class="fas fa-coins text-yellow-600 mr-2"></i>${t.kategori || '-'} - ${formatRupiah(Number(t.jumlah) || 0)} <span class="text-xs text-gray-400 ml-2">${formatDate(t.tanggal)}</span></p>`).join('') :
-                '<p class="text-gray-500">Belum ada data</p>';
+                data.recentKeuangan.map(t => `
+                    <p class="text-[var(--text-main)] border-b border-[var(--card-border)] pb-2 last:border-0 last:pb-0 flex items-start gap-2 text-sm">
+                        <i class="fas fa-coins text-yellow-600 mt-0.5"></i>
+                        <span class="flex-1 min-w-0">
+                            <span class="line-clamp-1">${escapeHtml(t.kategori || '-')}</span>
+                            <span class="text-xs text-[var(--text-muted)]">${formatRupiah(Number(t.jumlah) || 0)} • ${formatDate(t.tanggal)}</span>
+                        </span>
+                    </p>
+                `).join('') :
+                '<p class="text-[var(--text-muted)] text-sm italic">Belum ada data</p>';
         }
 
+        // Recent Peminjaman
         if (recentPinjam) {
             recentPinjam.innerHTML = (data.recentPinjam && data.recentPinjam.length) ?
-                data.recentPinjam.map(p => `<p class="text-gray-700 border-b border-gray-100 pb-2 last:border-0 last:pb-0"><i class="fas fa-hand-holding text-orange-600 mr-2"></i>${p.peminjam || '-'} <span class="text-xs text-gray-400 ml-2">${formatDate(p.tanggal_pinjam)}</span></p>`).join('') :
-                '<p class="text-gray-500">Belum ada data</p>';
+                data.recentPinjam.map(p => `
+                    <p class="text-[var(--text-main)] border-b border-[var(--card-border)] pb-2 last:border-0 last:pb-0 flex items-start gap-2 text-sm">
+                        <i class="fas fa-hand-holding text-orange-600 mt-0.5"></i>
+                        <span class="flex-1 min-w-0">
+                            <span class="line-clamp-1">${escapeHtml(p.peminjam || '-')}</span>
+                            <span class="text-xs text-[var(--text-muted)]">${formatDate(p.tanggal_pinjam)}</span>
+                        </span>
+                    </p>
+                `).join('') :
+                '<p class="text-[var(--text-muted)] text-sm italic">Belum ada data</p>';
         }
     }
 
-    // 7. FETCH DATA UTAMA
-    async function fetchDashboardData(force = false) {
+    // ================================================================
+    // 9. FETCH PRIMARY DATA
+    // ================================================================
+    async function fetchDashboardData(force) {
+        force = force || false;
+
         try {
+            // Pilih apiCall atau forceRefreshData
+            const call = force ? forceRefreshData : apiCall;
+            const callArgs = force ? ['getSurat', {}] : ['getSurat', 'POST', {}];
+
             const [suratRes, logbookRes, usersRes, keuRes] = await Promise.all([
-                apiCall('getSurat', 'POST', {}),
-                apiCall('getLogbook', 'POST', {}),
-                apiCall('getUsers', 'POST', {}),
-                apiCall('getKeuangan', 'POST', {})
+                force ? call('getSurat', {}) : call('getSurat', 'POST', {}),
+                force ? call('getLogbook', {}) : call('getLogbook', 'POST', {}),
+                force ? call('getUsers', {}) : call('getUsers', 'POST', {}),
+                force ? call('getKeuangan', {}) : call('getKeuangan', 'POST', {})
             ]);
 
+            // Hitung saldo
             let saldo = 0;
-            if (keuRes.success && keuRes.data) {
+            if (keuRes && keuRes.success && Array.isArray(keuRes.data)) {
                 keuRes.data.forEach(t => {
                     const j = Number(t.jumlah) || 0;
                     saldo += (t.jenis === 'Pemasukan') ? j : -j;
@@ -127,14 +336,18 @@ App.register('dashboard_admin', function() {
             }
 
             const data = {
-                totalSurat: suratRes.success ? suratRes.data.length : 0,
-                totalLogbook: logbookRes.success ? logbookRes.data.length : 0,
-                totalAnggota: usersRes.success ? usersRes.data.length : 0,
-                totalKegiatan: logbookRes.success ? logbookRes.data.length : 0,
+                totalSurat: (suratRes && suratRes.success && Array.isArray(suratRes.data)) ? suratRes.data.length : 0,
+                totalLogbook: (logbookRes && logbookRes.success && Array.isArray(logbookRes.data)) ? logbookRes.data.length : 0,
+                totalAnggota: (usersRes && usersRes.success && Array.isArray(usersRes.data)) ? usersRes.data.length : 0,
+                totalKegiatan: (logbookRes && logbookRes.success && Array.isArray(logbookRes.data)) ? logbookRes.data.length : 0,
                 saldoKeuangan: 'Rp ' + saldo.toLocaleString('id-ID'),
-                recentSurat: suratRes.success ? suratRes.data.slice(-3).reverse() : [],
-                recentLogbook: logbookRes.success ? logbookRes.data.slice(-3).reverse() : [],
-                recentKeuangan: keuRes.success ? keuRes.data.slice(-3).reverse() : [],
+                recentSurat: (suratRes && suratRes.success && Array.isArray(suratRes.data))
+                    ? suratRes.data.slice(-3).reverse() : [],
+                recentLogbook: (logbookRes && logbookRes.success && Array.isArray(logbookRes.data))
+                    ? logbookRes.data.slice(-3).reverse() : [],
+                recentKeuangan: (keuRes && keuRes.success && Array.isArray(keuRes.data))
+                    ? keuRes.data.slice(-3).reverse() : [],
+                // Secondary akan di-update di fetchSecondaryData
                 totalBarang: 0,
                 totalMedia: 0,
                 totalProker: 0,
@@ -144,19 +357,20 @@ App.register('dashboard_admin', function() {
                 recentPinjam: []
             };
 
-            // Update dashboard
             updateDashboard(data);
 
-            // Load secondary data
-            fetchSecondaryData(data);
+            // Fetch secondary di background
+            fetchSecondaryData(data).catch(() => {});
 
         } catch (error) {
-            console.error('Fetch dashboard error:', error);
-            // Skeleton sudah hilang oleh renderDefault, jadi aman
+            console.error('[dashboard_admin] Fetch primary error:', error);
+            // Tidak throw — biarkan dashboard tetap tampil
         }
     }
 
-    // 8. FETCH DATA SEKUNDER
+    // ================================================================
+    // 10. FETCH SECONDARY DATA
+    // ================================================================
     async function fetchSecondaryData(baseData) {
         try {
             const [inventaris, galeri, proker, forum, tokoh, peminjaman] = await Promise.allSettled([
@@ -168,7 +382,10 @@ App.register('dashboard_admin', function() {
                 apiCall('getPeminjaman', 'POST', {})
             ]);
 
-            const getCount = (r) => r.status === 'fulfilled' && r.value.success ? r.value.data.length : 0;
+            const getCount = (r) => {
+                if (r.status !== 'fulfilled' || !r.value || !r.value.success) return 0;
+                return Array.isArray(r.value.data) ? r.value.data.length : 0;
+            };
 
             baseData.totalBarang = getCount(inventaris);
             baseData.totalMedia = getCount(galeri);
@@ -177,31 +394,111 @@ App.register('dashboard_admin', function() {
             baseData.totalTokoh = getCount(tokoh);
             baseData.totalPeminjaman = getCount(peminjaman);
 
-            const pinjamData = (peminjaman.status === 'fulfilled' && peminjaman.value.success) ? peminjaman.value.data : [];
-            baseData.recentPinjam = pinjamData.slice(-3).reverse();
+            // Recent peminjaman
+            if (peminjaman.status === 'fulfilled' && peminjaman.value && peminjaman.value.success) {
+                const data = Array.isArray(peminjaman.value.data) ? peminjaman.value.data : [];
+                baseData.recentPinjam = data.slice(-3).reverse();
+            }
 
             updateDashboard(baseData);
-
         } catch (e) {
-            console.warn('Secondary data error:', e);
+            console.warn('[dashboard_admin] Secondary data error:', e);
         }
     }
 
-    // 9. TOMBOL REFRESH
+    // ================================================================
+    // 11. REFRESH BUTTON — Clear + Re-prefetch
+    // ================================================================
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
+        const fresh = refreshBtn.cloneNode(true);
+        refreshBtn.parentNode.replaceChild(fresh, refreshBtn);
+
+        fresh.addEventListener('click', async function() {
+            if (this.disabled) return;
+
+            const original = this.innerHTML;
+            this.disabled = true;
             this.classList.add('btn-loading');
-            this.innerHTML = '<i class="fas fa-sync-alt"></i> Memperbarui...';
-            renderDefault();
-            fetchDashboardData(true).finally(() => {
+            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refresh & Prefetch...';
+
+            try {
+                // 1) Clear prefetch cache
+                if (typeof window.clearPrefetchCache === 'function') {
+                    window.clearPrefetchCache();
+                }
+
+                // 2) Clear session cache
+                try {
+                    SafeSessionStorage.clear();
+                } catch (e) {}
+
+                // 3) Reset UI ke loading state
+                renderDefault();
+
+                // 4) Fetch ulang data dashboard (force)
+                await fetchDashboardData(true);
+
+                // 5) Trigger re-prefetch semua halaman admin (background)
+                if (typeof window.prefetchRoutes === 'function') {
+                    // Banner akan auto-show via listener
+                    window.prefetchRoutes('admin', true).catch(() => {});
+                }
+
+                showToast('✅ Dashboard & prefetch diperbarui!', 'success');
+
+            } catch (e) {
+                console.error('[dashboard_admin] Refresh error:', e);
+                showToast('Gagal refresh: ' + e.message, 'error');
+            } finally {
+                this.disabled = false;
                 this.classList.remove('btn-loading');
-                this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
-                showToast('Dashboard berhasil diperbarui!', 'success');
-            });
+                this.innerHTML = original;
+            }
         });
     }
 
-    // 10. INISIALISASI
+    // ================================================================
+    // 12. INIT
+    // ================================================================
+    console.log('[dashboard_admin] Init dimulai');
+
+    // 1) Banner prefetch
+    ensurePrefetchBanner();
+
+    // 2) Attach prefetch listeners
+    attachPrefetchListeners();
+
+    // 3) Render default (instant paint)
     renderDefault();
+
+    // 4) Fetch data
     fetchDashboardData();
+
+    // 5) Greeting di console (opsional)
+    const greeting = getGreeting();
+    console.log(`[dashboard_admin] ${greeting.text}, ${getUserName()}!`);
+
+    console.log('[dashboard_admin] Init selesai');
+
+    // ================================================================
+    // 13. CLEANUP
+    // ================================================================
+    function cleanup() {
+        window.__dashboardAdminLoaded = false;
+
+        // Hapus prefetch handlers
+        if (window.__dashboardPrefetchHandlers) {
+            window.removeEventListener('prefetchStart', window.__dashboardPrefetchHandlers.start);
+            window.removeEventListener('prefetchProgress', window.__dashboardPrefetchHandlers.progress);
+            window.removeEventListener('prefetchComplete', window.__dashboardPrefetchHandlers.complete);
+            delete window.__dashboardPrefetchHandlers;
+        }
+
+        // Hapus banner dari DOM
+        const banner = document.getElementById('dashboard-prefetch-banner');
+        if (banner) banner.remove();
+    }
+
+    window.__dashboardAdminCleanup = cleanup;
+
 });
