@@ -1,0 +1,692 @@
+/* ============================================================
+   HERO FIX v3.6.0 FINAL — Mint Green Override
+   ---------------------------------------------------------
+   File ini di-load PALING AKHIR setelah style.css & forms.css.
+   Tujuan: mengalahkan rule lama di style.css yang menimpa hero.
+   
+   FIX UTAMA v3.6.0:
+   - ✅ Force .hero-bg jadi TRANSPARENT (biang kerok hijau gelap)
+   - ✅ Force hero section jadi MINT GREEN terang
+   - ✅ Force semua teks jadi hijau tua (bukan putih pudar)
+   - ✅ Semua pakai !important + specific selector
+   ============================================================ */
+
+/* ═══════════════════════════════════════════════════════════
+   1. HERO SECTION — BASE (LIGHT MODE)
+   ═══════════════════════════════════════════════════════════ */
+
+#hero.hero-section,
+.hero-section,
+section#hero {
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 130px 24px 110px !important;
+    min-height: 88vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: linear-gradient(160deg, #ffffff 0%, #ecfdf5 45%, #d1fae5 100%) !important;
+    background-color: #ecfdf5 !important;
+    color: #0f2922 !important;
+    isolation: isolate;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   2. HERO SECTION — DARK MODE
+   ═══════════════════════════════════════════════════════════ */
+
+html.dark #hero.hero-section,
+html.dark .hero-section,
+html.dark section#hero,
+.dark #hero.hero-section,
+.dark .hero-section,
+.dark section#hero {
+    background: linear-gradient(160deg, #0a0f1e 0%, #0f1f1a 50%, #0a1e19 100%) !important;
+    background-color: #0f1f1a !important;
+    color: #f1f5f9 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3. FIX .hero-bg — HAPUS GRADIENT HIJAU GELAP (BIANG KEROK)
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-bg,
+.hero-section .hero-bg,
+.hero-bg {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    position: absolute !important;
+    inset: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    color: #0f2922 !important;
+    opacity: 1 !important;
+}
+
+html.dark #hero .hero-bg,
+html.dark .hero-section .hero-bg,
+html.dark .hero-bg,
+.dark #hero .hero-bg,
+.dark .hero-section .hero-bg,
+.dark .hero-bg {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #fbbf24 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   4. FIX PSEUDO-ELEMENT — Hilangkan semua ::before/::after
+   ═══════════════════════════════════════════════════════════ */
+
+#hero.hero-section::before,
+#hero.hero-section::after,
+.hero-section::before,
+.hero-section::after,
+section#hero::before,
+section#hero::after {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    content: none !important;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+#hero .hero-bg::before,
+#hero .hero-bg::after {
+    content: none !important;
+    display: none !important;
+    background: transparent !important;
+    background-image: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   5. Sembunyikan elemen overlay lama dari style.css
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-overlay,
+#hero .hero-shape,
+#hero .hero-blob,
+#hero .hero-gradient,
+#hero .hero-dark-overlay,
+.hero-overlay,
+.hero-shape,
+.hero-blob,
+.hero-gradient {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   6. ORBS — Glow dekoratif
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-orb,
+.hero-section .hero-orb {
+    position: absolute !important;
+    border-radius: 50% !important;
+    filter: blur(110px) !important;
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
+
+#hero .hero-orb-1,
+.hero-section .hero-orb-1 {
+    width: 520px !important;
+    height: 520px !important;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.18), transparent 70%) !important;
+    top: -200px !important;
+    left: -160px !important;
+}
+
+#hero .hero-orb-2,
+.hero-section .hero-orb-2 {
+    width: 480px !important;
+    height: 480px !important;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.18), transparent 70%) !important;
+    bottom: -200px !important;
+    right: -160px !important;
+}
+
+html.dark #hero .hero-orb-2,
+html.dark .hero-section .hero-orb-2,
+.dark #hero .hero-orb-2,
+.dark .hero-section .hero-orb-2 {
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. PATTERN SVG — Grid background
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-pattern,
+.hero-section .hero-pattern {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0.25 !important;
+    pointer-events: none !important;
+    background: transparent !important;
+    background-image: none !important;
+}
+
+html.dark #hero .hero-pattern,
+html.dark .hero-section .hero-pattern,
+.dark #hero .hero-pattern,
+.dark .hero-section .hero-pattern {
+    opacity: 0.12 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   8. HERO CONTAINER — pastikan di atas
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-container,
+.hero-section .hero-container {
+    position: relative !important;
+    z-index: 10 !important;
+    max-width: 920px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   9. BADGE
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-badge,
+.hero-section .hero-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 7px 18px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(16, 185, 129, 0.22) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    color: #065f46 !important;
+    -webkit-text-fill-color: #065f46 !important;
+    margin-bottom: 32px !important;
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08) !important;
+}
+
+#hero .hero-badge i,
+.hero-section .hero-badge i {
+    font-size: 0.72rem !important;
+    color: #059669 !important;
+    -webkit-text-fill-color: #059669 !important;
+}
+
+html.dark #hero .hero-badge,
+html.dark .hero-section .hero-badge,
+.dark #hero .hero-badge,
+.dark .hero-section .hero-badge {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(251, 191, 36, 0.25) !important;
+    color: #fbbf24 !important;
+    -webkit-text-fill-color: #fbbf24 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark #hero .hero-badge i,
+html.dark .hero-section .hero-badge i,
+.dark #hero .hero-badge i,
+.dark .hero-section .hero-badge i {
+    color: #fbbf24 !important;
+    -webkit-text-fill-color: #fbbf24 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   10. TITLE
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-title,
+.hero-section .hero-title {
+    font-family: 'Amiri', 'Times New Roman', serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(2.5rem, 7.5vw, 5.25rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.028em !important;
+    margin: 0 0 28px !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    text-wrap: balance;
+}
+
+html.dark #hero .hero-title,
+html.dark .hero-section .hero-title,
+.dark #hero .hero-title,
+.dark .hero-section .hero-title {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* LINE 1 — Hijau tua */
+#hero .hero-title-line1,
+.hero-section .hero-title-line1 {
+    display: block !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    font-weight: 700 !important;
+}
+
+html.dark #hero .hero-title-line1,
+html.dark .hero-section .hero-title-line1,
+.dark #hero .hero-title-line1,
+.dark .hero-section .hero-title-line1 {
+    color: #f1f5f9 !important;
+    -webkit-text-fill-color: #f1f5f9 !important;
+}
+
+/* LINE 2 — Gradient hijau (light) / Gold (dark) */
+#hero .hero-title-line2,
+.hero-section .hero-title-line2 {
+    display: block !important;
+    margin-top: 6px !important;
+    font-style: italic !important;
+    background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #0f2922 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+}
+
+html.dark #hero .hero-title-line2,
+html.dark .hero-section .hero-title-line2,
+.dark #hero .hero-title-line2,
+.dark .hero-section .hero-title-line2 {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   11. DIVIDER
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-divider,
+.hero-section .hero-divider {
+    width: 72px !important;
+    height: 2px !important;
+    margin: 0 auto 30px !important;
+    background: linear-gradient(90deg, transparent, #10b981, transparent) !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5) !important;
+}
+
+html.dark #hero .hero-divider,
+html.dark .hero-section .hero-divider,
+.dark #hero .hero-divider,
+.dark .hero-section .hero-divider {
+    background: linear-gradient(90deg, transparent, #fbbf24, transparent) !important;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.5) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   12. TAGLINE & DESC
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-tagline,
+.hero-section .hero-tagline {
+    font-family: 'Amiri', serif !important;
+    font-style: italic !important;
+    font-size: clamp(1.15rem, 2.5vw, 1.5rem) !important;
+    line-height: 1.55 !important;
+    color: #334155 !important;
+    -webkit-text-fill-color: #334155 !important;
+    margin: 0 0 14px !important;
+}
+
+#hero .hero-desc,
+.hero-section .hero-desc {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: clamp(0.92rem, 1.9vw, 1rem) !important;
+    line-height: 1.7 !important;
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    max-width: 600px !important;
+    margin: 0 auto 44px !important;
+}
+
+html.dark #hero .hero-tagline,
+html.dark .hero-section .hero-tagline,
+.dark #hero .hero-tagline,
+.dark .hero-section .hero-tagline {
+    color: #cbd5e1 !important;
+    -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+html.dark #hero .hero-desc,
+html.dark .hero-section .hero-desc,
+.dark #hero .hero-desc,
+.dark .hero-section .hero-desc {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   13. CTA BUTTONS
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-cta,
+.hero-section .hero-cta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    justify-content: center !important;
+    margin-bottom: 60px !important;
+}
+
+#hero .btn-hero,
+.hero-section .btn-hero {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 14px 32px !important;
+    border-radius: 9999px !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.005em !important;
+    text-decoration: none !important;
+    transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    min-width: 140px !important;
+}
+
+/* Primary Button */
+#hero .btn-hero-primary,
+.hero-section .btn-hero-primary {
+    background: #0f2922 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 8px 24px rgba(15, 41, 34, 0.22) !important;
+}
+
+#hero .btn-hero-primary:hover,
+.hero-section .btn-hero-primary:hover {
+    background: #1a4038 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 28px rgba(15, 41, 34, 0.32) !important;
+}
+
+html.dark #hero .btn-hero-primary,
+html.dark .hero-section .btn-hero-primary,
+.dark #hero .btn-hero-primary,
+.dark .hero-section .btn-hero-primary {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.28) !important;
+}
+
+/* Outline Button */
+#hero .btn-hero-outline,
+.hero-section .btn-hero-outline {
+    background: rgba(255, 255, 255, 0.85) !important;
+    background-image: none !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    border: 1.5px solid rgba(15, 41, 34, 0.28) !important;
+}
+
+#hero .btn-hero-outline:hover,
+.hero-section .btn-hero-outline:hover {
+    background: #0f2922 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: #0f2922 !important;
+    transform: translateY(-2px) !important;
+}
+
+html.dark #hero .btn-hero-outline,
+html.dark .hero-section .btn-hero-outline,
+.dark #hero .btn-hero-outline,
+.dark .hero-section .btn-hero-outline {
+    background: rgba(30, 41, 59, 0.5) !important;
+    color: #fbbf24 !important;
+    -webkit-text-fill-color: #fbbf24 !important;
+    border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+html.dark #hero .btn-hero-outline:hover,
+html.dark .hero-section .btn-hero-outline:hover,
+.dark #hero .btn-hero-outline:hover,
+.dark .hero-section .btn-hero-outline:hover {
+    background: #fbbf24 !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    border-color: #fbbf24 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   14. TRUST PILL
+   ═══════════════════════════════════════════════════════════ */
+
+#hero .hero-trust,
+.hero-section .hero-trust {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 44px !important;
+    padding: 22px 48px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(16, 185, 129, 0.15) !important;
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1) !important;
+}
+
+html.dark #hero .hero-trust,
+html.dark .hero-section .hero-trust,
+.dark #hero .hero-trust,
+.dark .hero-section .hero-trust {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-color: rgba(251, 191, 36, 0.15) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+#hero .trust-item,
+.hero-section .trust-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 60px !important;
+}
+
+#hero .trust-value,
+.hero-section .trust-value {
+    font-family: 'Amiri', serif !important;
+    font-size: 1.85rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    color: #0f2922 !important;
+    -webkit-text-fill-color: #0f2922 !important;
+    letter-spacing: -0.02em !important;
+}
+
+#hero .trust-value i,
+.hero-section .trust-value i {
+    font-size: 1.35rem !important;
+    color: #059669 !important;
+    -webkit-text-fill-color: #059669 !important;
+}
+
+#hero .trust-label,
+.hero-section .trust-label {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 0.62rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    white-space: nowrap !important;
+}
+
+#hero .trust-sep,
+.hero-section .trust-sep {
+    width: 1px !important;
+    height: 36px !important;
+    background: linear-gradient(180deg, transparent, rgba(16, 185, 129, 0.25), transparent) !important;
+}
+
+html.dark #hero .trust-value,
+html.dark .hero-section .trust-value,
+.dark #hero .trust-value,
+.dark .hero-section .trust-value {
+    color: #fbbf24 !important;
+    -webkit-text-fill-color: #fbbf24 !important;
+}
+
+html.dark #hero .trust-value i,
+html.dark .hero-section .trust-value i,
+.dark #hero .trust-value i,
+.dark .hero-section .trust-value i {
+    color: #fbbf24 !important;
+    -webkit-text-fill-color: #fbbf24 !important;
+}
+
+html.dark #hero .trust-label,
+html.dark .hero-section .trust-label,
+.dark #hero .trust-label,
+.dark .hero-section .trust-label {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+}
+
+html.dark #hero .trust-sep,
+html.dark .hero-section .trust-sep,
+.dark #hero .trust-sep,
+.dark .hero-section .trust-sep {
+    background: linear-gradient(180deg, transparent, rgba(251, 191, 36, 0.25), transparent) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   15. RESPONSIVE — MOBILE
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+    #hero.hero-section,
+    .hero-section,
+    section#hero {
+        padding: 100px 20px 80px !important;
+        min-height: auto !important;
+    }
+
+    #hero .hero-badge,
+    .hero-section .hero-badge {
+        font-size: 0.65rem !important;
+        padding: 6px 14px !important;
+        margin-bottom: 24px !important;
+    }
+
+    #hero .hero-divider,
+    .hero-section .hero-divider {
+        width: 60px !important;
+        margin-bottom: 24px !important;
+    }
+
+    #hero .hero-cta,
+    .hero-section .hero-cta {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        max-width: 300px !important;
+        margin: 0 auto 44px !important;
+    }
+
+    #hero .btn-hero,
+    .hero-section .btn-hero {
+        justify-content: center !important;
+        padding: 13px 24px !important;
+    }
+
+    #hero .hero-trust,
+    .hero-section .hero-trust {
+        flex-direction: column !important;
+        gap: 18px !important;
+        padding: 22px 32px !important;
+        border-radius: 22px !important;
+        width: 100% !important;
+        max-width: 280px !important;
+    }
+
+    #hero .trust-sep,
+    .hero-section .trust-sep {
+        width: 60% !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.25), transparent) !important;
+    }
+
+    html.dark #hero .trust-sep,
+    html.dark .hero-section .trust-sep,
+    .dark #hero .trust-sep,
+    .dark .hero-section .trust-sep {
+        background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.25), transparent) !important;
+    }
+
+    #hero .trust-value,
+    .hero-section .trust-value {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   16. REDUCED MOTION
+   ═══════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+    #hero .hero-orb,
+    #hero .hero-bg,
+    #hero .btn-hero,
+    #hero .btn-hero-arrow,
+    .hero-section .hero-orb,
+    .hero-section .hero-bg,
+    .hero-section .btn-hero,
+    .hero-section .btn-hero-arrow {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   17. FORCE SECTION SPACING (kalau tabrakan dengan style.css)
+   ═══════════════════════════════════════════════════════════ */
+
+#public-content #hero:first-child,
+#public-content > section#hero:first-child {
+    margin-top: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   18. SAFETY — Nuclear override all dark backdrops
+   ═══════════════════════════════════════════════════════════ */
+
+#hero [style*="background: #0f2922"],
+#hero [style*="background:#0f2922"],
+#hero [style*="background: #1a4038"],
+#hero [style*="background:#1a4038"],
+#hero [style*="background: rgb(15, 41, 34)"],
+#hero [style*="background:rgb(15,41,34)"] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
