@@ -2,235 +2,659 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAC GP Ansor Kapanewon Sewon - SPA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f2922">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="light dark">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="Portal Digital Resmi PAC GP Ansor Kapanewon Sewon — Mengabdi untuk Umat, Berjuang untuk Bangsa.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
 
-    <!-- Favicon -->
+    <!-- ══ TELEGRAM BOT CONFIG ══ -->
+    <!-- ⚠️ GANTI "pac_ansor_sewon_bot" dengan username bot Anda (tanpa @) -->
+    <meta name="telegram-bot" content="pac_ansor_sewon_bot">
+
+    <title>PAC GP Ansor Kapanewon Sewon</title>
+
     <link rel="icon" type="image/webp" href="logo-ansor.webp" />
+    <link rel="apple-touch-icon" href="logo-ansor.webp" />
 
-    <!-- Tailwind CSS (v3.4.1) -->
+    <!-- ══ PRECONNECT ══ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://script.google.com">
+
+    <!-- ══════════════════════════════════════════════════════════
+         CRITICAL CSS — Boot Loader & Base (anti-FOUC)
+         ══════════════════════════════════════════════════════════ -->
+    <style>
+        #app-boot-loader{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffffff 0%,#ecfdf5 100%);font-family:'Inter',system-ui,sans-serif;transition:opacity 300ms ease,visibility 300ms ease}
+        .dark #app-boot-loader{background:linear-gradient(135deg,#0a0f1e 0%,#0f1f1a 100%)}
+        #app-boot-loader.app-boot-done{opacity:0;visibility:hidden;pointer-events:none}
+        .app-boot-logo{width:88px;height:88px;object-fit:contain;margin-bottom:20px;animation:appBootLogoPulse 2s ease-in-out infinite}
+        @keyframes appBootLogoPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.85}}
+        .app-boot-spinner{width:42px;height:42px;border:3px solid rgba(15,41,34,.12);border-top-color:#0f2922;border-radius:50%;animation:appBootSpin .9s linear infinite;margin-top:12px}
+        .dark .app-boot-spinner{border-color:rgba(251,191,36,.15);border-top-color:#fbbf24}
+        @keyframes appBootSpin{to{transform:rotate(360deg)}}
+        .app-boot-text{font-family:'Amiri','Times New Roman',serif;font-size:1.1rem;font-weight:700;color:#0f2922;margin:12px 0 4px;letter-spacing:-.01em}
+        .dark .app-boot-text{color:#fbbf24}
+        .app-boot-sub{font-size:.75rem;color:#64748b;margin:0;letter-spacing:.06em;text-transform:uppercase}
+        *,*::before,*::after{box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        html,body{margin:0;padding:0}
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#f8fafc;color:#0f2922;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;min-height:100vh;min-height:100dvh}
+        .dark body{background:#0f172a;color:#f1f5f9}
+        .hidden{display:none !important}
+    </style>
+
+    <!-- ══ FONTS ══ -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- ══ CSS FRAMEWORKS ══ -->
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
 
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
 
-    <!-- Google Fonts: Amiri & Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ══ LOCAL CSS — URUTAN PENTING ══ -->
+    <link rel="stylesheet" href="css/style.css?v=3811">
+    <link rel="stylesheet" href="css/forms.css?v=3811">
+    <link rel="stylesheet" href="css/hero-fix.css?v=3811">
+    <link rel="stylesheet" href="css/tailwind-fallback.css?v=3811">
+    <link rel="stylesheet" href="css/telegram-fab.css?v=4">
 
-    <!-- FullCalendar (v6.1.8) -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <!-- ══ EARLY THEME — avoid flash ══ -->
+    <script>
+    (function(){try{var t=localStorage.getItem('color-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}})();
+    </script>
 
-    <!-- Swiper (v11) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-
-    <!-- AOS Animation -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
-    <!-- Quill Editor (v1.3.6) -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
-    <!-- Custom CSS (global) -->
-    <link rel="stylesheet" href="css/style.css">
-
+    <!-- ══════════════════════════════════════════════════════════
+         SHELL CSS — v38.1.1 Telegram Mobile UI
+         ══════════════════════════════════════════════════════════ -->
     <style>
-        /* --- Tambahan styling untuk SPA shell --- */
-        .navbar-scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        /* ════════════════════ TOKENS ════════════════════ */
+        :root {
+            --text-main: #0f2922; --text-muted: #475569; --text-inverse: #ffffff;
+            --card-bg: #ffffff; --card-border: #e2e8f0; --bg-body: #f8fafc;
+            --brand-700: #0f2922; --brand-600: #1a4038;
+            --accent-400: #fbbf24; --accent-500: #f59e0b;
+            --bn-height: 58px;
+        }
+        .dark {
+            --text-main: #f1f5f9; --text-muted: #cbd5e1; --text-inverse: #0f172a;
+            --card-bg: #1e293b; --card-border: #334155; --bg-body: #0f172a;
+        }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-body); color: var(--text-main); }
+
+        /* ════════════════════ NAVBAR PUBLIC ════════════════════ */
+        #public-navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(255,255,255,.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(15,41,34,.06);
+            transition: background .28s ease, box-shadow .28s ease;
+        }
+        .dark #public-navbar { background: rgba(10,20,18,.85); border-bottom-color: rgba(251,191,36,.10); }
+        #public-navbar.navbar-scrolled { background: rgba(255,255,255,.96); box-shadow: 0 4px 24px rgba(15,41,34,.08); }
+        .dark #public-navbar.navbar-scrolled { background: rgba(10,20,18,.98); box-shadow: 0 4px 28px rgba(0,0,0,.35); }
+
+        .navbar-inner {
+            max-width: 1400px; margin: 0 auto; padding: .65rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem; min-height: 62px;
+        }
+        .navbar-brand { display: flex; align-items: center; gap: .65rem; text-decoration: none; flex-shrink: 0; }
+        .navbar-brand-logo {
+            width: 38px; height: 38px; border-radius: 11px;
+            background: linear-gradient(135deg,#fff,#f0fdf4);
+            display: flex; align-items: center; justify-content: center; padding: 3px;
+            box-shadow: 0 2px 8px rgba(15,41,34,.08), inset 0 0 0 1px rgba(15,41,34,.05);
+            flex-shrink: 0;
+        }
+        .dark .navbar-brand-logo { background: linear-gradient(135deg,#1e293b,#0f1f1a); box-shadow: 0 2px 8px rgba(0,0,0,.3), inset 0 0 0 1px rgba(251,191,36,.15); }
+        .navbar-brand-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .navbar-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+        .navbar-brand-title { font-family: 'Amiri',serif; font-size: 1.05rem; font-weight: 700; color: #0f2922; letter-spacing: -.01em; }
+        .dark .navbar-brand-title { color: #f1f5f9; }
+        .navbar-brand-sub { font-size: .6rem; font-weight: 600; color: #059669; letter-spacing: .08em; text-transform: uppercase; }
+        .dark .navbar-brand-sub { color: #fbbf24; }
+
+        .navbar-links { display: flex; flex: 1; justify-content: center; align-items: center; gap: .15rem; max-width: 820px; }
+        .nav-section-link {
+            position: relative; color: #475569; font-family: inherit; font-weight: 500; font-size: .85rem;
+            padding: .55rem .8rem; text-decoration: none; cursor: pointer; white-space: nowrap;
+            background: transparent; border: none; display: inline-flex; align-items: center;
+            border-radius: 10px; transition: color .22s ease, background .22s ease;
+        }
+        .dark .nav-section-link { color: #cbd5e1; }
+        .nav-section-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%) scaleX(0); transform-origin: center; width: 55%; height: 2px; background: linear-gradient(90deg,transparent,#10b981,transparent); border-radius: 9999px; transition: transform .32s cubic-bezier(.34,1.56,.64,1); }
+        .dark .nav-section-link::after { background: linear-gradient(90deg,transparent,#fbbf24,transparent); }
+        .nav-section-link:hover { color: #0f2922; background: rgba(15,41,34,.04); }
+        .dark .nav-section-link:hover { color: #fff; background: rgba(251,191,36,.08); }
+        .nav-section-link:hover::after { transform: translateX(-50%) scaleX(.7); }
+        .nav-section-link.active { color: #0f2922; font-weight: 700; background: rgba(16,185,129,.10); }
+        .dark .nav-section-link.active { color: #fbbf24; background: rgba(251,191,36,.12); }
+        .nav-section-link.active::after { transform: translateX(-50%) scaleX(1); }
+
+        .navbar-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+        .navbar-auth-area { display: flex; align-items: center; gap: .5rem; }
+
+        .navbar-icon-btn {
+            width: 40px; height: 40px; border-radius: 9999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; background: transparent; border: 1px solid transparent;
+            color: #475569; font-size: .95rem;
+            transition: all .28s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0;
+        }
+        .dark .navbar-icon-btn { color: #cbd5e1; }
+        .navbar-icon-btn:hover { color: #f59e0b; background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.25); }
+
+        .navbar-user-pill {
+            display: inline-flex; align-items: center; gap: .55rem;
+            padding: .35rem .85rem .35rem .35rem; border-radius: 9999px;
+            text-decoration: none; font-family: inherit;
+            transition: all .28s cubic-bezier(.34,1.56,.64,1);
+            border: 1px solid transparent;
+        }
+        .navbar-user-pill.role-badge-admin { background: linear-gradient(135deg,rgba(251,191,36,.15),rgba(245,158,11,.08)); border-color: rgba(251,191,36,.35); color: #78350f; }
+        .dark .navbar-user-pill.role-badge-admin { background: linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.10)); color: #fbbf24; }
+        .navbar-user-pill.role-badge-member { background: linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.06)); border-color: rgba(16,185,129,.3); color: #065f46; }
+        .dark .navbar-user-pill.role-badge-member { background: linear-gradient(135deg,rgba(16,185,129,.16),rgba(5,150,105,.08)); color: #34d399; }
+        .navbar-user-avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .72rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+        .navbar-user-pill.role-badge-admin .navbar-user-avatar { background: linear-gradient(135deg,#fbbf24,#d97706); }
+        .navbar-user-pill.role-badge-member .navbar-user-avatar { background: linear-gradient(135deg,#34d399,#059669); }
+        .navbar-user-info { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+        .navbar-user-name { font-size: .82rem; font-weight: 700; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+        .navbar-user-role { font-size: .62rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+
+        .navbar-login-btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .55rem 1.1rem; border-radius: 9999px;
+            background: linear-gradient(135deg,#0f2922 0%,#1a4038 100%);
+            color: #fff; font-family: inherit; font-size: .82rem; font-weight: 600;
+            text-decoration: none; transition: all .28s cubic-bezier(.34,1.56,.64,1);
+            box-shadow: 0 2px 8px rgba(15,41,34,.2);
+        }
+        .navbar-login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15,41,34,.3); }
+        .dark .navbar-login-btn { background: linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%); color: #0f2922; }
+
+        #theme-toggle, #admin-theme-toggle, #admin-theme-toggle-mobile,
+        #member-theme-toggle, #member-theme-toggle-mobile {
+            width: 40px; height: 40px; border-radius: 9999px;
+            display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+            background: transparent; border: 1px solid transparent; color: var(--text-muted);
+            transition: all .28s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0;
+        }
+        #theme-toggle:hover, #admin-theme-toggle:hover, #admin-theme-toggle-mobile:hover,
+        #member-theme-toggle:hover, #member-theme-toggle-mobile:hover {
+            color: #f59e0b; border-color: rgba(251,191,36,.3); transform: rotate(15deg) scale(1.05);
+        }
+
+        /* ════════════════════ MOBILE ADMIN HEADER ════════════════════ */
+        .mobile-admin-header {
+            display: none;
+            position: sticky; top: 0; z-index: 30;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(15,41,34,.06);
+            padding: .55rem .85rem;
+            align-items: center; justify-content: space-between;
+            gap: .5rem; min-height: 58px;
+        }
+        .dark .mobile-admin-header { background: rgba(10,20,18,.92); border-bottom-color: rgba(251,191,36,.08); }
+
+        .mah-left { display: flex; align-items: center; gap: .6rem; min-width: 0; flex: 1; }
+        .mah-logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#fff,#f0fdf4); display: inline-flex; align-items: center; justify-content: center; padding: 3px; flex-shrink: 0; box-shadow: 0 1px 6px rgba(15,41,34,.08); }
+        .dark .mah-logo { background: linear-gradient(135deg,#1e293b,#0f1f1a); }
+        .mah-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .mah-title-wrap { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+        .mah-title { font-family: 'Amiri',serif; font-size: .95rem; font-weight: 700; color: #0f2922; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .mah-title { color: #f1f5f9; }
+        .mah-sub { font-size: .68rem; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .mah-sub { color: #94a3b8; }
+
+        .mah-actions { display: flex; align-items: center; gap: .15rem; flex-shrink: 0; }
+        .mah-icon-btn {
+            width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent;
+            color: #475569; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            font-size: .95rem; transition: all .2s ease;
+        }
+        .dark .mah-icon-btn { color: #cbd5e1; }
+        .mah-icon-btn:hover, .mah-icon-btn:active { background: rgba(15,41,34,.06); color: #0f2922; }
+        .dark .mah-icon-btn:hover, .dark .mah-icon-btn:active { background: rgba(255,255,255,.06); color: #f1f5f9; }
+        .mah-icon-btn.mah-logout:hover { background: rgba(220,38,38,.1); color: #dc2626; }
+
+        /* ════════════════════ SIDEBAR (Desktop) ════════════════════ */
         .sidebar {
-            position: fixed; top: 0; left: 0; height: 100vh; width: 240px;
-            background: linear-gradient(180deg, #0f2922 0%, #1a3c34 100%);
-            border-right: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 4px 0 30px rgba(0,0,0,0.2);
-            z-index: 50;
-            transition: width 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; height: 100dvh; width: 260px;
+            background: linear-gradient(180deg,#0f2922 0%,#0a1e19 100%); color: #fff; z-index: 40;
+            display: flex; flex-direction: column;
+            transition: width .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
+            overflow: hidden;
         }
-        .sidebar.collapsed { width: 72px; }
-        .sidebar .brand span, .sidebar .link-text, .sidebar .menu-group-title,
-        .sidebar .role-badge span, .sidebar .logout-btn span, .sidebar .submenu-toggle {
-            transition: opacity 0.3s;
-        }
-        .sidebar.collapsed .brand span, .sidebar.collapsed .link-text,
-        .sidebar.collapsed .menu-group-title, .sidebar.collapsed .role-badge span,
-        .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle {
-            opacity: 0; width: 0; overflow: hidden;
-        }
-        .sidebar .nav-links {
-            flex: 1; overflow-y: auto; min-height: 0;
-            scrollbar-width: thin; scrollbar-color: #4b5563 transparent;
-            padding: 0.75rem 0.75rem;
-        }
-        .sidebar .nav-links::-webkit-scrollbar { width: 6px; }
-        .sidebar .nav-links::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
-        .sidebar .nav-links::-webkit-scrollbar-track { background: transparent; }
-        .sidebar .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; height: 64px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-        .sidebar .brand { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; overflow: hidden; text-decoration: none; color: white; }
-        .sidebar .toggle-btn { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9999px; background: rgba(255,255,255,0.08); transition: all 0.3s; color: rgba(255,255,255,0.6); cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; }
-        .sidebar .toggle-btn:hover { background: rgba(255,255,255,0.2); color: white; }
-        .sidebar.collapsed .toggle-btn { transform: rotate(180deg); }
-        .sidebar .nav-links a { display: flex; align-items: center; padding: 0.5rem 0.75rem; margin-bottom: 0.15rem; border-radius: 0.5rem; color: rgba(255,255,255,0.7); transition: all 0.3s; overflow: hidden; white-space: nowrap; font-size: 0.875rem; text-decoration: none; }
-        .sidebar .nav-links a:hover, .sidebar .nav-links a.active { color: white; transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); background: rgba(255,255,255,0.05); }
-        .sidebar .nav-links a i { width: 1.25rem; font-size: 1rem; flex-shrink: 0; transition: color 0.3s; }
+        .sidebar.collapsed { width: 76px; }
+        .sidebar .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: .85rem 1rem; min-height: 72px; border-bottom: 1px solid rgba(255,255,255,.06); flex-shrink: 0; gap: .25rem; background: rgba(0,0,0,.08); }
+        .sidebar .brand { display: flex; align-items: center; gap: .6rem; white-space: nowrap; overflow: hidden; text-decoration: none; color: #fff; flex: 1; min-width: 0; }
+        .sidebar .brand img { flex-shrink: 0; }
+        .sidebar .brand span { transition: opacity .28s ease; }
+        .sidebar .toggle-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 9999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.06); color: rgba(255,255,255,.65); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .28s ease; }
+        .sidebar .toggle-btn:hover { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.3); color: #fbbf24; }
+        .sidebar.collapsed .toggle-btn#sidebar-toggle, .sidebar.collapsed .toggle-btn#member-sidebar-toggle { transform: rotate(180deg); }
+
+        .sidebar .nav-links { flex: 1; overflow-y: auto; padding: 1rem .85rem; min-height: 0; }
+        .sidebar .nav-links a { display: flex; align-items: center; padding: .65rem .75rem; margin-bottom: .15rem; border-radius: 8px; color: rgba(255,255,255,.68); transition: all .28s ease; overflow: hidden; white-space: nowrap; font-size: .875rem; font-weight: 500; text-decoration: none; min-height: 42px; position: relative; }
+        .sidebar .nav-links a:hover, .sidebar .nav-links a.active { color: #fff; background: rgba(255,255,255,.06); }
+        .sidebar .nav-links a.active { background: linear-gradient(90deg,rgba(251,191,36,.12),rgba(251,191,36,.02)); }
+        .sidebar .nav-links a i { width: 1.25rem; font-size: 1rem; flex-shrink: 0; text-align: center; }
         .sidebar .nav-links a:hover i, .sidebar .nav-links a.active i { color: #fbbf24; }
-        .sidebar .nav-links a .link-text { margin-left: 0.75rem; }
-        .menu-group-title { color: rgba(255,255,255,0.25); font-size: 0.6rem; padding: 0.4rem 0.75rem 0.1rem 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .sidebar .has-submenu { position: relative; }
+        .sidebar .nav-links a .link-text { margin-left: .75rem; transition: opacity .28s ease; }
+        .sidebar.collapsed .link-text, .sidebar.collapsed .menu-group-title, .sidebar.collapsed .brand span, .sidebar.collapsed .role-badge span, .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle { opacity: 0; width: 0; overflow: hidden; pointer-events: none; }
+        .menu-group-title { color: rgba(255,255,255,.3); font-size: .62rem; padding: .75rem .85rem .35rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; transition: opacity .28s ease; }
         .sidebar .has-submenu > a { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .sidebar .has-submenu > a .submenu-toggle { margin-left: auto; transition: transform 0.3s; }
+        .sidebar .has-submenu > a .submenu-toggle { margin-left: auto; transition: transform .28s ease, opacity .28s ease; }
         .sidebar .has-submenu.open > a .submenu-toggle { transform: rotate(90deg); }
-        .sidebar .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s; padding-left: 0.5rem; }
+        .sidebar .submenu { max-height: 0; overflow: hidden; transition: max-height .42s ease; padding-left: .5rem; }
         .sidebar .has-submenu.open .submenu { max-height: 500px; }
-        .sidebar .submenu a { padding: 0.4rem 1rem 0.4rem 2.25rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
-        .sidebar .submenu a:hover { color: white; background: rgba(255,255,255,0.05); }
+        .sidebar .submenu a { padding: .55rem 1rem .55rem 2.35rem; font-size: .825rem; color: rgba(255,255,255,.55); min-height: 38px; }
         .sidebar.collapsed .submenu { display: none !important; }
-        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-        .sidebar-footer .role-badge { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; }
-        .sidebar-footer .logout-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s; color: #f87171; }
-        .sidebar-footer .logout-btn:hover { background: rgba(255,0,0,0.1); }
-        .main-content { margin-left: 240px; transition: margin-left 0.5s; padding: 2rem; min-height: 100vh; }
-        .main-content.expanded { margin-left: 72px; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255,255,255,.06); flex-shrink: 0; background: rgba(0,0,0,.08); }
+        .sidebar-footer .role-badge { display: flex; align-items: center; gap: .55rem; padding: .65rem .75rem; background: linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.02)); border: 1px solid rgba(251,191,36,.15); border-radius: 12px; }
+        .sidebar-footer .logout-btn { display: flex; align-items: center; gap: .55rem; padding: .7rem .75rem; margin-top: .5rem; border-radius: 12px; cursor: pointer; color: #f87171; min-height: 42px; font-size: .875rem; font-weight: 500; transition: all .28s ease; }
+        .sidebar-footer .logout-btn:hover { background: rgba(239,68,68,.1); }
+        .sidebar .sidebar-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 9999px; background: #ef4444; color: #fff; font-size: .68rem; font-weight: 700; margin-left: auto; flex-shrink: 0; }
+        .sidebar .sidebar-badge.hidden { display: none !important; }
+
+        .main-content { margin-left: 260px; min-height: 100vh; padding: 1.5rem; transition: margin-left .42s cubic-bezier(.4,0,.2,1); }
+        .main-content.expanded { margin-left: 76px; }
+
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 39; opacity: 0; visibility: hidden; transition: opacity .28s ease, visibility .28s; }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        /* ════════════════════ FOOTER ════════════════════ */
+        .footer { background: linear-gradient(180deg,#0f2922 0%,#051410 100%); color: #cbd5e1; border-top: 1px solid rgba(255,255,255,.06); padding: 3rem 0; }
+        .footer .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+        .footer a { transition: color .18s ease; text-decoration: none; }
+        .footer a:hover { color: #fbbf24 !important; }
+
+        /* ══════════════════════════════════════════════════════════
+           MOBILE BOTTOM NAV — TELEGRAM STYLE
+           ══════════════════════════════════════════════════════════ */
+        .mobile-bottom-nav { display: none; }
+
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 240px; }
-            .sidebar.open { transform: translateX(0); }
-            .sidebar.collapsed { width: 240px; }
-            .sidebar.collapsed .brand span, .sidebar.collapsed .link-text,
-            .sidebar.collapsed .menu-group-title, .sidebar.collapsed .role-badge span,
-            .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle {
-                opacity: 1; width: auto;
+            .mobile-bottom-nav {
+                display: block;
+                position: fixed; bottom: 0; left: 0; right: 0;
+                height: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px));
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+                background: rgba(255,255,255,.97);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border-top: 1px solid rgba(15,41,34,.08);
+                z-index: 100;
+                box-shadow: 0 -1px 8px rgba(15,41,34,.04);
             }
-            .sidebar.collapsed .toggle-btn { transform: rotate(0deg); }
-            .sidebar.collapsed .submenu { display: none !important; }
-            .main-content { margin-left: 0 !important; padding: 1rem !important; }
-            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 40; }
-            .sidebar-overlay.active { display: block; }
+            .dark .mobile-bottom-nav {
+                background: rgba(15,23,42,.97);
+                border-top-color: rgba(255,255,255,.06);
+                box-shadow: 0 -1px 8px rgba(0,0,0,.3);
+            }
+
+            .mobile-bottom-nav-inner {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                height: var(--bn-height);
+                max-width: 640px;
+                margin: 0 auto;
+            }
+
+            .bottom-nav-item {
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                gap: 3px; padding: 4px 2px;
+                color: #8e8e93; font-size: 10px; font-weight: 500;
+                text-decoration: none; cursor: pointer;
+                border: none; background: transparent;
+                position: relative;
+                transition: color .18s ease, transform .12s ease;
+                -webkit-tap-highlight-color: transparent;
+                font-family: inherit; line-height: 1;
+                user-select: none; -webkit-user-select: none;
+            }
+            .dark .bottom-nav-item { color: #6b7280; }
+            .bottom-nav-item:active { transform: scale(.92); }
+
+            .bottom-nav-item i {
+                font-size: 21px; line-height: 22px; height: 22px;
+                display: inline-block;
+                transition: transform .18s ease;
+            }
+            .bottom-nav-item .bn-label {
+                font-size: 10px; line-height: 12px;
+                letter-spacing: -.005em;
+                white-space: nowrap; max-width: 100%;
+                overflow: hidden; text-overflow: ellipsis;
+            }
+            .bottom-nav-item .bn-badge {
+                position: absolute; top: 2px; left: 50%;
+                transform: translateX(8px);
+                min-width: 16px; height: 16px; padding: 0 4px;
+                background: #ef4444; color: #fff;
+                font-size: 9px; font-weight: 700;
+                border-radius: 9999px;
+                display: inline-flex; align-items: center; justify-content: center;
+                border: 1.5px solid #fff;
+                line-height: 1;
+                animation: bnBadgePulse 2s ease-in-out infinite;
+            }
+            .dark .bottom-nav-item .bn-badge { border-color: #0f172a; }
+            @keyframes bnBadgePulse { 0%,100%{transform:translateX(8px) scale(1)} 50%{transform:translateX(8px) scale(1.08)} }
+
+            .bottom-nav-item.active { color: #0f2922; font-weight: 600; }
+            .bottom-nav-item.active i { color: #0f2922; transform: translateY(-1px); }
+            .dark .bottom-nav-item.active { color: #fbbf24; }
+            .dark .bottom-nav-item.active i { color: #fbbf24; }
+
+            .main-content { padding: 1rem 1rem calc(1rem + var(--bn-height) + env(safe-area-inset-bottom, 0px)) !important; margin-left: 0 !important; }
+            .main-content.expanded { margin-left: 0 !important; }
+            #public-content { padding-bottom: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px) + 8px) !important; }
         }
-        /* --- Public navbar --- */
-        .navbar { background: rgba(255,255,255,0.9) !important; backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.8); transition: all 0.4s; }
-        .dark .navbar { background: rgba(15,23,42,0.95) !important; border-color: rgba(255,255,255,0.08); }
-        .navbar-scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .nav-link { position: relative; color: #475569; font-weight: 500; transition: color 0.3s; }
-        .dark .nav-link { color: #94a3b8; }
-        .nav-link:hover, .nav-link.active { color: #0f2922; }
-        .dark .nav-link:hover, .dark .nav-link.active { color: #e2e8f0; }
-        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 0; height: 2px; background: #fbbf24; transition: width 0.3s; }
-        .nav-link:hover::after, .nav-link.active::after { width: 80%; }
-        /* --- Footer --- */
-        .footer { background: #0f2922; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.05); }
-        /* --- Skeleton --- */
-        .skeleton-box { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.8s infinite; border-radius: 0.75rem; }
-        .dark .skeleton-box { background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%); }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* ══════════════════════════════════════════════════════════
+           MORE SHEET — TELEGRAM STYLE
+           ══════════════════════════════════════════════════════════ */
+        .mobile-more-sheet { position: fixed; inset: 0; z-index: 9998; display: none; }
+        .mobile-more-sheet.open { display: block; }
+
+        .mobile-more-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            opacity: 0; transition: opacity .28s ease;
+        }
+        .mobile-more-sheet.open .mobile-more-backdrop { opacity: 1; }
+
+        .mobile-more-panel {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-top-left-radius: 22px; border-top-right-radius: 22px;
+            max-height: 88vh;
+            display: flex; flex-direction: column;
+            transform: translateY(100%);
+            transition: transform .34s cubic-bezier(.4,0,.2,1);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+            overflow: hidden;
+        }
+        .dark .mobile-more-panel { background: #0f172a; }
+        .mobile-more-sheet.open .mobile-more-panel { transform: translateY(0); }
+
+        .mobile-more-handle { width: 40px; height: 4px; background: #cbd5e1; border-radius: 9999px; margin: 10px auto 4px; flex-shrink: 0; }
+        .dark .mobile-more-handle { background: #475569; }
+
+        .mobile-more-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 18px 14px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
+        .dark .mobile-more-header { border-bottom-color: #1e293b; }
+
+        .mobile-more-title { font-size: 1.05rem; font-weight: 700; font-family: 'Amiri',serif; color: #0f2922; margin: 0; }
+        .dark .mobile-more-title { color: #f1f5f9; }
+
+        .mobile-more-close { width: 34px; height: 34px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all .2s ease; }
+        .dark .mobile-more-close { background: #1e293b; color: #cbd5e1; }
+        .mobile-more-close:hover, .mobile-more-close:active { background: #e2e8f0; color: #0f2922; }
+        .dark .mobile-more-close:hover { background: #334155; color: #f1f5f9; }
+
+        .mobile-more-body { flex: 1; overflow-y: auto; padding: 6px 8px 20px; -webkit-overflow-scrolling: touch; }
+
+        .mobile-more-section-title {
+            font-size: .68rem; text-transform: uppercase;
+            letter-spacing: .08em; color: #94a3b8; font-weight: 700;
+            padding: 14px 16px 6px;
+        }
+
+        .mobile-more-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 10px 14px; border-radius: 12px;
+            text-decoration: none; color: #0f172a;
+            font-size: .875rem; font-weight: 500;
+            transition: background .15s ease;
+            border: none; background: transparent;
+            width: 100%; text-align: left; cursor: pointer;
+            font-family: inherit;
+        }
+        .mobile-more-item:hover, .mobile-more-item:active { background: #f1f5f9; }
+        .dark .mobile-more-item { color: #e2e8f0; }
+        .dark .mobile-more-item:hover, .dark .mobile-more-item:active { background: #1e293b; }
+
+        .mobile-more-icon { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+        .mobile-more-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mobile-more-chev { font-size: 12px; color: #cbd5e1; flex-shrink: 0; }
+        .dark .mobile-more-chev { color: #475569; }
+
+        /* ════════════════════ RESPONSIVE ════════════════════ */
+        @media (max-width: 1023px) {
+            .navbar-links { display: none !important; }
+            .navbar-brand-sub { display: none; }
+            .navbar-inner { padding: .6rem 1rem; min-height: 58px; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px !important; max-width: 86vw; }
+            .sidebar.collapsed { transform: translateX(-100%); }
+            #sidebar-toggle, #member-sidebar-toggle { display: none !important; }
+            .mobile-admin-header { display: flex; }
+            #public-content { padding-top: 62px; }
+            .navbar-login-btn span { display: none; }
+            .navbar-login-btn { padding: .55rem .65rem; }
+            .navbar-login-btn i { font-size: 1rem; }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-bottom-nav, .mobile-more-sheet { display: none !important; }
+            .mobile-admin-header { display: none !important; }
+        }
+
+        .hidden { display: none !important; }
+        body.sheet-open { overflow: hidden; }
+
+        @media print {
+            .mobile-bottom-nav, .mobile-more-sheet, .mobile-admin-header,
+            .sidebar, .sidebar-overlay, #public-navbar, .footer { display: none !important; }
+            .main-content { margin: 0 !important; padding: 0 !important; padding-bottom: 0 !important; }
+            #public-content { padding: 0 !important; padding-bottom: 0 !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bottom-nav-item, .bottom-nav-item i,
+            .mobile-more-panel, .mobile-more-backdrop {
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
+            }
+            .bn-badge { animation: none !important; }
+        }
+
+        #noscript-warning { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background: #fff; padding: 24px; font-family: 'Inter',sans-serif; text-align: center; }
+        .dark #noscript-warning { background: #0f172a; color: #f1f5f9; }
+        #noscript-warning .ns-box { max-width: 420px; padding: 32px 24px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; }
+        #noscript-warning h2 { font-family: 'Amiri',serif; font-size: 1.5rem; margin: 0 0 12px; }
+        #noscript-warning i { font-size: 3rem; color: #f59e0b; margin-bottom: 16px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <!-- ===== APP ROOT ===== -->
+    <!-- ══════════════════ BOOT LOADER ══════════════════ -->
+    <div id="app-boot-loader">
+        <img src="logo-ansor.webp" alt="Logo Ansor" class="app-boot-logo" onerror="this.style.display='none'">
+        <div class="app-boot-spinner"></div>
+        <p class="app-boot-text">PAC GP Ansor Sewon</p>
+        <p class="app-boot-sub">Memuat aplikasi...</p>
+    </div>
+
+    <noscript>
+        <div id="noscript-warning">
+            <div class="ns-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>JavaScript Diperlukan</h2>
+                <p>Aplikasi ini membutuhkan JavaScript untuk berjalan. Silakan aktifkan JavaScript di pengaturan browser Anda.</p>
+            </div>
+        </div>
+    </noscript>
+
     <div id="app">
 
-        <!-- ============================== -->
-        <!-- LAYOUT PUBLIK                   -->
-        <!-- ============================== -->
-        <div id="layout-public" class="hidden flex flex-col min-h-screen">
-            <!-- Navbar Publik -->
-            <nav id="public-navbar" class="navbar fixed top-0 left-0 w-full z-50 transition-all duration-300">
-                <div class="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-                    <a href="/" class="flex items-center space-x-3">
-                        <img src="logo-ansor.webp" alt="Logo Ansor" class="h-10 w-auto object-contain" />
-                        <span class="font-amiri font-bold text-xl text-[#0f2922] tracking-tight hidden sm:block">Ansor Sewon</span>
+        <!-- ══════════════════════════════════════════════════════════
+             LAYOUT PUBLIK
+             ══════════════════════════════════════════════════════════ -->
+        <div id="layout-public" class="hidden" style="display:flex; flex-direction:column; min-height:100vh;">
+
+            <nav id="public-navbar">
+                <div class="navbar-inner">
+                    <a href="/" class="navbar-brand" aria-label="Beranda">
+                        <div class="navbar-brand-logo">
+                            <img src="logo-ansor.webp" alt="Logo Ansor" />
+                        </div>
+                        <div class="navbar-brand-text">
+                            <span class="navbar-brand-title">Ansor Sewon</span>
+                            <span class="navbar-brand-sub">Kapanewon Sewon</span>
+                        </div>
                     </a>
-                    <div class="hidden lg:flex items-center space-x-6">
-                        <a href="/" class="nav-link text-sm">Beranda</a>
-                        <a href="/profil" class="nav-link text-sm">Profil</a>
-                        <a href="/kegiatan" class="nav-link text-sm">Kegiatan</a>
-                        <a href="/semua_berita" class="nav-link text-sm">Berita</a>
-                        <a href="/anggota" class="nav-link text-sm">Anggota</a>
-                        <a href="/dokumen" class="nav-link text-sm">Dokumen</a>
-                        <a href="/kalender" class="nav-link text-sm">Kalender</a>
-                        <a href="/arsip" class="nav-link text-sm">Arsip</a>
-                        <a href="/keuangan" class="nav-link text-sm">Keuangan</a>
-                        <a href="/tokoh" class="nav-link text-sm">Tokoh</a>
-                        <a href="/absensi" class="nav-link text-sm">Absensi</a>
-                        <a href="/kontak" class="nav-link text-sm">Kontak</a>
-                        <div id="public-auth-links" class="flex items-center space-x-3"></div>
-                        <button id="theme-toggle" class="text-[#475569] hover:text-[#0f2922] dark:text-[#94a3b8] dark:hover:text-[#e2e8f0] transition">
+
+                    <div class="navbar-links">
+                        <a class="nav-section-link" data-section="hero" data-scroll="true">Beranda</a>
+                        <a class="nav-section-link" data-section="profil" data-scroll="true">Profil</a>
+                        <a class="nav-section-link" data-section="keuangan" data-scroll="true">Keuangan</a>
+                        <a class="nav-section-link" data-section="stats" data-scroll="true">Anggota</a>
+                        <a class="nav-section-link" data-section="berita" data-scroll="true">Berita</a>
+                        <a class="nav-section-link" data-section="galeri" data-scroll="true">Galeri</a>
+                        <a class="nav-section-link" data-section="kalender" data-scroll="true">Kalender</a>
+                        <a class="nav-section-link" data-section="dokumen" data-scroll="true">Dokumen</a>
+                        <a class="nav-section-link" data-section="kontak" data-scroll="true">Kontak</a>
+                    </div>
+
+                    <div class="navbar-actions">
+                        <div id="public-auth-links" class="navbar-auth-area"></div>
+                        <button id="theme-toggle" type="button" class="navbar-icon-btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
                             <i class="fas fa-moon theme-icon-moon"></i>
                             <i class="fas fa-sun theme-icon-sun hidden"></i>
                         </button>
                     </div>
-                    <button id="menu-btn" class="lg:hidden text-2xl text-[#0f2922] dark:text-[#e2e8f0]"><i class="fas fa-bars"></i></button>
                 </div>
-                <!-- Mobile Menu -->
-                <div id="mobile-menu" class="hidden lg:hidden bg-[#f8fafc] dark:bg-[#0f172a] border-t border-[#d1d5db] dark:border-[#4b5563] px-4 py-4 space-y-2 shadow-lg">
-                    <a href="/" class="block nav-link py-2">Beranda</a>
-                    <a href="/profil" class="block nav-link py-2">Profil</a>
-                    <a href="/kegiatan" class="block nav-link py-2">Kegiatan</a>
-                    <a href="/semua_berita" class="block nav-link py-2">Berita</a>
-                    <a href="/anggota" class="block nav-link py-2">Anggota</a>
-                    <a href="/dokumen" class="block nav-link py-2">Dokumen</a>
-                    <a href="/kalender" class="block nav-link py-2">Kalender</a>
-                    <a href="/arsip" class="block nav-link py-2">Arsip</a>
-                    <a href="/keuangan" class="block nav-link py-2">Keuangan</a>
-                    <a href="/tokoh" class="block nav-link py-2">Tokoh</a>
-                    <a href="/absensi" class="block nav-link py-2">Absensi</a>
-                    <a href="/kontak" class="block nav-link py-2">Kontak</a>
-                    <div id="public-auth-links-mobile" class="flex flex-col space-y-2 pt-2 border-t border-[#d1d5db] dark:border-[#4b5563]"></div>
-                    <button id="theme-toggle-mobile" class="block w-full text-left py-2 text-[#0f2922] dark:text-[#e2e8f0]">
-                        <i class="fas fa-moon theme-icon-moon mr-2"></i> <i class="fas fa-sun theme-icon-sun hidden mr-2"></i> Toggle Mode
+            </nav>
+
+            <main id="public-content" style="flex:1;"></main>
+
+            <!-- ⭐ BOTTOM NAV — PUBLIC -->
+            <nav class="mobile-bottom-nav" data-role="public" aria-label="Navigasi utama">
+                <div class="mobile-bottom-nav-inner">
+                    <a href="/" class="bottom-nav-item" data-route="/">
+                        <i class="fas fa-home"></i>
+                        <span class="bn-label">Beranda</span>
+                    </a>
+                    <a href="/semua_berita" class="bottom-nav-item" data-route="/semua_berita">
+                        <i class="fas fa-newspaper"></i>
+                        <span class="bn-label">Berita</span>
+                    </a>
+                    <a href="/semua_kegiatan" class="bottom-nav-item" data-route="/semua_kegiatan">
+                        <i class="fas fa-calendar-check"></i>
+                        <span class="bn-label">Kegiatan</span>
+                    </a>
+                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="bn-label">Absensi</span>
+                    </a>
+                    <button type="button" class="bottom-nav-item" data-action="more">
+                        <i class="fas fa-bars"></i>
+                        <span class="bn-label">Lainnya</span>
                     </button>
                 </div>
             </nav>
 
-            <!-- Konten Publik -->
-            <main id="public-content" class="flex-grow pt-20"></main>
-
-            <!-- Footer Publik -->
-            <footer class="footer py-8">
-                <div class="container mx-auto px-4 text-center text-sm">
-                    <p>&copy; 2026 PAC GP Ansor Kapanewon Sewon. All rights reserved.</p>
+            <footer class="footer">
+                <div class="container">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:2rem; margin-bottom:2.5rem;">
+                        <div style="grid-column: span 2;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:1rem;">
+                                <img src="logo-ansor.webp" alt="Logo" style="height:48px; width:auto;" />
+                                <div>
+                                    <h4 style="font-family:'Amiri',serif; font-weight:700; color:#fff; font-size:1.25rem; margin:0;">PAC GP Ansor</h4>
+                                    <p style="color:#86efac; font-size:0.85rem; margin:0;">Kapanewon Sewon</p>
+                                </div>
+                            </div>
+                            <p style="color:#9ca3af; font-size:0.875rem; line-height:1.7; max-width:28rem;">
+                                Mengabdi untuk umat, berjuang untuk bangsa. Organisasi kepemudaan Islam yang berkhidmat di Kapanewon Sewon, Bantul, Yogyakarta.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 style="color:#fff; font-size:0.8rem; margin:0 0 1rem; text-transform:uppercase; letter-spacing:0.05em;">Halaman</h4>
+                            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">
+                                <li><a href="/semua_kegiatan" style="color:#9ca3af; font-size:0.875rem;"><i class="fas fa-chevron-right" style="font-size:10px; margin-right:8px; color:#4ade80;"></i>Kegiatan</a></li>
+                                <li><a href="/semua_berita" style="color:#9ca3af; font-size:0.875rem;"><i class="fas fa-chevron-right" style="font-size:10px; margin-right:8px; color:#4ade80;"></i>Berita</a></li>
+                                <li><a href="/anggota" style="color:#9ca3af; font-size:0.875rem;"><i class="fas fa-chevron-right" style="font-size:10px; margin-right:8px; color:#4ade80;"></i>Anggota</a></li>
+                                <li><a href="/tokoh" style="color:#9ca3af; font-size:0.875rem;"><i class="fas fa-chevron-right" style="font-size:10px; margin-right:8px; color:#4ade80;"></i>Tokoh</a></li>
+                                <li><a href="/absensi" style="color:#9ca3af; font-size:0.875rem;"><i class="fas fa-chevron-right" style="font-size:10px; margin-right:8px; color:#4ade80;"></i>Absensi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="color:#fff; font-size:0.8rem; margin:0 0 1rem; text-transform:uppercase; letter-spacing:0.05em;">Kontak</h4>
+                            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; font-size:0.875rem;">
+                                <li style="color:#9ca3af; display:flex; gap:8px;"><i class="fas fa-map-marker-alt" style="color:#4ade80; margin-top:3px;"></i><span>Sewon, Bantul, Yogyakarta</span></li>
+                                <li style="color:#9ca3af; display:flex; gap:8px;"><i class="fas fa-envelope" style="color:#4ade80; margin-top:3px;"></i><span>sewon.ansor@gmail.com</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="text-align:center; color:#6b7280; font-size:0.75rem; border-top:1px solid rgba(255,255,255,0.1); padding-top:1.5rem;">
+                        &copy; 2026 PAC GP Ansor Kapanewon Sewon. All rights reserved.
+                    </div>
                 </div>
             </footer>
         </div>
 
-        <!-- ============================== -->
-        <!-- LAYOUT ADMIN                    -->
-        <!-- ============================== -->
+        <!-- ══════════════════════════════════════════════════════════
+             LAYOUT ADMIN
+             ══════════════════════════════════════════════════════════ -->
         <div id="layout-admin" class="hidden">
-            <!-- Sidebar Admin -->
             <aside id="admin-sidebar" class="sidebar">
-                <div class="sidebar-header flex items-center justify-between border-b border-white/10">
+                <div class="sidebar-header">
                     <a href="/" class="brand">
-                        <img src="logo-ansor.webp" alt="Logo" class="h-9 w-auto object-contain drop-shadow-lg flex-shrink-0" />
-                        <span class="font-amiri font-bold text-xl text-white tracking-wide leading-tight">
-                            Ansor<br>Sewon
-                        </span>
+                        <img src="logo-ansor.webp" alt="Logo" style="height:36px; width:auto;" />
+                        <span style="font-family:'Amiri',serif; font-weight:700; font-size:1.15rem; line-height:1.1;">Ansor<br>Sewon</span>
                     </a>
-                    <button id="admin-theme-toggle" class="toggle-btn" title="Toggle Dark Mode">
+                    <button id="admin-theme-toggle" type="button" class="toggle-btn" title="Toggle Dark Mode">
                         <i class="fas fa-moon theme-icon-moon"></i>
                         <i class="fas fa-sun theme-icon-sun hidden"></i>
                     </button>
-                    <button id="sidebar-toggle" class="toggle-btn" title="Minimize/Maximize Sidebar">
-                        <i class="fas fa-chevron-left text-lg"></i>
+                    <button id="sidebar-toggle" type="button" class="toggle-btn" title="Minimize/Maximize">
+                        <i class="fas fa-chevron-left"></i>
                     </button>
                 </div>
-                <nav class="nav-links flex-1 overflow-y-auto py-6 px-4 space-y-1">
+
+                <nav class="nav-links">
                     <div class="menu-group-title">Manajemen Umum</div>
                     <a href="/dashboard_admin"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
                     <a href="/surat_admin"><i class="fas fa-file-alt"></i><span class="link-text">Surat</span></a>
-                    <!-- Submenu Laporan (Logbook sudah di sini) -->
                     <div class="has-submenu">
-                        <a href="#"><i class="fas fa-file-pdf"></i><span class="link-text">Laporan</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
+                        <a href="#"><i class="fas fa-file-pdf"></i><span class="link-text">Laporan</span><i class="fas fa-chevron-right submenu-toggle" style="font-size:0.75rem;"></i></a>
                         <div class="submenu">
                             <a href="/logbook_admin"><i class="fas fa-book"></i> Logbook</a>
                             <a href="/logbook_report"><i class="fas fa-file-alt"></i> Laporan Lengkap</a>
                             <a href="/ringkasan"><i class="fas fa-chart-bar"></i> Ringkasan</a>
                         </div>
                     </div>
-                    <!-- MENU KEGIATAN DIHAPUS KARENA SUDAH ADA LOGBOOK -->
                     <a href="/berita_admin"><i class="fas fa-newspaper"></i><span class="link-text">Manajemen Berita</span></a>
 
-                    <div class="menu-group-title mt-6">Sumber Daya</div>
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Sumber Daya</div>
                     <div class="has-submenu">
-                        <a href="#"><i class="fas fa-users"></i><span class="link-text">Anggota</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
+                        <a href="#"><i class="fas fa-users"></i><span class="link-text">Anggota</span><i class="fas fa-chevron-right submenu-toggle" style="font-size:0.75rem;"></i></a>
                         <div class="submenu">
                             <a href="/anggota_admin"><i class="fas fa-list"></i> Daftar Anggota</a>
                             <a href="/kader_admin"><i class="fas fa-user-graduate"></i> Kader</a>
@@ -239,120 +663,1168 @@
                     <a href="/profil_admin"><i class="fas fa-address-card"></i><span class="link-text">Profil</span></a>
                     <a href="/tokoh_admin"><i class="fas fa-user-tie"></i><span class="link-text">Tokoh</span></a>
 
-                    <div class="menu-group-title mt-6">Konten & Publikasi</div>
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Konten &amp; Publikasi</div>
                     <a href="/arsip_admin"><i class="fas fa-archive"></i><span class="link-text">Arsip</span></a>
                     <a href="/kalender_admin"><i class="fas fa-calendar-alt"></i><span class="link-text">Kalender</span></a>
                     <a href="/galeri_admin"><i class="fas fa-images"></i><span class="link-text">Galeri</span></a>
 
-                    <div class="menu-group-title mt-6">Operasional</div>
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Operasional</div>
                     <a href="/keuangan_admin"><i class="fas fa-coins"></i><span class="link-text">Keuangan</span></a>
                     <a href="/absensi_admin"><i class="fas fa-clipboard-check"></i><span class="link-text">Absensi</span></a>
-                    <!-- Inventaris (submenu Peminjaman sudah dihapus) -->
-                    <div class="has-submenu">
-                        <a href="#"><i class="fas fa-boxes"></i><span class="link-text">Inventaris</span><i class="fas fa-chevron-right submenu-toggle text-xs"></i></a>
-                        <div class="submenu">
-                            <a href="/inventaris_admin"><i class="fas fa-box"></i> Barang</a>
-                            <!-- <a href="/inventaris_admin?tab=peminjaman"><i class="fas fa-hand-holding"></i> Peminjaman</a> -->
-                        </div>
-                    </div>
+                    <a href="/inventaris_admin"><i class="fas fa-boxes"></i><span class="link-text">Inventaris</span></a>
                     <a href="/proker_admin"><i class="fas fa-tasks"></i><span class="link-text">Program Kerja</span></a>
                     <a href="/forum_admin"><i class="fas fa-comments"></i><span class="link-text">Forum</span></a>
+
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Form Builder</div>
+                    <a href="/forms_admin" id="menu-forms-admin">
+                        <i class="fas fa-wpforms"></i>
+                        <span class="link-text">Form Builder</span>
+                        <span id="forms-badge" class="sidebar-badge hidden">0</span>
+                    </a>
                 </nav>
+
                 <div class="sidebar-footer">
                     <div class="role-badge">
-                        <i class="fas fa-user-shield text-amber-400"></i>
-                        <span id="sidebar-role" class="text-sm text-white/80">Admin</span>
+                        <i class="fas fa-user-shield" style="color:#fbbf24;"></i>
+                        <span id="sidebar-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Admin</span>
                     </div>
-                    <div id="sidebar-logout" class="logout-btn cursor-pointer">
+                    <div id="sidebar-logout" class="logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span class="text-sm">Logout</span>
+                        <span style="font-size:0.875rem;">Logout</span>
                     </div>
                 </div>
             </aside>
             <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-            <!-- Konten Admin -->
-            <main id="admin-content" class="main-content"></main>
-        </div>
-
-        <!-- ============================== -->
-        <!-- LAYOUT MEMBER                   -->
-        <!-- ============================== -->
-        <div id="layout-member" class="hidden">
-            <!-- Sidebar Member -->
-            <aside id="member-sidebar" class="sidebar">
-                <div class="sidebar-header flex items-center justify-between border-b border-white/10">
-                    <a href="/" class="brand">
-                        <img src="logo-ansor.webp" alt="Logo" class="h-9 w-auto object-contain drop-shadow-lg flex-shrink-0" />
-                        <span class="font-amiri font-bold text-xl text-white tracking-wide leading-tight">
-                            Ansor<br>Sewon
-                        </span>
-                    </a>
-                    <button id="member-theme-toggle" class="toggle-btn" title="Toggle Dark Mode">
+            <header class="mobile-admin-header">
+                <div class="mah-left">
+                    <div class="mah-logo">
+                        <img src="logo-ansor.webp" alt="Logo" />
+                    </div>
+                    <div class="mah-title-wrap">
+                        <p class="mah-title">Admin Panel</p>
+                        <p class="mah-sub" id="admin-mobile-username">PAC GP Ansor Sewon</p>
+                    </div>
+                </div>
+                <div class="mah-actions">
+                    <button id="admin-theme-toggle-mobile" type="button" class="mah-icon-btn" aria-label="Toggle Dark Mode">
                         <i class="fas fa-moon theme-icon-moon"></i>
                         <i class="fas fa-sun theme-icon-sun hidden"></i>
                     </button>
-                    <button id="member-sidebar-toggle" class="toggle-btn"><i class="fas fa-chevron-left text-lg"></i></button>
+                    <button type="button" class="mah-icon-btn mah-logout" id="admin-logout-mobile" aria-label="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
-                <nav class="nav-links flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            </header>
+
+            <main id="admin-content" class="main-content"></main>
+
+            <!-- ⭐ BOTTOM NAV — ADMIN -->
+            <nav class="mobile-bottom-nav" data-role="admin" aria-label="Navigasi admin">
+                <div class="mobile-bottom-nav-inner">
+                    <a href="/dashboard_admin" class="bottom-nav-item" data-route="/dashboard_admin">
+                        <i class="fas fa-chart-pie"></i>
+                        <span class="bn-label">Dashboard</span>
+                    </a>
+                    <a href="/surat_admin" class="bottom-nav-item" data-route="/surat_admin">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="bn-label">Surat</span>
+                    </a>
+                    <a href="/logbook_admin" class="bottom-nav-item" data-route="/logbook_admin">
+                        <i class="fas fa-book"></i>
+                        <span class="bn-label">Logbook</span>
+                    </a>
+                    <a href="/forms_admin" class="bottom-nav-item" data-route="/forms_admin">
+                        <i class="fas fa-wpforms"></i>
+                        <span class="bn-label">Form</span>
+                        <span class="bn-badge hidden" data-badge="forms">0</span>
+                    </a>
+                    <button type="button" class="bottom-nav-item" data-action="more">
+                        <i class="fas fa-bars"></i>
+                        <span class="bn-label">Lainnya</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             LAYOUT MEMBER
+             ══════════════════════════════════════════════════════════ -->
+        <div id="layout-member" class="hidden">
+            <aside id="member-sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <a href="/" class="brand">
+                        <img src="logo-ansor.webp" alt="Logo" style="height:36px; width:auto;" />
+                        <span style="font-family:'Amiri',serif; font-weight:700; font-size:1.15rem; line-height:1.1;">Ansor<br>Sewon</span>
+                    </a>
+                    <button id="member-theme-toggle" type="button" class="toggle-btn" title="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i>
+                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button id="member-sidebar-toggle" type="button" class="toggle-btn" title="Minimize/Maximize">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+
+                <nav class="nav-links">
                     <div class="menu-group-title">Manajemen Member</div>
                     <a href="/dashboard_member"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
                     <a href="/surat_member"><i class="fas fa-file-alt"></i><span class="link-text">Surat</span></a>
                     <a href="/logbook_member"><i class="fas fa-book"></i><span class="link-text">Logbook</span></a>
-                    <div class="menu-group-title mt-6">Navigasi</div>
+
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Navigasi</div>
                     <a href="/"><i class="fas fa-home"></i><span class="link-text">Beranda Publik</span></a>
+                    <a href="/absensi"><i class="fas fa-clipboard-check"></i><span class="link-text">Absensi</span></a>
                 </nav>
+
                 <div class="sidebar-footer">
                     <div class="role-badge">
-                        <i class="fas fa-user-shield text-amber-400"></i>
-                        <span id="member-role" class="text-sm text-white/80">Member</span>
+                        <i class="fas fa-user" style="color:#34d399;"></i>
+                        <span id="member-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Member</span>
                     </div>
-                    <div id="member-logout" class="logout-btn cursor-pointer">
+                    <div id="member-logout" class="logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span class="text-sm">Logout</span>
+                        <span style="font-size:0.875rem;">Logout</span>
                     </div>
                 </div>
             </aside>
             <div id="member-overlay" class="sidebar-overlay"></div>
 
-            <!-- Konten Member -->
+            <header class="mobile-admin-header">
+                <div class="mah-left">
+                    <div class="mah-logo">
+                        <img src="logo-ansor.webp" alt="Logo" />
+                    </div>
+                    <div class="mah-title-wrap">
+                        <p class="mah-title">Member Area</p>
+                        <p class="mah-sub" id="member-mobile-username">PAC GP Ansor Sewon</p>
+                    </div>
+                </div>
+                <div class="mah-actions">
+                    <button id="member-theme-toggle-mobile" type="button" class="mah-icon-btn" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i>
+                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button type="button" class="mah-icon-btn mah-logout" id="member-logout-mobile" aria-label="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
             <main id="member-content" class="main-content"></main>
+
+            <!-- ⭐ BOTTOM NAV — MEMBER -->
+            <nav class="mobile-bottom-nav" data-role="member" aria-label="Navigasi member">
+                <div class="mobile-bottom-nav-inner">
+                    <a href="/dashboard_member" class="bottom-nav-item" data-route="/dashboard_member">
+                        <i class="fas fa-chart-pie"></i>
+                        <span class="bn-label">Dashboard</span>
+                    </a>
+                    <a href="/surat_member" class="bottom-nav-item" data-route="/surat_member">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="bn-label">Surat</span>
+                    </a>
+                    <a href="/logbook_member" class="bottom-nav-item" data-route="/logbook_member">
+                        <i class="fas fa-book"></i>
+                        <span class="bn-label">Logbook</span>
+                    </a>
+                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="bn-label">Absensi</span>
+                    </a>
+                    <button type="button" class="bottom-nav-item" data-action="more">
+                        <i class="fas fa-bars"></i>
+                        <span class="bn-label">Lainnya</span>
+                    </button>
+                </div>
+            </nav>
         </div>
 
-        <!-- ============================== -->
-        <!-- LAYOUT AUTH                     -->
-        <!-- ============================== -->
+        <!-- ══════════════════════════════════════════════════════════
+             LAYOUT AUTH
+             ══════════════════════════════════════════════════════════ -->
         <div id="layout-auth" class="hidden">
-            <div id="auth-content" class="flex items-center justify-center min-h-screen px-4 py-12"></div>
+            <div id="auth-content" style="display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem 1rem;"></div>
         </div>
 
     </div>
 
-    <!-- ============================== -->
-    <!-- SCRIPTS                         -->
-    <!-- ============================== -->
-    <!-- FullCalendar -->
+    <!-- ══════════════════════════════════════════════════════════
+         TELEGRAM FAB — Smart Deep Link + Copy (v4.0.0)
+         ══════════════════════════════════════════════════════════ -->
+    <div id="telegram-fab-container" aria-live="polite">
+        <!-- Panel -->
+        <div id="telegram-fab-panel" role="dialog" aria-modal="false" aria-labelledby="tg-fab-title">
+            <div class="tg-fab-header">
+                <div class="tg-fab-header-icon">
+                    <i class="fab fa-telegram-plane"></i>
+                </div>
+                <div class="tg-fab-header-text">
+                    <h3 id="tg-fab-title" class="tg-fab-title">Bot Telegram</h3>
+                    <p class="tg-fab-subtitle">
+                        <i class="fas fa-bolt"></i>
+                        <span>Isi &amp; kelola data via chat</span>
+                    </p>
+                </div>
+                <button type="button" id="tg-fab-close" class="tg-fab-close"
+                        aria-label="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="tg-fab-body">
+                <p class="tg-fab-desc">
+                    Isi <strong>logbook</strong>, <strong>surat</strong>,
+                    <strong>keuangan</strong>, dan data lainnya langsung dari
+                    Telegram. <strong>Klik command</strong> di bawah untuk langsung
+                    eksekusi.
+                </p>
+
+                <div id="tg-fab-role-hint" class="tg-fab-role-hint tg-role-public">
+                    <i class="fas fa-user"></i>
+                    <span>Mode: Publik</span>
+                </div>
+
+                <p class="tg-fab-section-label">
+                    <i class="fas fa-terminal"></i>
+                    <span id="tg-fab-cmd-label">Pilih command</span>
+                </p>
+                <div id="tg-fab-cmds" class="tg-fab-cmds">
+                    <!-- Diisi oleh JS berdasarkan role -->
+                </div>
+
+                <!-- Deep-link hint -->
+                <div class="tg-fab-deeplink-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Tips:</strong> Pastikan sudah
+                        <code>/link</code> di bot dulu sebelum klik command
+                        yang butuh akses data.
+                    </div>
+                </div>
+
+                <div class="tg-fab-security">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        Akses perintah <strong>dibatasi sesuai role</strong> akun
+                        yang tertaut. Token bot tidak pernah terekspos ke browser.
+                    </div>
+                </div>
+            </div>
+
+            <div class="tg-fab-footer">
+                <a id="tg-fab-open-link" href="#" target="_blank" rel="noopener noreferrer"
+                   class="tg-fab-open-btn">
+                    <i class="fab fa-telegram"></i>
+                    <span>Buka Bot Telegram</span>
+                </a>
+                <p class="tg-fab-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Daftar akun di website dulu, lalu <code>/link</code> di bot
+                </p>
+            </div>
+        </div>
+
+        <!-- Tombol FAB -->
+        <button type="button" id="telegram-fab-btn"
+                aria-label="Buka bot Telegram"
+                aria-expanded="false"
+                aria-controls="telegram-fab-panel">
+            <span class="tg-fab-pulse" aria-hidden="true"></span>
+            <i class="fab fa-telegram-plane"></i>
+            <span class="tg-fab-badge hidden" id="tg-fab-badge">0</span>
+        </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MORE SHEET — Global
+         ══════════════════════════════════════════════════════════ -->
+    <div id="mobile-more-sheet" class="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-sheet-title">
+        <div class="mobile-more-backdrop" data-action="close-more"></div>
+        <div class="mobile-more-panel">
+            <div class="mobile-more-handle"></div>
+            <div class="mobile-more-header">
+                <h3 id="more-sheet-title" class="mobile-more-title">Menu Lainnya</h3>
+                <button type="button" class="mobile-more-close" data-action="close-more" aria-label="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-more-body" id="more-sheet-body">
+                <!-- Diisi oleh JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         CDN SCRIPTS
+         ══════════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <!-- Swiper -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <!-- AOS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <!-- Quill -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <!-- jsPlumb & interact.js -->
-    <script src="https://cdn.jsdelivr.net/npm/jsplumb@2.15.6/jsplumb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsplumb@2.15.6/dist/js/jsplumb.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
-    <!-- QRCode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- JsBarcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-    <!-- html2canvas & jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- docx.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js"></script>
 
-    <!-- Core App (Router, Registry, API, etc.) -->
-    <script src="js/app.js"></script>
+    <!-- ══════════════════════════════════════════════════════════
+         FALLBACK LOADER
+         ══════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        'use strict';
+
+        var FALLBACKS = [
+            { global: 'FullCalendar', url: 'https://unpkg.com/fullcalendar@6.1.8/index.global.min.js' },
+            { global: 'Swiper',       url: 'https://unpkg.com/swiper@11/swiper-bundle.min.js' },
+            { global: 'AOS',          url: 'https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js' },
+            { global: 'Quill',        url: 'https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js' },
+            { global: 'jsPlumb',      url: 'https://unpkg.com/jsplumb@2.15.6/dist/js/jsplumb.min.js' },
+            { global: 'interact',     url: 'https://unpkg.com/interactjs@1.10.27/dist/interact.min.js' },
+            { global: 'QRCode',       url: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js' },
+            { global: 'JsBarcode',    url: 'https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js' },
+            { global: 'html2canvas',  url: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js' },
+            { global: 'jspdf',        url: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js' },
+            { global: 'docx',         url: 'https://cdn.jsdelivr.net/npm/docx@8.2.0/build/index.umd.js' }
+        ];
+
+        var missing = [];
+        for (var i = 0; i < FALLBACKS.length; i++) {
+            if (typeof window[FALLBACKS[i].global] === 'undefined') {
+                missing.push(FALLBACKS[i]);
+            }
+        }
+
+        if (missing.length === 0) {
+            console.log('[CDN] ✅ Semua library loaded OK');
+            return;
+        }
+
+        console.warn('[CDN] ⚠️ ' + missing.length + ' library gagal — loading fallback...');
+
+        if (document.readyState === 'loading') {
+            for (var j = 0; j < missing.length; j++) {
+                console.log('[CDN] → Fallback: ' + missing[j].global);
+                document.write('<scr' + 'ipt src="' + missing[j].url + '"><\/scr' + 'ipt>');
+            }
+        } else {
+            for (var k = 0; k < missing.length; k++) {
+                var s = document.createElement('script');
+                s.src = missing[k].url;
+                s.async = false;
+                document.head.appendChild(s);
+            }
+        }
+    })();
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════════
+         APP CORE
+         ══════════════════════════════════════════════════════════ -->
+    <script src="js/app.js?v=3811"></script>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MOBILE UI CONTROLLER — v38.1.1
+         ══════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        'use strict';
+
+        var ICON_COLORS = {
+            blue:   'linear-gradient(135deg,#60a5fa,#2563eb)',
+            green:  'linear-gradient(135deg,#34d399,#059669)',
+            red:    'linear-gradient(135deg,#f87171,#dc2626)',
+            yellow: 'linear-gradient(135deg,#fbbf24,#d97706)',
+            purple: 'linear-gradient(135deg,#a78bfa,#7c3aed)',
+            pink:   'linear-gradient(135deg,#f472b6,#db2777)',
+            teal:   'linear-gradient(135deg,#2dd4bf,#0d9488)',
+            indigo: 'linear-gradient(135deg,#818cf8,#4f46e5)',
+            orange: 'linear-gradient(135deg,#fb923c,#ea580c)',
+            cyan:   'linear-gradient(135deg,#22d3ee,#0891b2)',
+            slate:  'linear-gradient(135deg,#94a3b8,#475569)',
+            gold:   'linear-gradient(135deg,#fbbf24,#f59e0b)'
+        };
+
+        var MORE_CONFIG = {
+            public: [
+                { section: 'Organisasi' },
+                { label: 'Profil Organisasi',  icon: 'fa-address-card',    color: 'teal',   href: '/profil' },
+                { label: 'Anggota',             icon: 'fa-users',           color: 'blue',   href: '/anggota' },
+                { label: 'Tokoh & Penggerak',   icon: 'fa-user-tie',        color: 'purple', href: '/tokoh' },
+                { section: 'Informasi' },
+                { label: 'Keuangan',            icon: 'fa-coins',           color: 'yellow', href: '/keuangan' },
+                { label: 'Kalender Kegiatan',   icon: 'fa-calendar-alt',    color: 'orange', href: '/kalender' },
+                { label: 'Arsip Dokumen',       icon: 'fa-archive',         color: 'slate',  href: '/arsip' },
+                { label: 'Dokumen',             icon: 'fa-folder-open',     color: 'indigo', href: '/dokumen' },
+                { section: 'Lainnya' },
+                { label: 'Kontak',              icon: 'fa-envelope',        color: 'green',  href: '/kontak' },
+                { label: 'Absensi Digital',     icon: 'fa-clipboard-check', color: 'red',    href: '/absensi' }
+            ],
+            admin: [
+                { section: 'Laporan & Analitik' },
+                { label: 'Laporan Lengkap',     icon: 'fa-file-pdf',        color: 'red',    href: '/logbook_report' },
+                { label: 'Ringkasan Semua',     icon: 'fa-chart-bar',       color: 'blue',   href: '/ringkasan' },
+                { section: 'Konten' },
+                { label: 'Manajemen Berita',    icon: 'fa-newspaper',       color: 'purple', href: '/berita_admin' },
+                { label: 'Arsip Digital',       icon: 'fa-archive',         color: 'slate',  href: '/arsip_admin' },
+                { label: 'Kalender',            icon: 'fa-calendar-alt',    color: 'orange', href: '/kalender_admin' },
+                { label: 'Galeri Media',        icon: 'fa-images',          color: 'pink',   href: '/galeri_admin' },
+                { section: 'Sumber Daya' },
+                { label: 'Anggota & Verifikasi',icon: 'fa-users',           color: 'blue',   href: '/anggota_admin' },
+                { label: 'Database Kader',      icon: 'fa-user-graduate',   color: 'indigo', href: '/kader_admin' },
+                { label: 'Profil Publik',       icon: 'fa-address-card',    color: 'teal',   href: '/profil_admin' },
+                { label: 'Tokoh',               icon: 'fa-user-tie',        color: 'gold',   href: '/tokoh_admin' },
+                { section: 'Operasional' },
+                { label: 'Keuangan',            icon: 'fa-coins',           color: 'yellow', href: '/keuangan_admin' },
+                { label: 'Absensi QR',          icon: 'fa-clipboard-check', color: 'red',    href: '/absensi_admin' },
+                { label: 'Inventaris',          icon: 'fa-boxes',           color: 'cyan',   href: '/inventaris_admin' },
+                { label: 'Program Kerja',       icon: 'fa-tasks',           color: 'green',  href: '/proker_admin' },
+                { label: 'Forum Diskusi',       icon: 'fa-comments',        color: 'purple', href: '/forum_admin' },
+                { section: 'Akun' },
+                { label: 'Beranda Publik',      icon: 'fa-globe',           color: 'teal',   href: '/' },
+                { label: 'Logout',              icon: 'fa-sign-out-alt',    color: 'red',    action: 'logout' }
+            ],
+            member: [
+                { section: 'Cepat' },
+                { label: 'Absensi Digital',     icon: 'fa-clipboard-check', color: 'red',    href: '/absensi' },
+                { section: 'Organisasi' },
+                { label: 'Profil Organisasi',   icon: 'fa-address-card',    color: 'teal',   href: '/profil' },
+                { label: 'Anggota',             icon: 'fa-users',           color: 'blue',   href: '/anggota' },
+                { label: 'Tokoh',               icon: 'fa-user-tie',        color: 'purple', href: '/tokoh' },
+                { section: 'Informasi' },
+                { label: 'Keuangan',            icon: 'fa-coins',           color: 'yellow', href: '/keuangan' },
+                { label: 'Kalender',            icon: 'fa-calendar-alt',    color: 'orange', href: '/kalender' },
+                { label: 'Semua Berita',        icon: 'fa-newspaper',       color: 'indigo', href: '/semua_berita' },
+                { label: 'Semua Kegiatan',      icon: 'fa-calendar-check',  color: 'green',  href: '/semua_kegiatan' },
+                { label: 'Arsip Dokumen',       icon: 'fa-archive',         color: 'slate',  href: '/arsip' },
+                { section: 'Akun' },
+                { label: 'Beranda Publik',      icon: 'fa-globe',           color: 'teal',   href: '/' },
+                { label: 'Logout',              icon: 'fa-sign-out-alt',    color: 'red',    action: 'logout' }
+            ]
+        };
+
+        function currentRole() {
+            try {
+                var raw = (window.SafeStorage || localStorage).getItem('user');
+                if (!raw) return 'public';
+                var u = JSON.parse(raw);
+                return (u && (u.role === 'admin' || u.role === 'member')) ? u.role : 'public';
+            } catch (e) { return 'public'; }
+        }
+
+        function currentLayout() {
+            var el;
+            el = document.getElementById('layout-public');
+            if (el && !el.classList.contains('hidden')) return 'public';
+            el = document.getElementById('layout-admin');
+            if (el && !el.classList.contains('hidden')) return 'admin';
+            el = document.getElementById('layout-member');
+            if (el && !el.classList.contains('hidden')) return 'member';
+            el = document.getElementById('layout-auth');
+            if (el && !el.classList.contains('hidden')) return 'auth';
+            return 'public';
+        }
+
+        function currentPath() {
+            var hash = window.location.hash.replace('#', '') || '/';
+            return hash.split('?')[0];
+        }
+
+        function escapeHtml(s) {
+            if (window.escapeHtml) return window.escapeHtml(s);
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+                return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+            });
+        }
+        function escapeAttr(s) {
+            return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function updateBottomNavActive() {
+            var layout = currentLayout();
+            var path = currentPath();
+            var nav = document.querySelector('.mobile-bottom-nav[data-role="' + layout + '"]');
+            if (!nav) return;
+
+            var items = nav.querySelectorAll('.bottom-nav-item[data-route]');
+            items.forEach(function(item) {
+                var route = item.getAttribute('data-route');
+                var isActive = (route === path) ||
+                    (route !== '/' && path.indexOf(route) === 0);
+                item.classList.toggle('active', isActive);
+            });
+        }
+
+        var moreSheet = document.getElementById('mobile-more-sheet');
+        var moreBody = document.getElementById('more-sheet-body');
+        var moreTitle = document.getElementById('more-sheet-title');
+
+        function openMore() {
+            if (!moreSheet) return;
+            var role = currentRole();
+            populateMore(role);
+            moreSheet.classList.add('open');
+            document.body.classList.add('sheet-open');
+        }
+
+        function closeMore() {
+            if (!moreSheet) return;
+            moreSheet.classList.remove('open');
+            document.body.classList.remove('sheet-open');
+        }
+
+        function populateMore(role) {
+            if (!moreBody) return;
+            var config = MORE_CONFIG[role] || MORE_CONFIG.public;
+
+            moreTitle.textContent = 
+                role === 'admin'  ? 'Menu Admin' :
+                role === 'member' ? 'Menu Member' :
+                                    'Menu Lainnya';
+
+            var html = '';
+            config.forEach(function(item) {
+                if (item.section) {
+                    html += '<div class="mobile-more-section-title">' + escapeHtml(item.section) + '</div>';
+                    return;
+                }
+                var iconColor = ICON_COLORS[item.color] || ICON_COLORS.slate;
+                var isAction = !!item.action;
+                var tag = isAction ? 'button' : 'a';
+                var attrs = '';
+                if (isAction) {
+                    attrs = ' type="button" data-more-action="' + escapeAttr(item.action) + '"';
+                } else {
+                    attrs = ' href="' + escapeAttr(item.href) + '" data-more-nav="true"';
+                }
+                html += 
+                    '<' + tag + ' class="mobile-more-item"' + attrs + '>' +
+                        '<span class="mobile-more-icon" style="background:' + iconColor + '">' +
+                            '<i class="fas ' + escapeAttr(item.icon) + '"></i>' +
+                        '</span>' +
+                        '<span class="mobile-more-label">' + escapeHtml(item.label) + '</span>' +
+                        '<i class="fas fa-chevron-right mobile-more-chev"></i>' +
+                    '</' + tag + '>';
+            });
+            moreBody.innerHTML = html;
+        }
+
+        document.addEventListener('click', function(e) {
+            var moreBtn = e.target.closest('.bottom-nav-item[data-action="more"]');
+            if (moreBtn) {
+                e.preventDefault();
+                openMore();
+                return;
+            }
+            if (e.target.closest('[data-action="close-more"]')) {
+                e.preventDefault();
+                closeMore();
+                return;
+            }
+            var actBtn = e.target.closest('[data-more-action]');
+            if (actBtn) {
+                e.preventDefault();
+                var act = actBtn.getAttribute('data-more-action');
+                closeMore();
+                setTimeout(function() {
+                    if (act === 'logout' && typeof window.logout === 'function') {
+                        window.logout();
+                    }
+                }, 200);
+                return;
+            }
+            var navLink = e.target.closest('a[data-more-nav="true"]');
+            if (navLink) {
+                closeMore();
+                return;
+            }
+            if (e.target.closest('#admin-logout-mobile') || e.target.closest('#member-logout-mobile')) {
+                e.preventDefault();
+                if (typeof window.showConfirm === 'function') {
+                    window.showConfirm('Logout dari akun ini?', function() {
+                        if (typeof window.logout === 'function') window.logout();
+                    });
+                } else if (confirm('Logout dari akun ini?')) {
+                    if (typeof window.logout === 'function') window.logout();
+                }
+                return;
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && moreSheet && moreSheet.classList.contains('open')) {
+                closeMore();
+            }
+        });
+
+        function updateHeaderNames() {
+            try {
+                var raw = (window.SafeStorage || localStorage).getItem('user');
+                if (!raw) return;
+                var u = JSON.parse(raw);
+                var name = (u.nama || u.name || u.username || '').trim();
+                if (!name) return;
+                var shortName = name.split(/\s+/)[0];
+                var adminEl = document.getElementById('admin-mobile-username');
+                var memberEl = document.getElementById('member-mobile-username');
+                if (adminEl) adminEl.textContent = 'Halo, ' + shortName;
+                if (memberEl) memberEl.textContent = 'Halo, ' + shortName;
+            } catch (e) {}
+        }
+
+        function syncBadgeFromSidebar() {
+            var sidebarBadge = document.getElementById('forms-badge');
+            var navBadges = document.querySelectorAll('.bn-badge[data-badge="forms"]');
+            if (!sidebarBadge || navBadges.length === 0) return;
+            var count = sidebarBadge.classList.contains('hidden') ? 0 : (sidebarBadge.textContent || '0');
+            var n = parseInt(count, 10) || 0;
+            navBadges.forEach(function(b) {
+                if (n > 0) {
+                    b.textContent = n > 99 ? '99+' : n;
+                    b.classList.remove('hidden');
+                } else {
+                    b.classList.add('hidden');
+                }
+            });
+        }
+
+        function init() {
+            updateBottomNavActive();
+            updateHeaderNames();
+            syncBadgeFromSidebar();
+
+            window.addEventListener('hashchange', function() {
+                updateBottomNavActive();
+                updateHeaderNames();
+                setTimeout(syncBadgeFromSidebar, 500);
+            });
+
+            setInterval(syncBadgeFromSidebar, 2000);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(init, 400);
+            });
+        } else {
+            setTimeout(init, 400);
+        }
+
+        window.__mobileUI = {
+            openMore: openMore,
+            closeMore: closeMore,
+            updateBottomNavActive: updateBottomNavActive,
+            config: MORE_CONFIG,
+            version: 'v38.1.1'
+        };
+
+        console.log('[MobileUI] Telegram-style bottom nav ready — v38.1.1');
+    })();
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TELEGRAM FAB CONTROLLER — v4.0.0 (SMART DEEP LINK + COPY)
+         ──────────────────────────────────────────────────────────
+         Auto-detect device:
+         📱 Mobile  → tg://resolve → buka APLIKASI Telegram
+         💻 Desktop → web.telegram.org → buka Telegram Web
+                      + Tombol 📋 Copy Command untuk paste cepat
+         ══════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        'use strict';
+
+        // ════════════════════════════════════════════════
+        // CONFIG
+        // ════════════════════════════════════════════════
+        var meta = document.querySelector('meta[name="telegram-bot"]');
+        var BOT_USERNAME = (meta && meta.content ? meta.content : '').trim().replace(/^@/, '');
+
+        if (!BOT_USERNAME) {
+            console.warn('[TelegramFAB] Meta "telegram-bot" tidak diset. FAB disabled.');
+            return;
+        }
+        if (BOT_USERNAME === 'pac_ansor_sewon_bot') {
+            console.warn('[TelegramFAB] ⚠️ Ganti meta "telegram-bot" dengan username bot Anda!');
+        }
+
+        var container = document.getElementById('telegram-fab-container');
+        var btn       = document.getElementById('telegram-fab-btn');
+        var panel     = document.getElementById('telegram-fab-panel');
+        var closeBtn  = document.getElementById('tg-fab-close');
+        var openLink  = document.getElementById('tg-fab-open-link');
+        var cmdsWrap  = document.getElementById('tg-fab-cmds');
+        var roleHint  = document.getElementById('tg-fab-role-hint');
+        var cmdLabel  = document.getElementById('tg-fab-cmd-label');
+
+        if (!container || !btn || !panel) {
+            console.warn('[TelegramFAB] Elemen FAB tidak ditemukan di DOM.');
+            return;
+        }
+
+        // ════════════════════════════════════════════════
+        // DEVICE DETECTION
+        // ════════════════════════════════════════════════
+        function detectDevice() {
+            try {
+                var ua = navigator.userAgent || '';
+                var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+                if (isMobileUA) return 'mobile';
+
+                if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+                    return 'mobile';
+                }
+                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+                    return 'mobile';
+                }
+                return 'desktop';
+            } catch (e) {
+                return 'desktop';
+            }
+        }
+
+        // ════════════════════════════════════════════════
+        // BUILD DEEP LINK — SMART ROUTING
+        // ════════════════════════════════════════════════
+        function buildDeepLink(payload) {
+            var p = String(payload || '').trim().replace(/^\/+/, '');
+            var device = detectDevice();
+
+            if (device === 'mobile') {
+                var tgUrl = 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
+                if (p) tgUrl += '&start=' + encodeURIComponent(p);
+                return tgUrl;
+            }
+
+            return 'https://web.telegram.org/k/#@' + BOT_USERNAME;
+        }
+
+        function buildSimpleLink() {
+            var device = detectDevice();
+            if (device === 'mobile') {
+                return 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
+            }
+            return 'https://web.telegram.org/k/#@' + BOT_USERNAME;
+        }
+
+        function buildFallbackLink(payload) {
+            var p = String(payload || '').trim().replace(/^\/+/, '');
+            var url = 'https://t.me/' + encodeURIComponent(BOT_USERNAME);
+            if (p) url += '?start=' + encodeURIComponent(p);
+            return url;
+        }
+
+        // ════════════════════════════════════════════════
+        // COMMANDS PER ROLE
+        // ════════════════════════════════════════════════
+        var COMMANDS = {
+            public: [
+                { cmd: '/start',  payload: 'start',  desc: 'Mulai & info bot' },
+                { cmd: '/link',   payload: 'link',   desc: 'Tautkan akun website Anda' },
+                { cmd: '/info',   payload: 'info',   desc: 'Lihat info publik organisasi' },
+                { cmd: '/help',   payload: 'help',   desc: 'Daftar semua perintah' }
+            ],
+            member: [
+                { cmd: '/logbook_add', payload: 'logbook_add', desc: 'Isi logbook baru (guided)' },
+                { cmd: '/surat_add',   payload: 'surat_add',   desc: 'Buat surat baru (guided)' },
+                { cmd: '/logbook',     payload: 'logbook',     desc: 'Lihat daftar logbook saya' },
+                { cmd: '/surat',       payload: 'surat',       desc: 'Lihat daftar surat saya' },
+                { cmd: '/stats',       payload: 'stats',       desc: 'Statistik organisasi' },
+                { cmd: '/help',        payload: 'help',        desc: 'Bantuan' }
+            ],
+            admin: [
+                { cmd: '/logbook_add',   payload: 'logbook_add',   desc: 'Isi logbook baru (guided)' },
+                { cmd: '/surat_add',     payload: 'surat_add',     desc: 'Buat surat baru (guided)' },
+                { cmd: '/keuangan_add',  payload: 'keuangan_add',  desc: 'Catat transaksi keuangan' },
+                { cmd: '/pending',       payload: 'pending',       desc: 'Setujui/tolak pendaftar' },
+                { cmd: '/qr',            payload: 'qr',            desc: 'Status QR absensi' },
+                { cmd: '/broadcast',     payload: 'broadcast',     desc: 'Kirim pengumuman ke admin' },
+                { cmd: '/logbook_del',   payload: 'logbook_del',   desc: 'Hapus logbook (by id)' },
+                { cmd: '/surat_del',     payload: 'surat_del',     desc: 'Hapus surat (by id)' },
+                { cmd: '/help',          payload: 'help',          desc: 'Bantuan' }
+            ]
+        };
+
+        var ROLE_LABEL = {
+            public: { icon: 'fa-user',        cls: 'tg-role-public', text: 'Mode: Publik — login dulu untuk input data' },
+            member: { icon: 'fa-user-check',  cls: 'tg-role-member', text: 'Mode: Member — bisa input logbook & surat' },
+            admin:  { icon: 'fa-shield-alt',  cls: 'tg-role-admin',  text: 'Mode: Admin — akses penuh' }
+        };
+
+        // ════════════════════════════════════════════════
+        // HELPERS
+        // ════════════════════════════════════════════════
+        function currentRole() {
+            try {
+                var raw = (window.SafeStorage || localStorage).getItem('user');
+                if (!raw) return 'public';
+                var u = JSON.parse(raw);
+                if (!u || !u.role) return 'public';
+                return (u.role === 'admin' || u.role === 'member') ? u.role : 'public';
+            } catch (e) { return 'public'; }
+        }
+
+        function currentLayout() {
+            var el;
+            el = document.getElementById('layout-public');
+            if (el && !el.classList.contains('hidden')) return 'public';
+            el = document.getElementById('layout-admin');
+            if (el && !el.classList.contains('hidden')) return 'admin';
+            el = document.getElementById('layout-member');
+            if (el && !el.classList.contains('hidden')) return 'member';
+            el = document.getElementById('layout-auth');
+            if (el && !el.classList.contains('hidden')) return 'auth';
+            return 'public';
+        }
+
+        function escapeHtml(s) {
+            if (window.escapeHtml) return window.escapeHtml(s);
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+                return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+            });
+        }
+
+        function escapeAttr(s) {
+            return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise(function(resolve, reject) {
+                try {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'absolute';
+                    ta.style.left = '-9999px';
+                    ta.style.top = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    var ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    if (ok) resolve();
+                    else reject(new Error('execCommand failed'));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        function getDeviceInfo() {
+            var device = detectDevice();
+            if (device === 'mobile') {
+                return {
+                    device: 'mobile',
+                    icon: 'fa-mobile-alt',
+                    label: 'Buka Aplikasi Telegram',
+                    btnText: 'Buka App Telegram'
+                };
+            }
+            return {
+                device: 'desktop',
+                icon: 'fa-desktop',
+                label: 'Buka Telegram Web',
+                btnText: 'Buka Telegram Web'
+            };
+        }
+
+        // ════════════════════════════════════════════════
+        // RENDER PANEL
+        // ════════════════════════════════════════════════
+        function renderPanel(role) {
+            var deviceInfo = getDeviceInfo();
+            var isDesktop = deviceInfo.device === 'desktop';
+
+            openLink.href = buildSimpleLink();
+            openLink.target = '_blank';
+            openLink.rel = 'noopener noreferrer';
+
+            var btnTextEl = openLink.querySelector('span');
+            if (btnTextEl) btnTextEl.textContent = deviceInfo.btnText;
+
+            // Update section label
+            if (cmdLabel) {
+                cmdLabel.textContent = isDesktop
+                    ? 'Klik untuk buka | 📋 untuk copy'
+                    : 'Klik command untuk langsung eksekusi';
+            }
+
+            // Role hint
+            var info = ROLE_LABEL[role] || ROLE_LABEL.public;
+            roleHint.className = 'tg-fab-role-hint ' + info.cls;
+            roleHint.innerHTML = '<i class="fas ' + info.icon + '"></i><span>' +
+                escapeHtml(info.text) + '</span>';
+
+            // Commands
+            var list = COMMANDS[role] || COMMANDS.public;
+            var html = '';
+
+            list.forEach(function(item) {
+                var deepUrl = buildDeepLink(item.payload);
+                var cmdText = item.cmd;
+
+                if (isDesktop) {
+                    html +=
+                        '<div class="tg-fab-cmd-row">' +
+                            '<a href="' + escapeAttr(deepUrl) + '"' +
+                            '   class="tg-fab-cmd tg-fab-cmd-link"' +
+                            '   data-payload="' + escapeAttr(item.payload) + '"' +
+                            '   target="_blank"' +
+                            '   rel="noopener noreferrer"' +
+                            '   title="Buka Telegram Web & jalankan ' + escapeAttr(cmdText) + '">' +
+                            '   <span class="tg-fab-cmd-code">' + escapeHtml(cmdText) + '</span>' +
+                            '   <span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
+                            '   <i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
+                            '</a>' +
+                            '<button type="button"' +
+                            '        class="tg-fab-copy-btn"' +
+                            '        data-cmd="' + escapeAttr(cmdText) + '"' +
+                            '        title="Copy ' + escapeAttr(cmdText) + ' ke clipboard">' +
+                            '   <i class="fas fa-copy"></i>' +
+                            '</button>' +
+                        '</div>';
+                } else {
+                    html +=
+                        '<a href="' + escapeAttr(deepUrl) + '"' +
+                        '   class="tg-fab-cmd tg-fab-cmd-link"' +
+                        '   data-payload="' + escapeAttr(item.payload) + '"' +
+                        '   target="_blank"' +
+                        '   rel="noopener noreferrer"' +
+                        '   title="Buka Telegram App & jalankan ' + escapeAttr(cmdText) + '">' +
+                        '   <span class="tg-fab-cmd-code">' + escapeHtml(cmdText) + '</span>' +
+                        '   <span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
+                        '   <i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
+                        '</a>';
+                }
+            });
+
+            cmdsWrap.innerHTML = html;
+            updateDeviceHint(deviceInfo);
+        }
+
+        function updateDeviceHint(deviceInfo) {
+            var hintEl = document.querySelector('.tg-fab-deeplink-hint div');
+            if (!hintEl) return;
+
+            if (deviceInfo.device === 'mobile') {
+                hintEl.innerHTML =
+                    '<strong>Mode HP:</strong> Klik command → ' +
+                    '<strong>aplikasi Telegram</strong> terbuka & langsung eksekusi. ' +
+                    'Pastikan sudah <code>/link</code> dulu.';
+            } else {
+                hintEl.innerHTML =
+                    '<strong>Mode PC:</strong> Klik command → ' +
+                    '<strong>Telegram Web</strong> terbuka. ' +
+                    'Atau klik ikon <i class="fas fa-copy" style="color:#0088cc;"></i> ' +
+                    'untuk <strong>copy command</strong> lalu paste di Telegram Web. ' +
+                    'Pastikan sudah <code>/link</code> dulu.';
+            }
+        }
+
+        function open() {
+            renderPanel(currentRole());
+            container.classList.add('tg-open');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+        function close() {
+            container.classList.remove('tg-open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        function toggle() {
+            if (container.classList.contains('tg-open')) close();
+            else open();
+        }
+
+        function updateVisibility() {
+            if (currentLayout() === 'auth') {
+                container.classList.add('tg-hidden');
+                close();
+            } else {
+                container.classList.remove('tg-hidden');
+            }
+        }
+
+        // ════════════════════════════════════════════════
+        // HANDLE DEEP LINK CLICK (mobile fallback)
+        // ════════════════════════════════════════════════
+        function handleDeepLinkClick(e) {
+            if (e.target.closest('.tg-fab-copy-btn')) return;
+
+            var link = e.target.closest('.tg-fab-cmd-link');
+            if (!link) return;
+
+            var payload = link.getAttribute('data-payload') || '';
+            var device = detectDevice();
+
+            setTimeout(close, 300);
+
+            if (device === 'mobile') {
+                var tgUrl = 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
+                if (payload) tgUrl += '&start=' + encodeURIComponent(payload);
+
+                var fallbackUrl = buildFallbackLink(payload);
+                var didOpen = false;
+
+                var visibilityHandler = function() {
+                    if (document.hidden) didOpen = true;
+                };
+                document.addEventListener('visibilitychange', visibilityHandler);
+
+                try {
+                    window.location.href = tgUrl;
+                } catch (err) {
+                    console.warn('[TelegramFAB] tg:// open error:', err);
+                }
+
+                setTimeout(function() {
+                    document.removeEventListener('visibilitychange', visibilityHandler);
+                    if (!didOpen && !document.hidden) {
+                        console.log('[TelegramFAB] Fallback ke t.me');
+                        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+                    }
+                }, 1500);
+
+                e.preventDefault();
+            }
+            // Desktop: biarkan default browser buka web.telegram.org
+        }
+
+        // ════════════════════════════════════════════════
+        // HANDLE COPY COMMAND CLICK (desktop)
+        // ════════════════════════════════════════════════
+        function handleCopyClick(e) {
+            var btn = e.target.closest('.tg-fab-copy-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var cmd = btn.getAttribute('data-cmd') || '';
+            if (!cmd) return;
+
+            var iconEl = btn.querySelector('i');
+            var originalClass = iconEl ? iconEl.className : 'fas fa-copy';
+
+            copyToClipboard(cmd).then(function() {
+                if (iconEl) iconEl.className = 'fas fa-check';
+                btn.classList.add('tg-fab-copy-success');
+
+                if (typeof window.showToast === 'function') {
+                    window.showToast(
+                        '📋 Command dicopy: ' + cmd + ' — paste di Telegram Web',
+                        'success', 3500
+                    );
+                } else {
+                    console.log('[TelegramFAB] Copied:', cmd);
+                }
+
+                setTimeout(function() {
+                    if (iconEl) iconEl.className = originalClass;
+                    btn.classList.remove('tg-fab-copy-success');
+                }, 1600);
+            }).catch(function(err) {
+                console.warn('[TelegramFAB] Copy failed:', err);
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Gagal copy. Copy manual: ' + cmd, 'error', 3000);
+                }
+            });
+        }
+
+        // ════════════════════════════════════════════════
+        // EVENT LISTENERS
+        // ════════════════════════════════════════════════
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggle();
+        });
+
+        closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            close();
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!container.classList.contains('tg-open')) return;
+            if (container.contains(e.target)) return;
+            close();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && container.classList.contains('tg-open')) {
+                close();
+            }
+        });
+
+        cmdsWrap.addEventListener('click', handleDeepLinkClick);
+        cmdsWrap.addEventListener('click', handleCopyClick);
+
+        window.addEventListener('hashchange', function() {
+            setTimeout(updateVisibility, 60);
+        });
+
+        setTimeout(updateVisibility, 300);
+        setInterval(updateVisibility, 1500);
+
+        window.__telegramFAB = {
+            open: open,
+            close: close,
+            role: currentRole,
+            botUsername: BOT_USERNAME,
+            buildDeepLink: buildDeepLink,
+            buildSimpleLink: buildSimpleLink,
+            buildFallbackLink: buildFallbackLink,
+            detectDevice: detectDevice,
+            getDeviceInfo: getDeviceInfo,
+            copyToClipboard: copyToClipboard,
+            version: 'v4.0.0-smart-copy'
+        };
+
+        console.log('[TelegramFAB] Smart deep-link + copy ready — bot: @' + BOT_USERNAME +
+                    ' | device: ' + detectDevice());
+    })();
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════════
+         BOOT LOADER HIDER
+         ══════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        function hideBootLoader() {
+            var loader = document.getElementById('app-boot-loader');
+            if (!loader) return;
+            loader.classList.add('app-boot-done');
+            setTimeout(function() {
+                if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+            }, 400);
+        }
+
+        var checkInterval = setInterval(function() {
+            var layoutVisible =
+                document.querySelector('#layout-public:not(.hidden)') ||
+                document.querySelector('#layout-admin:not(.hidden)') ||
+                document.querySelector('#layout-member:not(.hidden)') ||
+                document.querySelector('#layout-auth:not(.hidden)');
+            if (layoutVisible) {
+                clearInterval(checkInterval);
+                setTimeout(hideBootLoader, 200);
+            }
+        }, 150);
+
+        setTimeout(function() {
+            clearInterval(checkInterval);
+            hideBootLoader();
+        }, 5000);
+
+        window.addEventListener('error', function() {
+            setTimeout(hideBootLoader, 1000);
+        });
+    })();
+    </script>
+
 </body>
 </html>
