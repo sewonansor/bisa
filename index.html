@@ -155,7 +155,6 @@
          SHELL CSS — Telegram Mobile UI
          ══════════════════════════════════════════════════════════ -->
     <style>
-        /* ════════════════════ TOKENS ════════════════════ */
         :root {
             --text-main: #0f2922;
             --text-muted: #475569;
@@ -1685,7 +1684,8 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         CDN SCRIPTS
+         CDN SCRIPTS — Primary (urutan penting)
+         ✅ FIX: docx pakai jsDelivr (lebih reliable dari cdnjs)
          ══════════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -1697,10 +1697,12 @@
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js"></script>
+
+    <!-- ✅ docx: jsDelivr PRIMARY (reliable) -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.2.0/build/index.umd.js"></script>
 
     <!-- ══════════════════════════════════════════════════════════
-         CDN FALLBACK LOADER
+         CDN FALLBACK LOADER — v3.0.0 SAFE (NO document.write)
          ══════════════════════════════════════════════════════════ -->
     <script>
     (function() {
@@ -1717,39 +1719,70 @@
             { global: 'JsBarcode',    url: 'https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js' },
             { global: 'html2canvas',  url: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js' },
             { global: 'jspdf',        url: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js' },
-            { global: 'docx',         url: 'https://cdn.jsdelivr.net/npm/docx@8.2.0/build/index.umd.js' }
+            { global: 'docx',         url: 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js' }
         ];
 
-        var missing = [];
-        for (var i = 0; i < FALLBACKS.length; i++) {
-            if (typeof window[FALLBACKS[i].global] === 'undefined') {
-                missing.push(FALLBACKS[i]);
+        // ✅ Tunggu DOM ready & cek setelah semua CDN selesai attempt load
+        function checkAndLoad() {
+            var missing = [];
+            for (var i = 0; i < FALLBACKS.length; i++) {
+                if (typeof window[FALLBACKS[i].global] === 'undefined') {
+                    missing.push(FALLBACKS[i]);
+                }
             }
-        }
 
-        if (missing.length === 0) {
-            console.log('[CDN] ✅ Semua library loaded OK');
-            window.__CDN_FALLBACK_DONE = true;
-            return;
-        }
+            if (missing.length === 0) {
+                console.log('[CDN] ✅ Semua library loaded OK');
+                window.__CDN_FALLBACK_DONE = true;
+                return;
+            }
 
-        console.warn('[CDN] ⚠️ ' + missing.length + ' library gagal — loading fallback...');
+            console.warn('[CDN] ⚠️ ' + missing.length + ' library gagal — loading fallback...');
+
+            // ✅ PAKAI appendChild, BUKAN document.write
+            var loadedCount = 0;
+            var failedCount = 0;
+
+            missing.forEach(function(lib) {
+                console.log('[CDN] → Fallback: ' + lib.global);
+
+                var s = document.createElement('script');
+                s.src = lib.url;
+                s.async = false; // Preserve order
+
+                s.onload = function() {
+                    loadedCount++;
+                    console.log('[CDN] ✅ Fallback loaded: ' + lib.global +
+                        ' (' + loadedCount + '/' + missing.length + ')');
+
+                    if (loadedCount + failedCount === missing.length) {
+                        window.__CDN_FALLBACK_DONE = true;
+                        console.log('[CDN] ✅ Fallback complete');
+                    }
+                };
+
+                s.onerror = function() {
+                    failedCount++;
+                    console.error('[CDN] ❌ Fallback FAILED: ' + lib.global);
+
+                    if (loadedCount + failedCount === missing.length) {
+                        window.__CDN_FALLBACK_DONE = true;
+                        console.warn('[CDN] ⚠️ Fallback complete with ' +
+                            failedCount + ' failure(s)');
+                    }
+                };
+
+                document.head.appendChild(s);
+            });
+        }
 
         if (document.readyState === 'loading') {
-            for (var j = 0; j < missing.length; j++) {
-                console.log('[CDN] → Fallback: ' + missing[j].global);
-                document.write('<scr' + 'ipt src="' + missing[j].url + '"><\/scr' + 'ipt>');
-            }
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(checkAndLoad, 200);
+            });
         } else {
-            for (var k = 0; k < missing.length; k++) {
-                var s = document.createElement('script');
-                s.src = missing[k].url;
-                s.async = false;
-                document.head.appendChild(s);
-            }
+            setTimeout(checkAndLoad, 200);
         }
-
-        window.__CDN_FALLBACK_DONE = true;
     })();
     </script>
 
@@ -1838,31 +1871,53 @@
     </script>
 
     <!-- ══════════════════════════════════════════════════════════
-         SERVICE WORKER REGISTRATION
+         SERVICE WORKER REGISTRATION — v2.1.0 SAFE MODE
+         ✅ FIX: 404 tidak crash (HEAD check dulu)
+         ✅ FIX: Skip localhost (dev)
+         ✅ FIX: Skip non-HTTPS
          ══════════════════════════════════════════════════════════ -->
     <script>
     (function() {
         'use strict';
 
+        // Skip jika tidak didukung
         if (!('serviceWorker' in navigator)) {
             console.log('[SW] Service Worker not supported');
             return;
         }
 
+        // Skip di localhost (development)
+        if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname)) {
+            console.log('[SW] Skipped on localhost (dev mode)');
+            return;
+        }
+
+        // Skip jika bukan HTTPS
+        if (location.protocol !== 'https:') {
+            console.log('[SW] Requires HTTPS');
+            return;
+        }
+
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            // Step 1: HEAD check dulu — pastikan sw.js ada
+            fetch('/sw.js', { method: 'HEAD', cache: 'no-store' })
+                .then(function(res) {
+                    if (!res.ok) {
+                        throw new Error('sw.js not found (HTTP ' + res.status + ')');
+                    }
+                    // Step 2: Register
+                    return navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                })
                 .then(function(registration) {
                     console.log('[SW] ✅ Registered:', registration.scope);
 
-                    // Check for updates
                     registration.addEventListener('updatefound', function() {
                         var newWorker = registration.installing;
-                        console.log('[SW] 🔄 Update found');
+                        if (!newWorker) return;
 
                         newWorker.addEventListener('statechange', function() {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 console.log('[SW] ✨ New version available');
-                                // Optional: prompt user to reload
                                 if (typeof showToast === 'function') {
                                     showToast('Versi baru tersedia. Refresh untuk update.', 'info', 5000);
                                 }
@@ -1871,28 +1926,28 @@
                     });
                 })
                 .catch(function(err) {
-                    console.warn('[SW] ❌ Registration failed:', err.message);
+                    // WARN only — tidak crash app
+                    console.warn('[SW] ⚠️ Not registered:', err.message);
                 });
         });
 
-        // Listen for messages from SW
+        // Listen messages dari SW
         navigator.serviceWorker.addEventListener('message', function(event) {
             var data = event.data || {};
-            console.log('[SW] Message received:', data.type);
+            console.log('[SW] Message:', data.type);
 
             if (data.type === 'SW_ACTIVATED') {
                 console.log('[SW] Activated version:', data.version);
             }
 
             if (data.type === 'TRIGGER_SYNC') {
-                console.log('[SW] Trigger sync:', data.reason);
                 if (window.SyncManager && typeof window.SyncManager.syncNow === 'function') {
                     window.SyncManager.syncNow();
                 }
             }
         });
 
-        // Expose helper for debugging
+        // Debug helpers
         window.__swHelpers = {
             ping: function() {
                 return new Promise(function(resolve) {
@@ -1922,8 +1977,6 @@
                 });
             }
         };
-
-        console.log('[SW] Helper exposed: window.__swHelpers');
     })();
     </script>
 
@@ -2250,7 +2303,7 @@
     </script>
 
     <!-- ══════════════════════════════════════════════════════════
-         TELEGRAM FAB CONTROLLER
+         TELEGRAM FAB CONTROLLER — v4.1.0 (Fixed Copy Button)
          ══════════════════════════════════════════════════════════ -->
     <script>
     (function() {
@@ -2587,12 +2640,14 @@
             }
         }
 
+        // ✅ FIX v4.1.0: Copy handler dengan stopPropagation eksplisit
         function handleCopyClick(e) {
             var btn = e.target.closest('.tg-fab-copy-btn');
             if (!btn) return;
 
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
 
             var cmd = btn.getAttribute('data-cmd') || '';
             if (!cmd) return;
@@ -2647,8 +2702,9 @@
             }
         });
 
+        // ✅ FIX: Attach copy handler DULU (higher priority), lalu deep link
+        cmdsWrap.addEventListener('click', handleCopyClick, true); // capture phase
         cmdsWrap.addEventListener('click', handleDeepLinkClick);
-        cmdsWrap.addEventListener('click', handleCopyClick);
 
         window.addEventListener('hashchange', function() {
             setTimeout(updateVisibility, 60);
@@ -2668,7 +2724,7 @@
             detectDevice: detectDevice,
             getDeviceInfo: getDeviceInfo,
             copyToClipboard: copyToClipboard,
-            version: 'v4.0.0-smart-copy'
+            version: 'v4.1.0-fixed-copy'
         };
 
         console.log('[TelegramFAB] Smart deep-link + copy ready — bot: @' + BOT_USERNAME +
@@ -2678,10 +2734,6 @@
 
     <!-- ══════════════════════════════════════════════════════════
          BOOT LOADER HIDER — Once Per Session v4.0.0
-         - Hanya tampil di first load / pasca login
-         - Navigasi antar menu TIDAK memunculkan boot loader
-         - Reset saat logout (lihat app.js logout())
-         - Auto-mark done dari router.load() (safety net)
          ══════════════════════════════════════════════════════════ -->
     <script>
     (function() {
@@ -2694,21 +2746,14 @@
         var hidden = false;
         var checkInterval = null;
 
-        // ═══════════════════════════════════════════════════════════
-        // FLAG MANAGEMENT
-        // ═══════════════════════════════════════════════════════════
         function isBootDone() {
             try {
                 return sessionStorage.getItem(BOOT_KEY) === 'true';
-            } catch (e) {
-                return false;
-            }
+            } catch (e) { return false; }
         }
 
         function markBootDone() {
-            try {
-                sessionStorage.setItem(BOOT_KEY, 'true');
-            } catch (e) {}
+            try { sessionStorage.setItem(BOOT_KEY, 'true'); } catch (e) {}
         }
 
         function clearBootFlag() {
@@ -2718,9 +2763,6 @@
             } catch (e) {}
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // HIDE BOOT LOADER
-        // ═══════════════════════════════════════════════════════════
         function hideBootLoader(immediate) {
             if (hidden) return;
             hidden = true;
@@ -2744,9 +2786,6 @@
                         (immediate ? ' (instant)' : ' (fade)'));
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // CONTENT READY CHECKS
-        // ═══════════════════════════════════════════════════════════
         function isLayoutVisible() {
             return !!(
                 document.querySelector('#layout-public:not(.hidden)') ||
@@ -2788,9 +2827,7 @@
             return total > 0 && ready >= threshold;
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // INSTANT SKIP — Session already booted
-        // ═══════════════════════════════════════════════════════════
+        // Instant skip if session already booted
         if (isBootDone()) {
             console.log('[BootLoader] ⚡ Session active — instant skip');
             hideBootLoader(true);
@@ -2808,9 +2845,6 @@
             return;
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // EXPOSE DEBUG HELPERS
-        // ═══════════════════════════════════════════════════════════
         window.__hideBootLoader = hideBootLoader;
         window.__isContentReady = isContentReady;
         window.__resetBootFlag = clearBootFlag;
@@ -2823,15 +2857,10 @@
             version: 'v4.0.0-once-per-session'
         };
 
-        // ═══════════════════════════════════════════════════════════
-        // POLLING — tunggu sampai konten ready
-        // ═══════════════════════════════════════════════════════════
         checkInterval = setInterval(function() {
             var elapsed = Date.now() - bootStart;
-
             if (!isLayoutVisible()) return;
             if (elapsed < BOOT_MIN_MS) return;
-
             if (elapsed >= BOOT_MAX_MS || isContentReady()) {
                 clearInterval(checkInterval);
                 markBootDone();
@@ -2839,14 +2868,12 @@
             }
         }, 100);
 
-        // Ultimate fallback
         setTimeout(function() {
             clearInterval(checkInterval);
             markBootDone();
             hideBootLoader();
         }, BOOT_MAX_MS + 800);
 
-        // Signal dari index.js
         window.addEventListener('index:content-ready', function() {
             var elapsed = Date.now() - bootStart;
             var delay = Math.max(0, BOOT_MIN_MS - elapsed);
@@ -2857,14 +2884,12 @@
             }, delay);
         });
 
-        // Signal dari router.load() di app.js — safety net
         window.addEventListener('router:page-ready', function() {
             clearInterval(checkInterval);
             markBootDone();
             hideBootLoader();
         });
 
-        // Error handlers
         window.addEventListener('error', function() {
             setTimeout(function() {
                 clearInterval(checkInterval);
@@ -2888,7 +2913,6 @@
 
     <!-- ══════════════════════════════════════════════════════════
          SYNC STATUS BANNER CONTROLLER
-         Menampilkan status offline/sync di UI
          ══════════════════════════════════════════════════════════ -->
     <script>
     (function() {
@@ -2911,12 +2935,9 @@
             banner.className = 'sync-status-banner ' + state;
             banner.innerHTML = '<i class="fas ' + icon + '"></i><span>' + message + '</span>';
 
-            // Force reflow
             void banner.offsetHeight;
-
             banner.classList.add('show');
 
-            // Auto-hide for success state
             if (state === 'success') {
                 dismissTimer = setTimeout(function() {
                     banner.classList.remove('show');
@@ -2953,7 +2974,6 @@
             }
         }
 
-        // Click handler — manual sync
         banner.addEventListener('click', function() {
             if (!navigator.onLine) {
                 if (typeof window.showToast === 'function') {
@@ -2987,10 +3007,8 @@
             }
         });
 
-        // Online/Offline events
         window.addEventListener('online', function() {
             updateFromQueue();
-            // Auto-trigger sync after 1s
             setTimeout(function() {
                 if (window.SyncManager && typeof window.SyncManager.syncNow === 'function') {
                     var q = window.SyncManager.getQueue();
@@ -3012,7 +3030,6 @@
             updateFromQueue();
         });
 
-        // Listen to SyncManager events if available
         window.addEventListener('sync:queued', function(e) {
             updateFromQueue();
         });
@@ -3030,13 +3047,9 @@
             updateFromQueue();
         });
 
-        // Periodic check (every 5s)
         setInterval(updateFromQueue, 5000);
-
-        // Initial check
         setTimeout(updateFromQueue, 1500);
 
-        // Expose helper
         window.__syncBanner = {
             update: updateFromQueue,
             hide: hideBanner,
