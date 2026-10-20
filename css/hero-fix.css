@@ -1,20 +1,45 @@
 /* ============================================================
-   HERO FIX v3.6.0 FINAL — Mint Green Override
+   css/hero-fix.css — Hero Section — SINGLE SOURCE OF TRUTH
+   PAC GP Ansor Kapanewon Sewon
+   Versi: 3.7.0 — Consolidated Migration
    ---------------------------------------------------------
-   File ini di-load PALING AKHIR setelah style.css & forms.css.
-   Tujuan: mengalahkan rule lama di style.css yang menimpa hero.
-   
-   FIX UTAMA v3.6.0:
-   - ✅ Force .hero-bg jadi TRANSPARENT (biang kerok hijau gelap)
-   - ✅ Force hero section jadi MINT GREEN terang
-   - ✅ Force semua teks jadi hijau tua (bukan putih pudar)
-   - ✅ Semua pakai !important + specific selector
+   ⚠️ FILE INI MILIK SEMUA STYLING HERO SECTION.
+   Jangan taruh hero override di tempat lain (style.css / 
+   views/index.html / inline). Semua harus di sini.
+
+   Load order (WAJIB):
+     1. style.css       (base design system)
+     2. hero-fix.css    ← FILE INI (setelah style.css)
+     3. forms.css       (form builder)
+     4. tailwind-fallback.css
+     5. telegram-fab.css
+     6. perf-boost.css  (performance boost — terakhir)
+
+   Struktur:
+   1. Hero section base (mint green, force !important)
+   2. Hero background (kill gradient gelap style.css)
+   3. Pseudo-element kill
+   4. Legacy overlay hide
+   5. Orbs dekoratif
+   6. Pattern SVG
+   7. Container
+   8. Badge
+   9. Title (line1 + line2)
+   10. Divider
+   11. Tagline & description
+   12. CTA buttons (primary + outline)
+   13. Trust pill
+   14. Responsive (max-width: 640px)
+   15. Reduced motion
+   16. Force section spacing
+   17. Safety net (kill inline backgrounds)
    ============================================================ */
 
 /* ═══════════════════════════════════════════════════════════
-   1. HERO SECTION — BASE (LIGHT MODE)
+   1. HERO SECTION BASE — MINT GREEN (LIGHT) / DARK EMERALD
    ═══════════════════════════════════════════════════════════ */
 
+section#hero.hero-section,
 #hero.hero-section,
 .hero-section,
 section#hero {
@@ -31,38 +56,40 @@ section#hero {
     isolation: isolate;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   2. HERO SECTION — DARK MODE
-   ═══════════════════════════════════════════════════════════ */
-
+html.dark section#hero.hero-section,
 html.dark #hero.hero-section,
 html.dark .hero-section,
-html.dark section#hero,
+.dark section#hero.hero-section,
 .dark #hero.hero-section,
-.dark .hero-section,
-.dark section#hero {
+.dark .hero-section {
     background: linear-gradient(160deg, #0a0f1e 0%, #0f1f1a 50%, #0a1e19 100%) !important;
     background-color: #0f1f1a !important;
     color: #f1f5f9 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   3. FIX .hero-bg — HAPUS GRADIENT HIJAU GELAP (BIANG KEROK)
+   2. HERO BACKGROUND — KILL GRADIENT GELAP DARI style.css
+   style.css punya: .hero-bg { background: linear-gradient(#0f2922, #1a3c34) }
+   Di sini kita FORCE transparent.
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-bg,
 .hero-section .hero-bg,
 .hero-bg {
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
     position: absolute !important;
     inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     overflow: hidden !important;
     pointer-events: none !important;
     z-index: 0 !important;
-    color: #0f2922 !important;
     opacity: 1 !important;
+    color: #0f2922 !important;
+
+    /* ⚡ FORCE TRANSPARENT — anti style.css */
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
 }
 
 html.dark #hero .hero-bg,
@@ -71,14 +98,14 @@ html.dark .hero-bg,
 .dark #hero .hero-bg,
 .dark .hero-section .hero-bg,
 .dark .hero-bg {
+    color: #fbbf24 !important;
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
-    color: #fbbf24 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   4. FIX PSEUDO-ELEMENT — Hilangkan semua ::before/::after
+   3. PSEUDO-ELEMENT KILL — Netralisir ::before/::after legacy
    ═══════════════════════════════════════════════════════════ */
 
 #hero.hero-section::before,
@@ -87,17 +114,18 @@ html.dark .hero-bg,
 .hero-section::after,
 section#hero::before,
 section#hero::after {
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
     content: none !important;
     display: none !important;
+    background: transparent !important;
+    background-image: none !important;
     opacity: 0 !important;
     visibility: hidden !important;
 }
 
 #hero .hero-bg::before,
-#hero .hero-bg::after {
+#hero .hero-bg::after,
+.hero-section .hero-bg::before,
+.hero-section .hero-bg::after {
     content: none !important;
     display: none !important;
     background: transparent !important;
@@ -105,7 +133,7 @@ section#hero::after {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   5. Sembunyikan elemen overlay lama dari style.css
+   4. LEGACY OVERLAY HIDE — Sembunyikan elemen usang dari style.css
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-overlay,
@@ -123,7 +151,7 @@ section#hero::after {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   6. ORBS — Glow dekoratif
+   5. ORBS — Glow dekoratif
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-orb,
@@ -133,6 +161,7 @@ section#hero::after {
     filter: blur(110px) !important;
     pointer-events: none !important;
     opacity: 0.6 !important;
+    will-change: transform;
 }
 
 #hero .hero-orb-1,
@@ -142,15 +171,17 @@ section#hero::after {
     background: radial-gradient(circle, rgba(251, 191, 36, 0.18), transparent 70%) !important;
     top: -200px !important;
     left: -160px !important;
+    animation: heroFloat1 22s ease-in-out infinite;
 }
 
 #hero .hero-orb-2,
 .hero-section .hero-orb-2 {
     width: 480px !important;
     height: 480px !important;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.18), transparent 70%) !important;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.22), transparent 70%) !important;
     bottom: -200px !important;
     right: -160px !important;
+    animation: heroFloat2 26s ease-in-out infinite;
 }
 
 html.dark #hero .hero-orb-2,
@@ -160,8 +191,18 @@ html.dark .hero-section .hero-orb-2,
     background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%) !important;
 }
 
+@keyframes heroFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(40px, 30px) scale(1.12); }
+}
+
+@keyframes heroFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(-40px, -30px) scale(1.12); }
+}
+
 /* ═══════════════════════════════════════════════════════════
-   7. PATTERN SVG — Grid background
+   6. PATTERN SVG — Grid background
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-pattern,
@@ -174,6 +215,7 @@ html.dark .hero-section .hero-orb-2,
     pointer-events: none !important;
     background: transparent !important;
     background-image: none !important;
+    color: #0f2922 !important;
 }
 
 html.dark #hero .hero-pattern,
@@ -181,10 +223,11 @@ html.dark .hero-section .hero-pattern,
 .dark #hero .hero-pattern,
 .dark .hero-section .hero-pattern {
     opacity: 0.12 !important;
+    color: #fbbf24 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   8. HERO CONTAINER — pastikan di atas
+   7. HERO CONTAINER — pastikan di atas
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-container,
@@ -198,7 +241,7 @@ html.dark .hero-section .hero-pattern,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   9. BADGE
+   8. BADGE
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-badge,
@@ -250,7 +293,7 @@ html.dark .hero-section .hero-badge i,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   10. TITLE
+   9. TITLE — line1 + line2 gradient
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-title,
@@ -274,7 +317,7 @@ html.dark .hero-section .hero-title,
     -webkit-text-fill-color: #ffffff !important;
 }
 
-/* LINE 1 — Hijau tua */
+/* LINE 1 — Hijau tua (light) / putih (dark) */
 #hero .hero-title-line1,
 .hero-section .hero-title-line1 {
     display: block !important;
@@ -291,7 +334,7 @@ html.dark .hero-section .hero-title-line1,
     -webkit-text-fill-color: #f1f5f9 !important;
 }
 
-/* LINE 2 — Gradient hijau (light) / Gold (dark) */
+/* LINE 2 — Gradient hijau emerald (light) / gold (dark) */
 #hero .hero-title-line2,
 .hero-section .hero-title-line2 {
     display: block !important;
@@ -315,7 +358,7 @@ html.dark .hero-section .hero-title-line2,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   11. DIVIDER
+   10. DIVIDER
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-divider,
@@ -337,7 +380,7 @@ html.dark .hero-section .hero-divider,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   12. TAGLINE & DESC
+   11. TAGLINE & DESCRIPTION
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-tagline,
@@ -379,7 +422,7 @@ html.dark .hero-section .hero-desc,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   13. CTA BUTTONS
+   12. CTA BUTTONS
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-cta,
@@ -478,7 +521,7 @@ html.dark .hero-section .btn-hero-outline:hover,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   14. TRUST PILL
+   13. TRUST PILL
    ═══════════════════════════════════════════════════════════ */
 
 #hero .hero-trust,
@@ -582,10 +625,11 @@ html.dark .hero-section .trust-sep,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   15. RESPONSIVE — MOBILE
+   14. RESPONSIVE — MOBILE (max-width: 640px)
    ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 640px) {
+    section#hero.hero-section,
     #hero.hero-section,
     .hero-section,
     section#hero {
@@ -597,14 +641,21 @@ html.dark .hero-section .trust-sep,
     .hero-section .hero-badge {
         font-size: 0.65rem !important;
         padding: 6px 14px !important;
+        letter-spacing: 0.1em !important;
         margin-bottom: 24px !important;
     }
+
+    #hero .hero-title { margin-bottom: 22px !important; }
+    #hero .hero-title-line2 { margin-top: 4px !important; }
 
     #hero .hero-divider,
     .hero-section .hero-divider {
         width: 60px !important;
         margin-bottom: 24px !important;
     }
+
+    #hero .hero-tagline { font-size: 1rem !important; }
+    #hero .hero-desc { font-size: 0.88rem !important; margin-bottom: 36px !important; }
 
     #hero .hero-cta,
     .hero-section .hero-cta {
@@ -651,42 +702,52 @@ html.dark .hero-section .trust-sep,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   16. REDUCED MOTION
+   15. REDUCED MOTION — Accessibility
    ═══════════════════════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {
     #hero .hero-orb,
+    #hero .hero-orb-1,
+    #hero .hero-orb-2,
     #hero .hero-bg,
     #hero .btn-hero,
     #hero .btn-hero-arrow,
     .hero-section .hero-orb,
+    .hero-section .hero-orb-1,
+    .hero-section .hero-orb-2,
     .hero-section .hero-bg,
     .hero-section .btn-hero,
     .hero-section .btn-hero-arrow {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   17. FORCE SECTION SPACING (kalau tabrakan dengan style.css)
+   16. FORCE SECTION SPACING — fix margin-top tabrakan
    ═══════════════════════════════════════════════════════════ */
 
 #public-content #hero:first-child,
-#public-content > section#hero:first-child {
+#public-content > section#hero:first-child,
+#public-content .hero-section:first-child {
     margin-top: 0 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   18. SAFETY — Nuclear override all dark backdrops
+   17. SAFETY NET — Nuclear override all inline dark backdrops
    ═══════════════════════════════════════════════════════════ */
 
 #hero [style*="background: #0f2922"],
 #hero [style*="background:#0f2922"],
 #hero [style*="background: #1a4038"],
 #hero [style*="background:#1a4038"],
+#hero [style*="background: #0a1e19"],
+#hero [style*="background:#0a1e19"],
 #hero [style*="background: rgb(15, 41, 34)"],
-#hero [style*="background:rgb(15,41,34)"] {
+#hero [style*="background:rgb(15,41,34)"],
+#hero [style*="background: rgb(26, 64, 56)"],
+#hero [style*="background:rgb(26,64,56)"] {
     background: transparent !important;
     background-color: transparent !important;
 }

@@ -1,0 +1,662 @@
+/**
+ * ============================================================
+ * css/perf-boost.css
+ * Performance Boost CSS — v2.1.0 FINAL
+ * Sistem Informasi Terpadu PAC GP Ansor Kapanewon Sewon
+ * ---------------------------------------------------------
+ * Optimasi rendering + GPU acceleration + anti-jank.
+ * Load SETELAH semua CSS utama.
+ *
+ * CHANGELOG v2.1.0:
+ *   ✅ FIX: Logo transparan (hapus background abu-abu global)
+ *   ✅ FIX: Shimmer hanya untuk .img-wrapper (card)
+ *   ✅ FIX: Exempt logo/icon dari placeholder background
+ *   ✅ FIX: Compatible dengan hero-fix.css
+ *   ✅ Preserved: Semua fitur v2.0.0
+ * ============================================================
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   1. GPU ACCELERATION — Force Composite Layer
+   ═══════════════════════════════════════════════════════════ */
+.sidebar,
+.mobile-bottom-nav,
+.mobile-admin-header,
+#public-navbar,
+.mobile-more-panel,
+.global-toast,
+.modal-backdrop,
+#confirm-modal,
+.telegram-fab-container,
+#telegram-fab-container,
+#telegram-fab-panel {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   2. CONTENT VISIBILITY — Skip Render Off-Screen
+   ═══════════════════════════════════════════════════════════ */
+.mobile-bottom-nav,
+.mobile-more-sheet,
+.sidebar-footer {
+    contain: layout style;
+}
+
+.main-content > section:not(:first-child),
+#public-content > section:not(:first-child) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
+}
+
+.anggota-card,
+.tokoh-card,
+.kegiatan-card,
+.berita-card,
+.dokumen-card,
+.fr-stat-card,
+.preview-card,
+.stat-card,
+.premium-card {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3. IMAGE OPTIMIZATION — FIXED (v2.1.0)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ✅ Image rendering optimization */
+img {
+    image-rendering: -webkit-optimize-contrast;
+}
+
+img[loading="lazy"] {
+    content-visibility: auto;
+}
+
+/* ✅ Shimmer placeholder — HANYA untuk gambar di card/thumbnail */
+/* ⚠️ JANGAN apply ke logo, icon, atau avatar */
+.img-wrapper,
+.thumb-img,
+.kegiatan-card .img-wrapper,
+.berita-card .img-wrapper,
+.featured-card .img-wrapper,
+.anggota-card .img-wrapper,
+.tokoh-card .img-wrapper,
+.dokumen-card .img-wrapper,
+.berita-skeleton .img-wrapper,
+.kegiatan-card .img-wrapper {
+    background-color: var(--bg-stats, #f1f5f9);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: perfShimmer 1.8s infinite;
+}
+
+@keyframes perfShimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+}
+
+/* ✅ Hentikan shimmer setelah image loaded */
+img[data-loaded="true"] {
+    animation: none;
+    background: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3b. EXEMPT — Logo, icon, avatar TIDAK boleh ada background
+   ═══════════════════════════════════════════════════════════ */
+
+/* Logo hero, brand, boot loader, footer — transparan */
+.app-boot-logo,
+.navbar-brand-logo img,
+.mah-logo img,
+.fv-footer-logo,
+.fv-success-footer-logo,
+.sidebar .brand img,
+.kop-logo,
+#qrcode-logo-overlay img,
+#qr-logo-overlay img,
+.tg-fab-header-icon img,
+.auth-brand-logo-img,
+.auth-mobile-header img {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* Attribute-based exemption untuk logo & icon */
+img[src*="logo"],
+img[src*="Logo"],
+img[src*="LOGO"],
+img[src*="icon"],
+img[src*="Icon"],
+img[alt*="logo"],
+img[alt*="Logo"],
+img[alt*="icon"],
+img[alt*="Icon"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* Social icon img & icon-like kecil */
+.social-link img,
+.kontak-icon img,
+.card-icon img {
+    background: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   4. SMOOTH TRANSITIONS — Only Expensive Properties
+   ═══════════════════════════════════════════════════════════ */
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.navbar-icon-btn,
+.bottom-nav-item,
+.tab-btn,
+.nav-section-link,
+.mobile-more-item,
+.fb-btn,
+.fv-btn,
+.fr-btn {
+    transition-property: transform, background-color, color, box-shadow, border-color;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   5. FASTER FONTS — Text Rendering Optimization
+   ═══════════════════════════════════════════════════════════ */
+body,
+button,
+input,
+select,
+textarea {
+    text-rendering: optimizeSpeed;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   6. ANTI-JANK — Long List Scroll
+   ═══════════════════════════════════════════════════════════ */
+.sidebar .nav-links,
+.fr-table-inner,
+.table-wrapper,
+.mobile-more-body,
+.fr-modal-body,
+.main-content,
+#public-content,
+#admin-content,
+#member-content {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.fr-table-inner,
+.table-wrapper .overflow-x-auto {
+    overscroll-behavior-x: contain;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. REDUCE REPAINT — Mobile Optimizations
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+    .mobile-bottom-nav,
+    #public-navbar,
+    .mobile-admin-header,
+    .sidebar {
+        transform: translateZ(0);
+    }
+
+    #public-navbar,
+    .mobile-bottom-nav,
+    .mobile-admin-header {
+        backdrop-filter: blur(12px) saturate(160%);
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
+    }
+
+    .anggota-card,
+    .tokoh-card,
+    .kegiatan-card,
+    .berita-card,
+    .dokumen-card {
+        transition-duration: 120ms;
+    }
+
+    .hero-orb,
+    .auth-orb,
+    .floral-element,
+    .hero-bg,
+    .tg-fab-pulse {
+        animation: none !important;
+        opacity: 0.3 !important;
+    }
+
+    .skeleton-box,
+    .fb-skeleton-box,
+    .fr-spinner {
+        animation-duration: 1.2s;
+    }
+
+    .premium-card,
+    .glass-card,
+    .stat-card {
+        box-shadow: 0 2px 8px rgba(15, 41, 34, 0.06) !important;
+    }
+
+    .mobile-more-backdrop,
+    .sidebar-overlay {
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   8. INSTANT SKELETON
+   ═══════════════════════════════════════════════════════════ */
+.skeleton-box,
+.fb-skeleton-box {
+    animation-duration: 1.2s !important;
+    animation-timing-function: linear;
+}
+
+.fr-spinner {
+    animation-duration: 0.8s !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   9. CLICK FEEDBACK — 100ms Rule
+   ═══════════════════════════════════════════════════════════ */
+@media (hover: none), (pointer: coarse) {
+    button:active,
+    .bottom-nav-item:active,
+    .tab-btn:active,
+    .nav-section-link:active,
+    .mobile-more-item:active,
+    .btn-primary:active,
+    .btn-secondary:active,
+    .fb-btn:active,
+    .fv-btn:active,
+    .fr-btn:active,
+    .anggota-card:active,
+    .tokoh-card:active,
+    .kegiatan-card:active,
+    .berita-card:active {
+        transform: scale(0.97);
+        transition-duration: 80ms;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   10. FAST SCROLL — Momentum Scroll
+   ═══════════════════════════════════════════════════════════ */
+.main-content,
+#public-content,
+#admin-content,
+#member-content,
+.fr-modal-body,
+.mobile-more-body,
+.sidebar .nav-links,
+.fb-modal-body,
+.fb-builder-body,
+.fb-preview-body {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main-content,
+    #public-content,
+    #admin-content,
+    #member-content,
+    .fr-modal-body,
+    .mobile-more-body,
+    .sidebar .nav-links,
+    .fb-modal-body,
+    .fb-builder-body,
+    .fb-preview-body {
+        scroll-behavior: auto;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   11. REDUCE BACKDROP-FILTER — Tablet/Low-End Devices
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+    .glass-card,
+    .premium-card {
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .mobile-bottom-nav,
+    #public-navbar,
+    .mobile-admin-header {
+        backdrop-filter: blur(10px) saturate(150%);
+        -webkit-backdrop-filter: blur(10px) saturate(150%);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   12. TABLES — Scroll Optimization
+   ═══════════════════════════════════════════════════════════ */
+.table-wrapper,
+.fr-table-wrapper,
+.fr-table-inner {
+    contain: layout style paint;
+}
+
+.fr-table-inner,
+.overflow-x-auto {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   13. FORMS — Input Rendering Optimization
+   ═══════════════════════════════════════════════════════════ */
+input,
+textarea,
+select {
+    contain: layout style;
+}
+
+.fb-input,
+.fv-input,
+.fr-search-input,
+.form-input {
+    transition-property: border-color, box-shadow, background-color;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   14. MODALS — Faster Open/Close
+   ═══════════════════════════════════════════════════════════ */
+.fb-modal-content,
+.fr-modal-content,
+.auth-modal-card,
+#modal-content,
+#field-content,
+#share-content,
+#builder-content {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+.fb-modal-backdrop,
+.fr-modal-backdrop,
+.modal-backdrop,
+.auth-modal-backdrop {
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   15. SIDEBAR — Smooth Open/Close
+   ═══════════════════════════════════════════════════════════ */
+.sidebar {
+    will-change: width, transform;
+    transform: translateZ(0);
+}
+
+.sidebar .nav-links a {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   16. BOTTOM NAV — Telegram Style Optimization
+   ═══════════════════════════════════════════════════════════ */
+.mobile-bottom-nav {
+    will-change: transform;
+    transform: translateZ(0);
+    contain: layout style paint;
+}
+
+.bottom-nav-item i {
+    will-change: transform;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   17. CARDS — Prevent Layout Shift
+   ═══════════════════════════════════════════════════════════ */
+.anggota-card,
+.tokoh-card,
+.kegiatan-card,
+.berita-card,
+.dokumen-card {
+    contain: layout style;
+    will-change: transform;
+}
+
+/* ✅ Image di card — background netral */
+.anggota-card .w-16,
+.anggota-card .w-20 {
+    background-color: var(--bg-stats, #f1f5f9);
+    min-height: 64px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   18. TABLES — Prevent Row Jump
+   ═══════════════════════════════════════════════════════════ */
+table tbody tr {
+    contain: layout style;
+}
+
+table td,
+table th {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   19. FORM RESPONSES — Specific Optimization
+   ═══════════════════════════════════════════════════════════ */
+.fr-table-wrapper {
+    contain: layout style;
+}
+
+.fr-detail-answer {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20. PRINT — Safe Print Rules
+   ═══════════════════════════════════════════════════════════ */
+@media print {
+    .mobile-bottom-nav,
+    .mobile-more-sheet,
+    .mobile-admin-header,
+    .sidebar,
+    .sidebar-overlay,
+    #public-navbar,
+    #telegram-fab-container,
+    .global-toast {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    #public-content,
+    #admin-content,
+    #member-content {
+        padding: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   21. REDUCED MOTION — Accessibility
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .hero-orb,
+    .auth-orb,
+    .floral-element,
+    .skeleton-box,
+    .fb-skeleton-box,
+    .fr-spinner,
+    .tg-fab-pulse,
+    .bn-badge,
+    .sidebar-badge,
+    .bottom-nav-item i {
+        animation: none !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .main-content,
+    #public-content,
+    #admin-content,
+    #member-content,
+    .fr-modal-body,
+    .mobile-more-body,
+    .sidebar .nav-links {
+        scroll-behavior: auto;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   22. DARK MODE — Perf Adjustments
+   ═══════════════════════════════════════════════════════════ */
+.dark .premium-card,
+.dark .glass-card {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   23. TELEGRAM FAB — Perf Optimization
+   ═══════════════════════════════════════════════════════════ */
+#telegram-fab-btn {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+#telegram-fab-panel {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   24. FULLCALENDAR — Perf Optimization
+   ═══════════════════════════════════════════════════════════ */
+.fc {
+    contain: layout style;
+}
+
+.fc-daygrid-day {
+    contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   25. TOAST — Perf Optimization
+   ═══════════════════════════════════════════════════════════ */
+.global-toast {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    contain: layout style paint;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   26. SAFE MOBILE TOUCH TARGETS
+   ═══════════════════════════════════════════════════════════ */
+@media (hover: none), (pointer: coarse) {
+    .bottom-nav-item,
+    .mobile-more-item,
+    .tab-btn,
+    .nav-section-link {
+        min-height: 44px;
+    }
+
+    .bottom-nav-item {
+        min-height: 48px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   27. FAST FOCUS — Accessibility + Perf
+   ═══════════════════════════════════════════════════════════ */
+:focus-visible {
+    outline: 2px solid var(--accent-400, #fbbf24);
+    outline-offset: 2px;
+    transition: outline-offset 100ms ease;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   28. HIGH CONTRAST MODE
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) {
+    .btn-primary,
+    .btn-secondary,
+    .fb-btn,
+    .fv-btn,
+    .fr-btn {
+        border-width: 2px;
+    }
+
+    .premium-card,
+    .glass-card,
+    .stat-card {
+        border-width: 2px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   29. ANTI-OVERFLOW — Prevent Horizontal Scroll
+   ═══════════════════════════════════════════════════════════ */
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+* {
+    min-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   30. FONT AWESOME — Icon Rendering Optimization
+   ═══════════════════════════════════════════════════════════ */
+.fas,
+.far,
+.fab,
+.fa {
+    display: inline-block;
+    text-rendering: optimizeSpeed;
+}
