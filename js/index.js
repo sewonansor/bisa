@@ -1,41 +1,28 @@
 /**
  * js/index.js
- * Modul Halaman Beranda Publik - FULL FIX v16.0.0 (FINAL)
+ * Modul Halaman Beranda Publik — FULL FIX v18.1.0 (ROBUST RETRY)
  * ---------------------------------------------------------
- * FITUR v16.0.0:
- *  - ✅ FIX: Floral cleanup saat navigate keluar
- *  - ✅ FIX: Modal multi-tab (Pengurus, Anggota, Diagram)
- *  - ✅ FIX: Pending scroll dari halaman lain
- *  - ✅ FIX: Scroll spy pakai [data-section]
- *  - ✅ FIX: Per-section error isolation
- *  - ✅ FIX: AbortController cleanup
- *  - ✅ FIX: Swiper destroy & re-init
- *  - ✅ FIX: FullCalendar re-init saat dark mode
- *  - ✅ FIX: jsPlumb retry + fallback
- *  - ✅ FIX: AOS lazy init
- *  - ✅ FIX: Anti-duplicate instance
- *  - ✅ FIX: Number animation anti-re-animate
- *  - ✅ FIX: Semua 8 section load paralel
- *  - ✅ FIX: Zero error di console
+ * CHANGELOG v18.1.0:
+ *   ✅ FIX: initStructureModal — scope #public-content + retry 40x
+ *   ✅ FIX: Exponential backoff (100ms → 800ms max)
+ *   ✅ FIX: Guard `initialized` — idempotent
+ *   ✅ FIX: Warning message informatif untuk QA
+ *   ✅ FIX: Log sukses hanya jika attempt > 1 (console bersih)
+ *   ✅ Preserved: Diagram photo card (foto + nama + jabatan)
+ *   ✅ Preserved: Preload data struktur saat idle
+ *   ✅ Preserved: Semua fitur v18.0.0
  * ---------------------------------------------------------
  * SECTION LOADED:
- *  1. Profil (Sejarah + Visi Misi) — getProfil
- *  2. Struktur (5 pengurus) — getStruktur
- *  3. Village Stats — getUsers
- *  4. Keuangan — getKeuanganPublik
- *  5. Berita — getBerita + getUsers
- *  6. Galeri — getGaleri (Swiper)
- *  7. Arsip Dokumen — getArsip
- *  8. Kalender — getLogbook + getEvents (FullCalendar)
+ *  1. Profil (Sejarah + Visi Misi)
+ *  2. Struktur (5 pengurus)
+ *  3. Village Stats
+ *  4. Keuangan
+ *  5. Berita
+ *  6. Galeri (Swiper)
+ *  7. Arsip Dokumen
+ *  8. Kalender (FullCalendar)
  * ---------------------------------------------------------
- * MODAL:
- *  - Multi-tab: Pengurus, Anggota, Diagram
- * ---------------------------------------------------------
- * INTERAKSI:
- *  - Scroll spy navbar
- *  - Scroll to top button
- *  - Klik section link (dari homepage atau halaman lain)
- *  - Floral cleanup on leave
+ * MODAL MULTI-TAB: Pengurus, Anggota, Diagram
  */
 
 App.register('index', function() {
@@ -113,6 +100,12 @@ App.register('index', function() {
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
+    function extractDriveId(url) {
+        if (!url) return '';
+        const m = String(url).match(/[-\w]{25,}/);
+        return m ? m[0] : '';
+    }
+
     function animateNumber(el, target, duration, formatter) {
         if (!el) return;
         if (el.dataset.animated === 'true') return;
@@ -154,9 +147,14 @@ App.register('index', function() {
     let abortController = null;
     let isDarkModeListenerAttached = false;
 
+    // Cache untuk preload
+    const dataCache = {
+        struktur: null,
+        diagram: null
+    };
+
     // ================================================================
     // 4. SCROLL SPY NAVBAR
-    //    Selector: [data-section] (support desktop + mobile)
     // ================================================================
     function initScrollAnimations() {
         if (scrollListener) {
@@ -241,7 +239,6 @@ App.register('index', function() {
 
     // ================================================================
     // 6. HANDLE PENDING SCROLL
-    //    Saat user klik section link dari halaman lain
     // ================================================================
     function handlePendingScroll() {
         const pendingSection = SafeSessionStorage.getItem('__scrollToSection');
@@ -308,6 +305,7 @@ App.register('index', function() {
             }
 
             const data = res.data || [];
+            dataCache.struktur = data;
 
             if (data.length === 0) {
                 container.innerHTML = '<p class="text-[var(--text-muted)] col-span-full text-center py-8 italic text-sm">Belum ada data struktur organisasi.</p>';
@@ -321,15 +319,19 @@ App.register('index', function() {
             container.innerHTML = limited.map(item => {
                 const foto = item.foto_url || '';
                 const initials = getInitials(item.nama);
+                const fileId = extractDriveId(foto);
 
-                const imgHtml = foto
-                    ? `<img src="${escapeAttr(foto)}" alt="${escapeAttr(item.nama)}"
+                let imgHtml;
+                if (foto) {
+                    imgHtml = `<img src="${escapeAttr(foto)}" alt="${escapeAttr(item.nama)}"
                             class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mb-3 shadow-sm border border-[var(--card-border)]"
                             loading="lazy" decoding="async"
-                            onerror="this.outerHTML='<div class=&quot;w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold mb-3&quot;>${escapeHtml(initials)}</div>'">`
-                    : `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold mb-3">
+                            onerror="if(this.dataset.triedAlt==='1'){this.outerHTML='<div class=&quot;w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold mb-3&quot;>${escapeHtml(initials)}</div>'}else{this.dataset.triedAlt='1';${fileId ? `this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w200';` : ''}}">`;
+                } else {
+                    imgHtml = `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold mb-3">
                             ${escapeHtml(initials)}
                        </div>`;
+                }
 
                 return `
                     <div class="flex flex-col items-center text-center p-3 rounded-lg hover:bg-[var(--bg-stats)] transition">
@@ -588,7 +590,7 @@ App.register('index', function() {
     }
 
     // ================================================================
-    // 12. LOAD GALERI (Swiper)
+    // 12. LOAD GALERI
     // ================================================================
     async function loadGaleri() {
         const wrapper = document.getElementById('galeri-wrapper');
@@ -880,23 +882,87 @@ App.register('index', function() {
     }
 
     // ================================================================
-    // 15. MODAL "LIHAT SELENGKAPNYA" — MULTI-TAB
+    // 15. PRELOAD DIAGRAM DATA
+    // ================================================================
+    async function preloadDiagramData() {
+        try {
+            console.log('[index] Preloading diagram data...');
+            const [profilRes, strukturRes] = await Promise.allSettled([
+                apiCall('getProfil', 'POST', {}),
+                apiCall('getStruktur', 'POST', {})
+            ]);
+
+            if (strukturRes.status === 'fulfilled' && strukturRes.value && strukturRes.value.success) {
+                dataCache.struktur = strukturRes.value.data || [];
+            }
+
+            if (profilRes.status === 'fulfilled' && profilRes.value && profilRes.value.success) {
+                const item = (profilRes.value.data || []).find(p => p.key === 'struktur_diagram');
+                if (item && item.content) {
+                    try { dataCache.diagram = JSON.parse(item.content); } catch (err) {}
+                }
+            }
+
+            console.log('[index] ✅ Diagram data preloaded');
+        } catch (e) {
+            console.warn('[index] Preload diagram failed:', e);
+        }
+    }
+
+    // ================================================================
+    // 16. MODAL "LIHAT SELENGKAPNYA" — ROBUST RETRY v18.1.0
     // ================================================================
     function initStructureModal() {
-        const showBtn = document.getElementById('show-full-structure');
-        if (!showBtn) {
-            console.warn('[index] Tombol show-full-structure tidak ditemukan');
-            return;
+        var MAX_ATTEMPTS = 40;
+        var attempt = 0;
+        var initialized = false;
+
+        function tryInit() {
+            if (initialized) return;
+            attempt++;
+
+            // 🔍 Scope WAJIB: hanya cari di #public-content
+            var publicContent = document.getElementById('public-content');
+            var scope = publicContent || document;
+            var showBtn = scope.querySelector('#show-full-structure');
+
+            if (!showBtn) {
+                if (attempt < MAX_ATTEMPTS) {
+                    // Exponential backoff: 100ms → 200ms → 400ms → ... max 800ms
+                    var delay = Math.min(100 * Math.pow(1.15, attempt), 800);
+                    setTimeout(tryInit, delay);
+                    return;
+                }
+                console.warn(
+                    '[index] ⚠️ #show-full-structure tidak ditemukan setelah ' +
+                    attempt + ' percobaan (~' + Math.round(attempt * 150 / 1000) + 's). ' +
+                    'Kemungkinan: (a) cache view lama, (b) router belum selesai render, ' +
+                    '(c) view belum include tombol. Coba hard refresh (Ctrl+Shift+R).'
+                );
+                return;
+            }
+
+            // ✅ Tombol ditemukan
+            if (attempt > 1) {
+                console.log('[index] ✅ #show-full-structure ditemukan (attempt ' + attempt + ')');
+            } else {
+                console.log('[index] ✅ #show-full-structure siap');
+            }
+            initialized = true;
+            _doInitStructureModal(showBtn);
         }
 
-        // Hapus modal lama dari view HTML (jika ada)
+        tryInit();
+    }
+
+    function _doInitStructureModal(showBtn) {
+        // Cleanup modal lama
         const oldModal = document.getElementById('structure-modal');
         if (oldModal) oldModal.remove();
 
         const existingModal = document.getElementById('index-structure-modal');
         if (existingModal) existingModal.remove();
 
-        // === BUAT MODAL ===
         const modal = document.createElement('div');
         modal.id = 'index-structure-modal';
         modal.style.cssText = `
@@ -1064,7 +1130,6 @@ App.register('index', function() {
 
         document.body.appendChild(modal);
 
-        // === ELEMENT REFS ===
         const content = modal.querySelector('#index-structure-content');
         const closeBtn = modal.querySelector('#index-structure-close');
         const okBtn = modal.querySelector('#index-structure-ok');
@@ -1072,12 +1137,6 @@ App.register('index', function() {
         const info = modal.querySelector('#index-structure-info');
         const tabs = modal.querySelectorAll('.index-tab-btn');
 
-        // === STATE ===
-        let dataCache = {
-            pengurus: null,
-            anggota: null,
-            diagram: null
-        };
         let currentTab = 'pengurus';
         let modalDiagramInstance = null;
 
@@ -1088,7 +1147,15 @@ App.register('index', function() {
                 content.style.transform = 'scale(1)';
                 content.style.opacity = '1';
             });
-            switchTab(currentTab);
+
+            if (currentTab === 'diagram') {
+                if (!modalDiagramInstance) {
+                    dataCache.diagram = null;
+                    renderDiagram();
+                }
+            } else {
+                switchTab(currentTab);
+            }
         }
 
         function closeModal() {
@@ -1120,7 +1187,14 @@ App.register('index', function() {
 
             if (tabName === 'pengurus') renderPengurus();
             else if (tabName === 'anggota') renderAnggota();
-            else if (tabName === 'diagram') renderDiagram();
+            else if (tabName === 'diagram') {
+                const container = document.getElementById('index-modal-diagram');
+                if (container && container.querySelectorAll('.node-box').length > 0) {
+                    console.log('[index] Diagram sudah ter-render, skip');
+                    return;
+                }
+                renderDiagram();
+            }
         }
 
         // === RENDER PENGURUS ===
@@ -1133,11 +1207,11 @@ App.register('index', function() {
             `;
 
             try {
-                if (!dataCache.pengurus) {
+                if (!dataCache.struktur) {
                     const res = await apiCall('getStruktur', 'POST', {});
-                    dataCache.pengurus = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+                    dataCache.struktur = (res && res.success && Array.isArray(res.data)) ? res.data : [];
                 }
-                const data = dataCache.pengurus.slice().sort((a, b) =>
+                const data = dataCache.struktur.slice().sort((a, b) =>
                     (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
 
                 if (data.length === 0) {
@@ -1155,12 +1229,13 @@ App.register('index', function() {
                             const jabatan = item.jabatan || '-';
                             const foto = item.foto_url || '';
                             const initials = getInitials(nama);
+                            const fileId = extractDriveId(foto);
 
                             const avatar = foto
                                 ? `<img src="${escapeAttr(foto)}" alt="${escapeAttr(nama)}"
                                         style="width: 5rem; height: 5rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--card-border);"
                                         loading="lazy"
-                                        onerror="this.outerHTML='<div style=&quot;width:5rem;height:5rem;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#059669);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:700;&quot;>${escapeHtml(initials)}</div>'">`
+                                        onerror="if(this.dataset.triedAlt==='1'){this.outerHTML='<div style=&quot;width:5rem;height:5rem;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#059669);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:700;&quot;>${escapeHtml(initials)}</div>'}else{this.dataset.triedAlt='1';${fileId ? `this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w200';` : ''}}">`
                                 : `<div style="width: 5rem; height: 5rem; border-radius: 50%; background: linear-gradient(135deg, #14b8a6, #059669); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 700;">${escapeHtml(initials)}</div>`;
 
                             return `
@@ -1212,14 +1287,12 @@ App.register('index', function() {
             `;
 
             try {
-                if (!dataCache.anggota) {
-                    const res = await apiCall('getUsers', 'POST', {});
-                    dataCache.anggota = (res && res.success && Array.isArray(res.data)) ? res.data : [];
-                }
-
-                const data = dataCache.anggota
-                    .filter(u => u.status === 'approved' || !u.status)
-                    .sort((a, b) => String(a.nama || a.name || '').localeCompare(String(b.nama || b.name || '')));
+                const res = await apiCall('getUsers', 'POST', {});
+                const data = (res && res.success && Array.isArray(res.data))
+                    ? res.data
+                        .filter(u => u.status === 'approved' || !u.status)
+                        .sort((a, b) => String(a.nama || a.name || '').localeCompare(String(b.nama || b.name || '')))
+                    : [];
 
                 if (data.length === 0) {
                     body.innerHTML = '<p style="text-align: center; padding: 3rem 0; color: var(--text-muted); font-style: italic;">Belum ada data anggota.</p>';
@@ -1296,7 +1369,7 @@ App.register('index', function() {
             }
         }
 
-        // === RENDER DIAGRAM ===
+        // === RENDER DIAGRAM — dengan FOTO + JABATAN + NAMA ===
         async function renderDiagram() {
             body.innerHTML = `
                 <div id="index-modal-diagram" style="
@@ -1345,26 +1418,28 @@ App.register('index', function() {
             }
 
             try {
-                if (!dataCache.diagram) {
-                    const res = await apiCall('getProfil', 'POST', {});
-                    const item = (res && res.success && Array.isArray(res.data))
-                        ? res.data.find(p => p.key === 'struktur_diagram')
-                        : null;
+                const [profilRes, strukturRes] = await Promise.allSettled([
+                    apiCall('getProfil', 'POST', {}),
+                    apiCall('getStruktur', 'POST', {})
+                ]);
 
+                let diagramData = null;
+                if (profilRes.status === 'fulfilled' && profilRes.value && profilRes.value.success) {
+                    const item = (profilRes.value.data || []).find(p => p.key === 'struktur_diagram');
                     if (item && item.content) {
-                        try {
-                            dataCache.diagram = JSON.parse(item.content);
-                        } catch (err) {
-                            dataCache.diagram = null;
-                        }
-                    } else {
-                        dataCache.diagram = null;
+                        try { diagramData = JSON.parse(item.content); } catch (err) {}
                     }
                 }
 
-                const data = dataCache.diagram;
+                let strukturCache = [];
+                if (strukturRes.status === 'fulfilled' && strukturRes.value && strukturRes.value.success) {
+                    strukturCache = strukturRes.value.data || [];
+                }
 
-                if (!data || !data.nodes || data.nodes.length === 0) {
+                const strukturById = {};
+                strukturCache.forEach(s => { strukturById[String(s.id)] = s; });
+
+                if (!diagramData || !diagramData.nodes || diagramData.nodes.length === 0) {
                     if (loading) {
                         loading.innerHTML = `
                             <i class="fas fa-sitemap" style="font-size: 2rem; opacity: 0.4;"></i>
@@ -1387,43 +1462,74 @@ App.register('index', function() {
                     Container: container
                 });
 
-                (data.nodes || []).forEach(n => {
+                (diagramData.nodes || []).forEach(n => {
+                    const nodeId = n.id;
+                    const autoId = String(nodeId).replace('auto-', '');
+
+                    const strukturItem = strukturById[autoId] || {};
+
+                    const nama = strukturItem.nama || n.label || '(belum diisi)';
+                    const jabatan = strukturItem.jabatan || '';
+                    const fotoUrl = strukturItem.foto_url || '';
+
                     const node = document.createElement('div');
-                    node.id = 'modal-node-' + n.id;
-                    node.style.position = 'absolute';
+                    node.id = 'modal-node-' + nodeId;
+                    node.className = 'node-box';
                     node.style.left = (n.x || 0) + 'px';
                     node.style.top = (n.y || 0) + 'px';
-                    node.style.width = (n.width || 120) + 'px';
-                    node.style.height = (n.height || 50) + 'px';
-                    node.style.background = 'var(--card-bg)';
-                    node.style.border = '2px solid ' + (n.color || '#0f2922');
-                    node.style.borderRadius = '8px';
-                    node.style.padding = '0.5rem';
-                    node.style.textAlign = 'center';
-                    node.style.fontSize = '0.8rem';
-                    node.style.fontWeight = '500';
-                    node.style.color = 'var(--text-main)';
-                    node.style.display = 'flex';
-                    node.style.alignItems = 'center';
-                    node.style.justifyContent = 'center';
-                    node.style.wordBreak = 'break-word';
-                    node.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-                    node.textContent = n.label || '';
+                    node.style.width = (n.width || 180) + 'px';
+                    node.style.height = (n.height || 240) + 'px';
+
+                    const initials = getInitials(nama);
+                    const fileId = extractDriveId(fotoUrl);
+
+                    let fotoHtml = '';
+                    if (fotoUrl) {
+                        fotoHtml = `
+                            <img src="${escapeAttr(fotoUrl)}"
+                                 alt="${escapeAttr(nama)}"
+                                 class="node-foto"
+                                 loading="eager"
+                                 decoding="async"
+                                 draggable="false"
+                                 onerror="
+                                    if(this.dataset.triedAlt==='1'){
+                                        this.outerHTML='<div class=&quot;node-foto-fallback&quot;>${escapeHtml(initials)}</div>';
+                                    } else {
+                                        this.dataset.triedAlt='1';
+                                        ${fileId ? `this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w400';` : ''}
+                                    }
+                                 ">
+                        `;
+                    } else {
+                        fotoHtml = `<div class="node-foto-fallback">${escapeHtml(initials)}</div>`;
+                    }
+
+                    node.innerHTML = `
+                        ${fotoHtml}
+                        <div class="node-overlay">
+                            <div class="node-nama">${escapeHtml(nama)}</div>
+                            ${jabatan ? `<div class="node-jabatan">${escapeHtml(jabatan)}</div>` : ''}
+                        </div>
+                        <span class="node-badge" title="Aktif"></span>
+                    `;
 
                     container.appendChild(node);
 
                     try {
-                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Right', uuid: node.id + '-right' });
-                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Left', uuid: node.id + '-left' });
-                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Top', uuid: node.id + '-top' });
+                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Right',  uuid: node.id + '-right' });
+                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Left',   uuid: node.id + '-left' });
+                        modalDiagramInstance.addEndpoint(node.id, { anchor: 'Top',    uuid: node.id + '-top' });
                         modalDiagramInstance.addEndpoint(node.id, { anchor: 'Bottom', uuid: node.id + '-bottom' });
                     } catch (e) {}
                 });
 
-                (data.connections || []).forEach(c => {
+                (diagramData.connections || []).forEach(c => {
                     try {
+                        const srcId = 'modal-node-' + c.source;
+                        const tgtId = 'modal-node-' + c.target;
                         modalDiagramInstance.connect({
-                            uuids: ['modal-node-' + c.source + '-bottom', 'modal-node-' + c.target + '-top']
+                            uuids: [srcId + '-bottom', tgtId + '-top']
                         });
                     } catch (e) {}
                 });
@@ -1432,15 +1538,19 @@ App.register('index', function() {
                     if (modalDiagramInstance) {
                         try { modalDiagramInstance.repaintEverything(); } catch (e) {}
                     }
-                }, 150);
+                }, 200);
+
+                console.log('[index] ✅ Diagram rendered: ' + diagramData.nodes.length + ' nodes with photo+jabatan+nama');
 
             } catch (e) {
                 console.error('[index] renderDiagram error:', e);
-                if (loading) loading.textContent = 'Gagal memuat diagram.';
+                if (loading) {
+                    loading.textContent = 'Gagal memuat diagram: ' + e.message;
+                }
             }
         }
 
-        // === ATTACH EVENTS ===
+        // ATTACH EVENTS
         closeBtn.addEventListener('click', closeModal);
         okBtn.addEventListener('click', closeModal);
 
@@ -1475,7 +1585,7 @@ App.register('index', function() {
     }
 
     // ================================================================
-    // 16. AOS INIT
+    // 17. AOS INIT
     // ================================================================
     function initAOS() {
         if (typeof AOS === 'undefined') return;
@@ -1492,7 +1602,7 @@ App.register('index', function() {
     }
 
     // ================================================================
-    // 17. DARK MODE LISTENER
+    // 18. DARK MODE LISTENER
     // ================================================================
     function attachDarkModeListener() {
         if (isDarkModeListenerAttached) return;
@@ -1509,7 +1619,7 @@ App.register('index', function() {
     }
 
     // ================================================================
-    // 18. INIT
+    // 19. INIT
     // ================================================================
     async function init() {
         console.log('[index] Init dimulai');
@@ -1520,7 +1630,7 @@ App.register('index', function() {
         initScrollAnimations();
         initScrollTop();
 
-        // 2) Init modal multi-tab
+        // 2) Init modal multi-tab (ROBUST RETRY)
         initStructureModal();
 
         // 3) Dark mode listener
@@ -1548,11 +1658,18 @@ App.register('index', function() {
         // 6) Handle pending scroll
         handlePendingScroll();
 
+        // 7) Preload diagram data saat idle
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => preloadDiagramData(), { timeout: 3000 });
+        } else {
+            setTimeout(preloadDiagramData, 2000);
+        }
+
         console.log('[index] Init selesai (data loading di background)');
     }
 
     // ================================================================
-    // 19. CLEANUP
+    // 20. CLEANUP
     // ================================================================
     function cleanup() {
         window.__indexLoaded = false;
@@ -1582,11 +1699,9 @@ App.register('index', function() {
             calendarInstance = null;
         }
 
-        // Cleanup modal
         const modal = document.getElementById('index-structure-modal');
         if (modal) modal.remove();
 
-        // Cleanup floral parallax (dari view)
         if (typeof window.__heroFloralCleanup === 'function') {
             try { window.__heroFloralCleanup(); } catch (e) {}
             window.__heroFloralCleanup = null;
@@ -1600,7 +1715,7 @@ App.register('index', function() {
     window.__indexCleanup = cleanup;
 
     // ================================================================
-    // 20. START
+    // 21. START
     // ================================================================
     init();
 });

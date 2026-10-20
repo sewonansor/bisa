@@ -1,6 +1,26 @@
 /**
  * js/kegiatan.js
- * Modul Halaman Daftar Kegiatan Publik - FULL FIX v10.0.0 (FINAL)
+ * Modul Halaman Daftar Kegiatan Publik - FULL FIX v10.1.0
+ * ---------------------------------------------------------
+ * FIX:
+ *  - ✅ Guard anti-duplikasi + cleanup
+ *  - ✅ XSS protection di semua output
+ *  - ✅ Loading/error/empty state proper
+ *  - ✅ Clone-replace listener (anti memory leak)
+ *  - ✅ Null-safe semua DOM elements
+ *  - ✅ Stats 3 kartu (total, tahun ini, tempat unik)
+ *  - ✅ Search real-time (kegiatan, tempat, deskripsi)
+ *  - ✅ Filter by status (akan/berlangsung/selesai)
+ *  - ✅ Pagination "Load More" (9 per load)
+ *  - ✅ Status badge otomatis (akan/berlangsung/selesai)
+ *  - ✅ Estimasi durasi kegiatan (hari)
+ *  - ✅ Sidebar recent + archive per bulan
+ *  - ✅ Delete recent
+ *  - ✅ Lazy load images
+ *  - ✅ Dark mode aware
+ *  - ✅ Mobile responsive
+ *  - ✅ Cleanup function proper
+ * ---------------------------------------------------------
  */
 
 App.register('kegiatan', function() {
@@ -78,27 +98,50 @@ App.register('kegiatan', function() {
         const wrapper = content.closest('section') || content.parentElement;
         if (!wrapper) return;
 
+        // ===== Stats 3 kartu =====
         if (!document.getElementById('kegiatan-stats')) {
             const statsDiv = document.createElement('div');
             statsDiv.id = 'kegiatan-stats';
             statsDiv.className = 'grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-6xl mx-auto mb-6';
             statsDiv.innerHTML = `
                 <div class="stat-card p-5 rounded-2xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Kegiatan</p>
-                    <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="stats-total-kegiatan-pub">0</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Kegiatan</p>
+                            <p class="text-3xl font-bold text-[var(--text-main)] mt-1" id="stats-total-kegiatan-pub">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white">
+                            <i class="fas fa-calendar-check text-lg"></i>
+                        </div>
+                    </div>
                 </div>
                 <div class="stat-card p-5 rounded-2xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Tahun Ini</p>
-                    <p class="text-3xl font-bold text-blue-600 mt-1" id="stats-tahun-kegiatan-pub">0</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Tahun Ini</p>
+                            <p class="text-3xl font-bold text-blue-600 mt-1" id="stats-tahun-kegiatan-pub">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white">
+                            <i class="fas fa-calendar text-lg"></i>
+                        </div>
+                    </div>
                 </div>
                 <div class="stat-card p-5 rounded-2xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Tempat Unik</p>
-                    <p class="text-3xl font-bold text-purple-600 mt-1" id="stats-tempat-kegiatan-pub">0</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Tempat Unik</p>
+                            <p class="text-3xl font-bold text-purple-600 mt-1" id="stats-tempat-kegiatan-pub">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 flex items-center justify-center text-white">
+                            <i class="fas fa-map-marked-alt text-lg"></i>
+                        </div>
+                    </div>
                 </div>
             `;
             wrapper.insertBefore(statsDiv, content);
         }
 
+        // ===== Search + Filter =====
         if (!document.getElementById('kegiatan-search-wrap')) {
             const searchWrap = document.createElement('div');
             searchWrap.id = 'kegiatan-search-wrap';
@@ -164,6 +207,7 @@ App.register('kegiatan', function() {
                         <p>Belum ada kegiatan yang tercatat.</p>
                     </div>
                 `;
+                updateStats();
             }
         } catch (error) {
             if (skeleton) skeleton.classList.add('hidden');
@@ -230,8 +274,9 @@ App.register('kegiatan', function() {
     function renderKegiatan(data) {
         if (!data || data.length === 0) {
             const isFiltered = searchQuery || currentStatus !== 'all';
+            content.className = 'col-span-full';
             content.innerHTML = `
-                <div class="col-span-full text-center py-12 text-[var(--text-muted)]">
+                <div class="text-center py-12 text-[var(--text-muted)]">
                     <i class="fas ${isFiltered ? 'fa-search' : 'fa-folder-open'} text-4xl mb-3 opacity-40"></i>
                     <p>${isFiltered ? 'Tidak ada kegiatan yang cocok.' : 'Belum ada kegiatan yang tercatat.'}</p>
                 </div>
@@ -309,6 +354,13 @@ App.register('kegiatan', function() {
             });
         }
     }
+
+    // ===== CLEANUP =====
+    function cleanup() {
+        window.__kegiatanLoaded = false;
+        console.log('[kegiatan] Cleanup');
+    }
+    window.__kegiatanCleanup = cleanup;
 
     // ===== INIT =====
     console.log('[kegiatan] Init dimulai');

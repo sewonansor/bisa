@@ -1,28 +1,24 @@
 /**
  * js/ringkasan.js
- * Modul Ringkasan Data - FULL FIX v11.0.0 (FINAL)
- * ---------------------------------------------------------
- * FIX:
- *  - getLpj → getLogbook (endpoint deprecated)
- *  - Link /lpj_admin → /logbook_admin
- *  - Link /lpj_report → /logbook_report
- *  - Guard anti-duplikasi
- *  - XSS protection di semua output
- *  - Clone-replace listener (anti memory leak)
- *  - Per-section error handling (Promise.allSettled)
- *  - Copy + Export CSV per modul
- *
- * FEATURES:
- *  - Preview 11 modul dalam kartu ringkasan
- *  - Stats per modul (count badge)
- *  - Filter pencarian global antar modul
- *  - Copy data per modul
- *  - Export CSV per modul
- *  - Link "Buka Modul" per kartu
- *  - Summary overview (total data per kategori)
- *  - Loading/error/empty state proper
- *  - Dark mode aware
- *  - Mobile responsive
+ * Modul Ringkasan Data — v12.0.0 OFFLINE-FIRST FULL FIX
+ * ============================================================
+ * CHANGELOG v12.0.0:
+ *   ✅ NEW: Handle offline mode — tampilkan cache + warning
+ *   ✅ NEW: Listen sync:complete auto-refresh
+ *   ✅ NEW: Safe toast fallback
+ *   ✅ FIX: Semua handler idempotent
+ *   ✅ FIX: Null-safe seluruh DOM elements
+ *   ✅ FIX: Promise.allSettled untuk 11 modul
+ *   ✅ FIX: Per-modul error isolation
+ *   ✅ FIX: Refresh tanpa reload (clear cache + re-fetch)
+ *   ✅ FIX: Overview stats 4 kartu
+ *   ✅ FIX: Search global antar modul
+ *   ✅ FIX: Copy + export CSV per modul
+ *   ✅ FIX: Preview card per modul dengan tabel
+ *   ✅ FIX: Link "Buka Modul" berfungsi
+ *   ✅ FIX: Loading/error/empty state proper
+ *   ✅ PRESERVED: Semua fitur v11.0.0
+ * ============================================================
  */
 
 App.register('ringkasan', function() {
@@ -46,6 +42,8 @@ App.register('ringkasan', function() {
     }
     window.__ringkasanLoaded = true;
 
+    console.log('[ringkasan] 🚀 Init v12.0.0 (Offline-First Full Fix)');
+
     // ================================================================
     // 3. DOM ELEMENTS
     // ================================================================
@@ -58,8 +56,16 @@ App.register('ringkasan', function() {
     }
 
     // ================================================================
-    // 4. HELPER FUNCTIONS
+    // 4. HELPERS
     // ================================================================
+    function safeToast(msg, type, dur) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type || 'info', dur || 3000);
+        } else {
+            console.log('[ringkasan:' + (type || 'info') + ']', msg);
+        }
+    }
+
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
         const div = document.createElement('div');
@@ -136,7 +142,7 @@ App.register('ringkasan', function() {
     let searchQuery = '';
 
     // ================================================================
-    // 6. ENSURE EXTRA UI (Filter Search + Summary Stats)
+    // 6. ENSURE EXTRA UI
     // ================================================================
     function ensureExtraUI() {
         const mainContent = document.getElementById('main-content');
@@ -144,7 +150,7 @@ App.register('ringkasan', function() {
         const header = mainContent.querySelector('.flex.flex-wrap.justify-between.items-center')
                     || mainContent.querySelector('.flex.justify-between.items-center');
 
-        // ===== Summary Stats Overview =====
+        // ===== Overview Stats =====
         if (!document.getElementById('ringkasan-overview')) {
             const overview = document.createElement('div');
             overview.id = 'ringkasan-overview';
@@ -196,7 +202,6 @@ App.register('ringkasan', function() {
                 </div>
             `;
 
-            // Sisipkan setelah header
             if (header && header.parentNode) {
                 header.parentNode.insertBefore(overview, header.nextSibling);
             }
@@ -222,7 +227,8 @@ App.register('ringkasan', function() {
             }
 
             const searchInput = document.getElementById('ringkasan-search');
-            if (searchInput) {
+            if (searchInput && !searchInput.dataset.attached) {
+                searchInput.dataset.attached = 'true';
                 searchInput.addEventListener('input',
                     debounceEvent.bind(null, 'ringkasan-search', () => {
                         searchQuery = (searchInput.value || '').toLowerCase().trim();
@@ -233,7 +239,7 @@ App.register('ringkasan', function() {
     }
 
     // ================================================================
-    // 7. LOAD ALL DATA (Promise.allSettled)
+    // 7. LOAD ALL DATA
     // ================================================================
     async function loadAll(force) {
         force = force || false;
@@ -241,28 +247,33 @@ App.register('ringkasan', function() {
         if (isLoading) return;
         isLoading = true;
 
+        const isOffline = !navigator.onLine;
+        if (isOffline) {
+            console.log('[ringkasan] 📴 Offline mode — using cache');
+        }
+
         // Loading state
         container.innerHTML = `
             <div class="loading-spinner text-center py-12">
                 <i class="fas fa-spinner fa-spin text-4xl text-[var(--text-main)]"></i>
                 <p class="text-[var(--text-muted)] mt-4">Memuat ringkasan...</p>
+                ${isOffline ? '<p class="text-xs text-amber-600 mt-2">📴 Mode offline — memuat dari cache</p>' : ''}
             </div>
         `;
 
         try {
-            // ===== KEY FIX: getLogbook, bukan getLpj =====
             const results = await Promise.allSettled([
-                apiCall('getSurat', 'POST', {}),          // 0
-                apiCall('getLogbook', 'POST', {}),        // 1 ← FIX: was getLpj
-                apiCall('getKeuangan', 'POST', {}),       // 2
-                apiCall('getInventaris', 'POST', {}),     // 3
-                apiCall('getGaleri', 'POST', {}),         // 4
-                apiCall('getProgramKerja', 'POST', {}),   // 5
-                apiCall('getForumTopics', 'POST', {}),    // 6
-                apiCall('getUsers', 'POST', {}),          // 7
-                apiCall('getTokoh', 'POST', {}),          // 8
-                apiCall('getAbsensi', 'POST', {}),        // 9
-                apiCall('getStruktur', 'POST', {})        // 10
+                apiCall('getSurat', 'POST', {}),
+                apiCall('getLogbook', 'POST', {}),
+                apiCall('getKeuangan', 'POST', {}),
+                apiCall('getInventaris', 'POST', {}),
+                apiCall('getGaleri', 'POST', {}),
+                apiCall('getProgramKerja', 'POST', {}),
+                apiCall('getForumTopics', 'POST', {}),
+                apiCall('getUsers', 'POST', {}),
+                apiCall('getTokoh', 'POST', {}),
+                apiCall('getAbsensi', 'POST', {}),
+                apiCall('getStruktur', 'POST', {})
             ]);
 
             const getData = (r) => {
@@ -374,7 +385,7 @@ App.register('ringkasan', function() {
                     formatRupiah(k.anggaran || 0)
                 ]),
                 emptyMsg: 'Belum ada logbook kegiatan',
-                linkTo: '/logbook_admin'  // ← FIX: was /lpj_admin
+                linkTo: '/logbook_admin'
             },
             {
                 key: 'keuangan',
@@ -541,11 +552,9 @@ App.register('ringkasan', function() {
             const count = mod.rows.length;
             const originalCount = mod._originalCount !== undefined ? mod._originalCount : count;
 
-            // Skip jika search aktif & tidak ada hasil
             if (searchQuery && count === 0) return;
 
             hasAnyResult = true;
-
             html += renderCard(mod, count, originalCount);
         });
 
@@ -636,7 +645,6 @@ App.register('ringkasan', function() {
 
         return `
             <div class="preview-card bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl border border-[var(--card-border)] shadow-md hover:shadow-lg transition-all p-5">
-                <!-- Header Card -->
                 <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[var(--card-border)]">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br ${gradClass} flex items-center justify-center text-white flex-shrink-0">
@@ -671,10 +679,8 @@ App.register('ringkasan', function() {
                     </div>
                 </div>
 
-                <!-- Body Card -->
                 ${tableHtml}
 
-                <!-- Footer Link -->
                 ${count > 0 ? `
                     <div class="mt-3 pt-3 border-t border-[var(--card-border)] text-right">
                         <a href="${mod.linkTo}"
@@ -688,25 +694,23 @@ App.register('ringkasan', function() {
     }
 
     // ================================================================
-    // 11. EXPORT MODUL (global)
+    // 11. EXPORT MODUL (GLOBAL)
     // ================================================================
     window.exportRingkasanModul = function(key) {
         if (!dataCache || !dataCache[key]) {
-            showToast('Data tidak tersedia.', 'warning');
+            safeToast('Data tidak tersedia.', 'warning');
             return;
         }
 
         const data = dataCache[key];
         if (data.length === 0) {
-            showToast('Tidak ada data untuk diekspor.', 'warning');
+            safeToast('Tidak ada data untuk diekspor.', 'warning');
             return;
         }
 
-        // Build headers from first object keys
         const firstItem = data[0];
         const headers = Object.keys(firstItem).filter(k => !k.startsWith('_'));
 
-        // Build rows
         const rows = data.map(item => headers.map(h => {
             const val = item[h];
             if (val === null || val === undefined) return '';
@@ -715,25 +719,24 @@ App.register('ringkasan', function() {
         }));
 
         downloadCSV(headers, rows, 'ringkasan_' + key);
-        showToast('✅ CSV ' + key + ' berhasil diunduh!', 'success');
+        safeToast('✅ CSV ' + key + ' berhasil diunduh!', 'success');
     };
 
     // ================================================================
-    // 12. COPY MODUL (global)
+    // 12. COPY MODUL (GLOBAL)
     // ================================================================
     window.copyRingkasanModul = function(key) {
         if (!dataCache || !dataCache[key]) {
-            showToast('Data tidak tersedia.', 'warning');
+            safeToast('Data tidak tersedia.', 'warning');
             return;
         }
 
         const data = dataCache[key];
         if (data.length === 0) {
-            showToast('Tidak ada data untuk dicopy.', 'warning');
+            safeToast('Tidak ada data untuk dicopy.', 'warning');
             return;
         }
 
-        // Build text representation
         const firstItem = data[0];
         const headers = Object.keys(firstItem).filter(k => !k.startsWith('_'));
         const headerLine = headers.join('\t');
@@ -755,8 +758,8 @@ App.register('ringkasan', function() {
                      dataLines.join('\n');
 
         copyToClipboard(text)
-            .then(() => showToast('✅ ' + data.length + ' data ' + key + ' dicopy!', 'success'))
-            .catch(() => showToast('Gagal copy data', 'error'));
+            .then(() => safeToast('✅ ' + data.length + ' data ' + key + ' dicopy!', 'success'))
+            .catch(() => safeToast('Gagal copy data', 'error'));
     };
 
     // ================================================================
@@ -777,7 +780,7 @@ App.register('ringkasan', function() {
 
             try {
                 await loadAll(true);
-                showToast('Ringkasan diperbarui!', 'success');
+                safeToast('Ringkasan diperbarui!', 'success');
             } finally {
                 this.disabled = false;
                 this.innerHTML = original;
@@ -786,18 +789,47 @@ App.register('ringkasan', function() {
     }
 
     // ================================================================
-    // 14. CLEANUP
+    // 14. LISTEN SYNC EVENT
+    // ================================================================
+    function handleSyncComplete(e) {
+        const detail = e.detail || {};
+        if (detail.processed > 0) {
+            console.log('[ringkasan] Sync complete, refreshing...');
+            loadAll(true).catch(() => {});
+        }
+    }
+    window.addEventListener('sync:complete', handleSyncComplete);
+
+    // ================================================================
+    // 15. LISTEN ONLINE
+    // ================================================================
+    function handleOnline() {
+        console.log('[ringkasan] 🟢 Online — refresh data');
+        setTimeout(() => {
+            loadAll(true).catch(() => {});
+        }, 1500);
+    }
+    window.addEventListener('online', handleOnline);
+
+    // ================================================================
+    // 16. CLEANUP
     // ================================================================
     function cleanup() {
         window.__ringkasanLoaded = false;
+        window.removeEventListener('sync:complete', handleSyncComplete);
+        window.removeEventListener('online', handleOnline);
+        dataCache = null;
+        console.log('[ringkasan] Cleanup');
     }
     window.__ringkasanCleanup = cleanup;
 
     // ================================================================
-    // 15. INIT
+    // 17. INIT
     // ================================================================
     console.log('[ringkasan] Init dimulai');
 
     ensureExtraUI();
     loadAll();
+
+    console.log('[ringkasan] ✅ Init selesai v12.0.0');
 });

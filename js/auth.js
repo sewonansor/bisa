@@ -1,111 +1,103 @@
 /**
  * js/auth.js
- * Modul Autentikasi (Login, Register, Lupa Password, Lupa Username)
- * Versi: 13.0.0 — FULL FIX (FINAL, Prefetch Integrated)
+ * Modul Autentikasi - FULL FIX v16.0.0
  * ---------------------------------------------------------
- * FITUR v13.0.0:
- *  - ✅ Trigger prefetchRoutes setelah login sukses (dashboard siap)
- *  - ✅ Show progress prefetch di login success state
- *  - ✅ SafeStorage/SafeSessionStorage (Tracking Prevention)
- *  - ✅ Redirect ke dashboard setelah prefetch starting
- *  - ✅ Semua fitur auth dari v11 tetap utuh
- *  - ✅ Better UX dengan double confirmation
- *  - ✅ Anti double-submit
- *
- * FITUR LAMA:
- *  - Tab Login/Register dengan persist state
- *  - Login dengan username/email
- *  - Register dengan 11 field + validasi lengkap
- *  - Password show/hide toggle
- *  - Lupa Password (3-step: identifier → question → new password)
- *  - Lupa Username (3-step: phone → question → username)
- *  - Welcome toast + redirect by role
- *  - Form validation real-time
- *  - Auto-focus field pertama
- *  - Modal lupa akun dengan scale animation
- *  - Dark mode aware
- *  - Mobile responsive
- *  - XSS protection (escapeHtml)
- *  - Clone-replace listener (anti memory leak)
+ * CHANGELOG v16.0.0:
+ *   ✅ FIX: Boot flag reset setelah login (untuk boot loader once-per-session)
+ *   ✅ FIX: Watchdog 3 detik — force redirect kalau stuck
+ *   ✅ FIX: Handle semua response format (root/data/data.user)
+ *   ✅ FIX: Login redirect SIMPLE & PASTI JALAN
+ *   ✅ FIX: Register berfungsi penuh dengan validasi
+ *   ✅ FIX: Lupa Password berfungsi (reset password)
+ *   ✅ FIX: Lupa Username berfungsi (by phone)
+ *   ✅ FIX: Anti double-submit + XSS protection
+ *   ✅ FIX: Null-safe semua DOM elements
+ *   ✅ FIX: Clone-replace listener (anti memory leak)
+ *   ✅ FIX: Cleanup function proper
+ *   ✅ FIX: Better logging untuk debug
+ *   ✅ FIX: Tab switch persist via sessionStorage
+ * ---------------------------------------------------------
  */
 
 App.register('auth', function() {
     'use strict';
 
-    // ================================================================
+    // ============================================================
     // 1. GUARD ANTI-DUPLIKASI
-    // ================================================================
+    // ============================================================
     if (window.__authLoaded) {
         console.log('[auth] Sudah di-init, skip.');
         return;
     }
     window.__authLoaded = true;
+    console.log('[auth] 🚀 Init v16.0.0');
 
-    // ================================================================
-    // 2. CEK JIKA SUDAH LOGIN → REDIRECT
-    // ================================================================
+    // ============================================================
+    // 2. CEK USER SUDAH LOGIN
+    // ============================================================
     const existingUser = checkAuth();
     if (existingUser) {
-        console.log('[auth] User sudah login, redirect...');
         const dashUrl = existingUser.role === 'admin' ? '/dashboard_admin' : '/dashboard_member';
-        router.load(dashUrl);
+        console.log('[auth] User sudah login, redirect ke', dashUrl);
+        setTimeout(() => { window.location.hash = dashUrl; }, 100);
         return;
     }
 
-    // ================================================================
-    // 3. DOM ELEMENTS
-    // ================================================================
-    const loginTab          = document.getElementById('login-tab');
-    const registerTab       = document.getElementById('register-tab');
-    const loginContainer    = document.getElementById('login-form-container');
+    // ============================================================
+    // 3. DOM ELEMENTS — NULL-SAFE
+    // ============================================================
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginContainer = document.getElementById('login-form-container');
     const registerContainer = document.getElementById('register-form-container');
-    const loginForm         = document.getElementById('login-form');
-    const registerForm      = document.getElementById('register-form');
-    const formTitle         = document.getElementById('form-title');
-    const loginMsg          = document.getElementById('login-message');
-    const regMsg            = document.getElementById('register-message');
+    const formTitle = document.getElementById('form-title');
+    const loginMsg = document.getElementById('login-message');
+    const regMsg = document.getElementById('register-message');
 
-    // Lupa Akun Modal
-    const forgotLink       = document.getElementById('forgot-account-link');
-    const forgotModal      = document.getElementById('forgot-account-modal');
-    const forgotContent    = document.getElementById('forgot-modal-content');
-    const closeForgotBtn   = document.getElementById('close-forgot-modal');
-    const modeRadios       = document.querySelectorAll('input[name="forgotMode"]');
-    const step1            = document.getElementById('forgot-step-1');
-    const step2            = document.getElementById('forgot-step-2');
-    const step3            = document.getElementById('forgot-step-3');
-    const forgotUsername   = document.getElementById('forgot-username');
-    const forgotPhone      = document.getElementById('forgot-phone');
-    const forgotNext       = document.getElementById('forgot-next');
+    // Forgot modal
+    const forgotLink = document.getElementById('forgot-account-link');
+    const forgotModal = document.getElementById('forgot-account-modal');
+    const forgotContent = document.getElementById('forgot-modal-content');
+    const closeForgotBtn = document.getElementById('close-forgot-modal');
+    const modeRadios = document.querySelectorAll('input[name="forgotMode"]');
+    const step1 = document.getElementById('forgot-step-1');
+    const step2 = document.getElementById('forgot-step-2');
+    const step3 = document.getElementById('forgot-step-3');
+    const forgotUsername = document.getElementById('forgot-username');
+    const forgotPhone = document.getElementById('forgot-phone');
+    const forgotNext = document.getElementById('forgot-next');
     const forgotQuestionText = document.getElementById('forgot-question-text');
-    const forgotAnswer     = document.getElementById('forgot-answer');
-    const forgotVerify     = document.getElementById('forgot-verify');
-    const forgotDone       = document.getElementById('forgot-done');
+    const forgotAnswer = document.getElementById('forgot-answer');
+    const forgotVerify = document.getElementById('forgot-verify');
+    const forgotDone = document.getElementById('forgot-done');
     const forgotResultContent = document.getElementById('forgot-result-content');
-    const msg1             = document.getElementById('forgot-step1-msg');
-    const msg2             = document.getElementById('forgot-step2-msg');
-    const step1Desc        = document.getElementById('forgot-step1-desc');
+    const msg1 = document.getElementById('forgot-step1-msg');
+    const msg2 = document.getElementById('forgot-step2-msg');
+    const step1Desc = document.getElementById('forgot-step1-desc');
 
     if (!loginForm || !registerForm) {
-        console.error('[auth] Elemen form utama tidak ditemukan.');
+        console.error('[auth] ❌ Form utama tidak ditemukan');
         return;
     }
 
-    // ================================================================
+    // ============================================================
     // 4. STATE
-    // ================================================================
-    let forgotMode = 'password';       // 'password' atau 'username'
+    // ============================================================
+    let forgotMode = 'password';
     let forgotIdentifier = '';
     let isSubmitting = false;
+    let loginLock = false;
 
-    // ================================================================
-    // 5. HELPER FUNCTIONS
-    // ================================================================
+    // ============================================================
+    // 5. HELPERS
+    // ============================================================
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
-        const div = document.createElement('div');
-        div.textContent = String(str);
-        return div.innerHTML;
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
     }
 
     function setMsg(el, text, type) {
@@ -123,40 +115,88 @@ App.register('auth', function() {
         el.className = 'mt-2 text-center text-sm';
     }
 
-    function getInputValue(id) {
+    function val(id) {
         const el = document.getElementById(id);
         return el ? (el.value || '').trim() : '';
     }
 
-    function focusFirstInput(container) {
+    function focusFirst(container) {
         if (!container) return;
         setTimeout(() => {
-            const firstInput = container.querySelector('input:not([type="hidden"]):not([disabled])');
-            if (firstInput) firstInput.focus();
+            const i = container.querySelector('input:not([type="hidden"]):not([disabled])');
+            if (i) i.focus();
         }, 150);
     }
 
-    // ================================================================
-    // 6. PASSWORD SHOW/HIDE TOGGLE
-    // ================================================================
+    /**
+     * ✅ Extract user dari berbagai format response
+     */
+    function extractUser(result) {
+        if (!result || !result.success) return null;
+
+        // Format 1: user di root
+        if (result.user && result.user.id) {
+            console.log('[auth] 📦 User dari: root');
+            return result.user;
+        }
+
+        // Format 2: user di data.user
+        if (result.data && result.data.user && result.data.user.id) {
+            console.log('[auth] 📦 User dari: data.user');
+            return result.data.user;
+        }
+
+        // Format 3: data langsung user
+        if (result.data && result.data.id && result.data.role) {
+            console.log('[auth] 📦 User dari: data (langsung)');
+            return result.data;
+        }
+
+        console.warn('[auth] ⚠️ Tidak bisa ekstrak user:', result);
+        return null;
+    }
+
+    function extractQuestion(result) {
+        if (!result || !result.success) return '';
+        if (result.question) return result.question;
+        if (result.data && result.data.question) return result.data.question;
+        return 'Tidak ada pertanyaan keamanan';
+    }
+
+    function extractUsername(result) {
+        if (!result || !result.success) return '';
+        if (result.username) return result.username;
+        if (result.data && result.data.username) return result.data.username;
+        return '';
+    }
+
+    /**
+     * ✅ Reset boot flag setelah login sukses
+     * Integrasi dengan boot loader "once per session"
+     */
+    function resetBootFlagForLogin() {
+        try {
+            sessionStorage.removeItem('__boot_done');
+            localStorage.removeItem('__boot_done');
+            console.log('[auth] ✅ Boot flag reset — boot loader will show');
+        } catch (e) {}
+    }
+
+    // ============================================================
+    // 6. PASSWORD TOGGLE (global)
+    // ============================================================
     window.togglePassword = function(inputId, btn) {
         const input = document.getElementById(inputId);
         if (!input || !btn) return;
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            btn.setAttribute('aria-label', 'Sembunyikan password');
-        } else {
-            input.type = 'password';
-            btn.innerHTML = '<i class="fas fa-eye"></i>';
-            btn.setAttribute('aria-label', 'Tampilkan password');
-        }
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.innerHTML = input.type === 'password'
+            ? '<i class="fas fa-eye"></i>'
+            : '<i class="fas fa-eye-slash"></i>';
     };
 
-    // ================================================================
+    // ============================================================
     // 7. TAB SWITCHING
-    // ================================================================
+    // ============================================================
     function switchTab(target) {
         const isLogin = target === 'login';
 
@@ -178,15 +218,14 @@ App.register('auth', function() {
         clearMsg(loginMsg);
         clearMsg(regMsg);
 
-        focusFirstInput(isLogin ? loginContainer : registerContainer);
+        focusFirst(isLogin ? loginContainer : registerContainer);
     }
 
-    // Attach tab listeners (clone-replace)
     [loginTab, registerTab].forEach((tab, idx) => {
         if (!tab) return;
-        const clone = tab.cloneNode(true);
-        tab.parentNode.replaceChild(clone, tab);
-        clone.addEventListener('click', function() {
+        const c = tab.cloneNode(true);
+        tab.parentNode.replaceChild(c, tab);
+        c.addEventListener('click', function() {
             switchTab(idx === 0 ? 'login' : 'register');
             try {
                 if (idx === 1) SafeSessionStorage.setItem('authTab', 'register');
@@ -195,65 +234,60 @@ App.register('auth', function() {
         });
     });
 
-    // ================================================================
-    // 8. CEK URL/HASH UNTUK INITIAL TAB
-    // ================================================================
-    (function initInitialTab() {
-        let initialTab = 'login';
+    // ============================================================
+    // 8. INITIAL TAB
+    // ============================================================
+    (function() {
+        let t = 'login';
 
-        // Prioritas 1: hash query (?tab=register)
         if (window.__currentQuery && typeof window.__currentQuery.get === 'function') {
-            if (window.__currentQuery.get('tab') === 'register') initialTab = 'register';
+            if (window.__currentQuery.get('tab') === 'register') t = 'register';
         }
 
-        // Prioritas 2: hash manual
-        if (initialTab === 'login') {
+        if (t === 'login') {
             const hash = window.location.hash || '';
             const qIdx = hash.indexOf('?');
             if (qIdx !== -1) {
                 try {
-                    const params = new URLSearchParams(hash.substring(qIdx));
-                    if (params.get('tab') === 'register') initialTab = 'register';
+                    const p = new URLSearchParams(hash.substring(qIdx));
+                    if (p.get('tab') === 'register') t = 'register';
                 } catch (e) {}
             }
         }
 
-        // Prioritas 3: sessionStorage
-        if (initialTab === 'login') {
+        if (t === 'login') {
             try {
                 if (SafeSessionStorage.getItem('authTab') === 'register') {
-                    initialTab = 'register';
+                    t = 'register';
                     SafeSessionStorage.removeItem('authTab');
                 }
             } catch (e) {}
         }
 
-        // Prioritas 4: search params
-        if (initialTab === 'login') {
+        if (t === 'login') {
             try {
                 if (new URLSearchParams(window.location.search).get('tab') === 'register') {
-                    initialTab = 'register';
+                    t = 'register';
                 }
             } catch (e) {}
         }
 
-        switchTab(initialTab);
+        switchTab(t);
     })();
 
-    // ================================================================
-    // 9. LOGIN SUBMIT — dengan Prefetch Trigger
-    // ================================================================
-    loginForm.addEventListener('submit', async (e) => {
+    // ============================================================
+    // 9. LOGIN SUBMIT
+    // ============================================================
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (isSubmitting) return;
+        if (loginLock) return;
 
-        const username = getInputValue('login-username');
-        const password = document.getElementById('login-password') ?
-                        document.getElementById('login-password').value : '';
+        const username = val('login-username');
+        const passwordEl = document.getElementById('login-password');
+        const password = passwordEl ? passwordEl.value : '';
 
-        // Validation
         if (!username) {
             setMsg(loginMsg, 'Email/Username wajib diisi!', 'error');
             const el = document.getElementById('login-username');
@@ -262,161 +296,135 @@ App.register('auth', function() {
         }
         if (!password) {
             setMsg(loginMsg, 'Password wajib diisi!', 'error');
-            const el = document.getElementById('login-password');
-            if (el) el.focus();
+            if (passwordEl) passwordEl.focus();
             return;
         }
 
+        loginLock = true;
         isSubmitting = true;
+
         const submitBtn = loginForm.querySelector('button[type="submit"]');
         startLoading(submitBtn, 'Login...');
         setMsg(loginMsg, 'Memproses login...', 'info');
 
+        console.log('[auth] 🔐 Login attempt:', username);
+
         try {
             const result = await apiCall('login', 'POST', { username, password });
+            console.log('[auth] 📥 Response:', result);
 
-            if (result && result.success && result.user) {
-                // ============================================
-                // LOGIN SUKSES
-                // ============================================
+            const user = extractUser(result);
 
-                // 1) Simpan user
+            if (result && result.success && user) {
+                // ═══ LOGIN SUKSES ═══
+                console.log('[auth] ✅ Login sukses, role:', user.role);
+
                 try {
-                    SafeStorage.setItem('user', JSON.stringify(result.user));
+                    SafeStorage.setItem('user', JSON.stringify(user));
+                    console.log('[auth] ✅ User tersimpan');
                 } catch (err) {
-                    console.warn('[auth] Failed to save user:', err);
+                    console.error('[auth] Gagal save user:', err);
                 }
 
-                // 2) Update UI
-                const userName = result.user.nama || result.user.username || 'User';
-                setMsg(loginMsg, '✅ Login berhasil! Menyiapkan dashboard...', 'success');
+                // ✅ Reset boot flag
+                resetBootFlagForLogin();
+
+                const userName = user.nama || user.username || 'User';
+                setMsg(loginMsg, '✅ Login berhasil! Mengalihkan...', 'success');
                 showToast('Selamat datang, ' + userName + '!', 'success', 2500);
 
-                // 3) Trigger PREFETCH dashboard (background)
-                //    Berjalan paralel dengan redirect — user tidak menunggu
-                if (typeof window.prefetchRoutes === 'function') {
-                    setTimeout(() => {
-                        window.prefetchRoutes(result.user.role).catch((err) => {
-                            console.warn('[auth] Prefetch error:', err);
-                        });
-                    }, 200);
+                if (typeof window.updateAuthLinks === 'function') {
+                    try { window.updateAuthLinks(); } catch (e) {}
                 }
 
-                // 4) Update button text ke "Menyiapkan dashboard..."
                 if (submitBtn) {
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyiapkan dashboard...';
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengalihkan...';
                 }
 
-                // 5) Redirect ke dashboard
-                const dashUrl = result.user.role === 'admin'
+                const dashUrl = user.role === 'admin'
                     ? '/dashboard_admin'
                     : '/dashboard_member';
 
-                setTimeout(() => {
-                    router.load(dashUrl);
-                }, 900);
+                console.log('[auth] 🔄 Redirect ke:', dashUrl);
+
+                setTimeout(function() {
+                    try {
+                        window.location.hash = dashUrl;
+                    } catch (e1) {
+                        console.warn('[auth] Hash error:', e1);
+                    }
+
+                    // Watchdog 3 detik
+                    setTimeout(function() {
+                        const currentHash = (window.location.hash || '')
+                            .replace('#', '').split('?')[0];
+                        if (currentHash === '/auth' || currentHash === '' || currentHash === '/') {
+                            console.warn('[auth] ⚠️ Watchdog: force redirect');
+                            const base = window.location.origin + window.location.pathname;
+                            window.location.href = base + '#' + dashUrl;
+                        }
+                    }, 3000);
+
+                }, 400);
 
             } else {
-                setMsg(loginMsg, (result && result.message) || 'Login gagal', 'error');
+                // LOGIN GAGAL
+                console.log('[auth] ❌ Gagal:', result && result.message);
+                const errMsg = (result && result.message) || 'Login gagal';
+                setMsg(loginMsg, errMsg, 'error');
 
-                // Clear password field
-                const passEl = document.getElementById('login-password');
-                if (passEl) { passEl.value = ''; passEl.focus(); }
+                if (passwordEl) {
+                    passwordEl.value = '';
+                    passwordEl.focus();
+                }
 
                 stopLoading(submitBtn);
+                loginLock = false;
                 isSubmitting = false;
             }
+
         } catch (error) {
-            console.error('[auth] Login error:', error);
+            console.error('[auth] ❌ Login error:', error);
             setMsg(loginMsg, 'Terjadi kesalahan: ' + error.message, 'error');
             stopLoading(submitBtn);
+            loginLock = false;
             isSubmitting = false;
         }
     });
 
-    // ================================================================
+    // ============================================================
     // 10. REGISTER SUBMIT
-    // ================================================================
-    registerForm.addEventListener('submit', async (e) => {
+    // ============================================================
+    registerForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         e.stopPropagation();
 
         if (isSubmitting) return;
 
-        // Get all fields
-        const nama = getInputValue('reg-nama');
-        const username = getInputValue('reg-username');
-        const password = document.getElementById('reg-password') ?
-                        document.getElementById('reg-password').value : '';
-        const passwordConfirm = document.getElementById('reg-password-confirm') ?
-                               document.getElementById('reg-password-confirm').value : '';
-        const no_hp = getInputValue('reg-no_hp');
-        const kalurahan = getInputValue('reg-kalurahan');
-        const pertanyaan = getInputValue('reg-pertanyaan');
-        const jawaban = getInputValue('reg-jawaban');
-        const nama_pengurus = getInputValue('reg-nama_pengurus');
-        const jabatan = getInputValue('reg-jabatan');
+        const nama = val('reg-nama');
+        const username = val('reg-username');
+        const passwordEl = document.getElementById('reg-password');
+        const passwordConfirmEl = document.getElementById('reg-password-confirm');
+        const password = passwordEl ? passwordEl.value : '';
+        const passwordConfirm = passwordConfirmEl ? passwordConfirmEl.value : '';
+        const no_hp = val('reg-no_hp');
+        const kalurahan = val('reg-kalurahan');
+        const pertanyaan = val('reg-pertanyaan');
+        const jawaban = val('reg-jawaban');
+        const nama_pengurus = val('reg-nama_pengurus');
+        const jabatan = val('reg-jabatan');
         const commitment = document.getElementById('reg-commitment');
 
-        // ===== Validation =====
-        if (!nama) {
-            setMsg(regMsg, 'Nama lengkap wajib diisi!', 'error');
-            const el = document.getElementById('reg-nama');
-            if (el) el.focus();
-            return;
-        }
-        if (nama.length < 3) {
-            setMsg(regMsg, 'Nama minimal 3 karakter!', 'error');
-            return;
-        }
-        if (!username) {
-            setMsg(regMsg, 'Username/Email wajib diisi!', 'error');
-            const el = document.getElementById('reg-username');
-            if (el) el.focus();
-            return;
-        }
-        if (!password) {
-            setMsg(regMsg, 'Password wajib diisi!', 'error');
-            const el = document.getElementById('reg-password');
-            if (el) el.focus();
-            return;
-        }
-        if (password.length < 6) {
-            setMsg(regMsg, 'Password minimal 6 karakter!', 'error');
-            const el = document.getElementById('reg-password');
-            if (el) el.focus();
-            return;
-        }
-        if (password !== passwordConfirm) {
-            setMsg(regMsg, 'Password dan konfirmasi tidak cocok!', 'error');
-            const el = document.getElementById('reg-password-confirm');
-            if (el) el.focus();
-            return;
-        }
-        if (!no_hp) {
-            setMsg(regMsg, 'No. HP wajib diisi!', 'error');
-            const el = document.getElementById('reg-no_hp');
-            if (el) el.focus();
-            return;
-        }
-        if (!kalurahan) {
-            setMsg(regMsg, 'Kalurahan wajib dipilih!', 'error');
-            const el = document.getElementById('reg-kalurahan');
-            if (el) el.focus();
-            return;
-        }
-        if (!pertanyaan) {
-            setMsg(regMsg, 'Pertanyaan keamanan wajib dipilih!', 'error');
-            const el = document.getElementById('reg-pertanyaan');
-            if (el) el.focus();
-            return;
-        }
-        if (!jawaban) {
-            setMsg(regMsg, 'Jawaban keamanan wajib diisi!', 'error');
-            const el = document.getElementById('reg-jawaban');
-            if (el) el.focus();
-            return;
-        }
+        if (!nama) { setMsg(regMsg, 'Nama lengkap wajib diisi!', 'error'); return; }
+        if (nama.length < 3) { setMsg(regMsg, 'Nama minimal 3 karakter!', 'error'); return; }
+        if (!username) { setMsg(regMsg, 'Username/Email wajib diisi!', 'error'); return; }
+        if (!password) { setMsg(regMsg, 'Password wajib diisi!', 'error'); return; }
+        if (password.length < 6) { setMsg(regMsg, 'Password minimal 6 karakter!', 'error'); return; }
+        if (password !== passwordConfirm) { setMsg(regMsg, 'Password tidak cocok!', 'error'); return; }
+        if (!no_hp) { setMsg(regMsg, 'No. HP wajib diisi!', 'error'); return; }
+        if (!kalurahan) { setMsg(regMsg, 'Kalurahan wajib dipilih!', 'error'); return; }
+        if (!pertanyaan) { setMsg(regMsg, 'Pertanyaan keamanan wajib dipilih!', 'error'); return; }
+        if (!jawaban) { setMsg(regMsg, 'Jawaban keamanan wajib diisi!', 'error'); return; }
         if (commitment && !commitment.checked) {
             setMsg(regMsg, 'Anda harus menyatakan berkhidmat untuk organisasi.', 'error');
             return;
@@ -437,11 +445,9 @@ App.register('auth', function() {
                 setMsg(regMsg, result.message || '✅ Registrasi berhasil! Menunggu persetujuan admin.', 'success');
                 showToast('Registrasi berhasil! Tunggu persetujuan admin.', 'success', 4000);
 
-                // Reset form
                 registerForm.reset();
                 if (commitment) commitment.checked = false;
 
-                // Switch to login after 2.5s
                 setTimeout(() => {
                     switchTab('login');
                     try { SafeSessionStorage.removeItem('authTab'); } catch (e) {}
@@ -458,9 +464,9 @@ App.register('auth', function() {
         }
     });
 
-    // ================================================================
+    // ============================================================
     // 11. LUPA AKUN - MODAL
-    // ================================================================
+    // ============================================================
     function openForgotModal(mode) {
         if (!forgotModal) return;
         mode = mode || 'password';
@@ -526,46 +532,44 @@ App.register('auth', function() {
         }
     }
 
-    // Attach open modal
     if (forgotLink && forgotModal) {
-        const fresh = forgotLink.cloneNode(true);
-        forgotLink.parentNode.replaceChild(fresh, forgotLink);
-        fresh.addEventListener('click', (e) => {
+        const f = forgotLink.cloneNode(true);
+        forgotLink.parentNode.replaceChild(f, forgotLink);
+        f.addEventListener('click', function(e) {
             e.preventDefault();
             openForgotModal('password');
             document.body.style.overflow = 'hidden';
         });
     }
 
-    // Attach close modal
     if (closeForgotBtn) {
-        const fresh = closeForgotBtn.cloneNode(true);
-        closeForgotBtn.parentNode.replaceChild(fresh, closeForgotBtn);
-        fresh.addEventListener('click', closeForgotModal);
+        const f = closeForgotBtn.cloneNode(true);
+        closeForgotBtn.parentNode.replaceChild(f, closeForgotBtn);
+        f.addEventListener('click', closeForgotModal);
     }
+
     if (forgotModal) {
-        forgotModal.addEventListener('click', (e) => {
+        forgotModal.addEventListener('click', function(e) {
             if (e.target === forgotModal) closeForgotModal();
         });
     }
+
     if (forgotDone) {
-        const fresh = forgotDone.cloneNode(true);
-        forgotDone.parentNode.replaceChild(fresh, forgotDone);
-        fresh.addEventListener('click', closeForgotModal);
+        const f = forgotDone.cloneNode(true);
+        forgotDone.parentNode.replaceChild(f, forgotDone);
+        f.addEventListener('click', closeForgotModal);
     }
 
-    // ESC close
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && forgotModal && !forgotModal.classList.contains('hidden')) {
             closeForgotModal();
         }
     });
 
-    // Radio change
-    modeRadios.forEach(radio => {
-        const clone = radio.cloneNode(true);
-        radio.parentNode.replaceChild(clone, radio);
-        clone.addEventListener('change', function() {
+    modeRadios.forEach(function(r) {
+        const c = r.cloneNode(true);
+        r.parentNode.replaceChild(c, r);
+        c.addEventListener('change', function() {
             forgotMode = this.value;
             updateModeUI();
             if (msg1) msg1.textContent = '';
@@ -574,14 +578,14 @@ App.register('auth', function() {
         });
     });
 
-    // ================================================================
-    // 12. LUPA AKUN - STEP 1: CEK USER
-    // ================================================================
+    // ============================================================
+    // 12. LUPA AKUN - STEP 1
+    // ============================================================
     if (forgotNext) {
-        const fresh = forgotNext.cloneNode(true);
-        forgotNext.parentNode.replaceChild(fresh, forgotNext);
+        const f = forgotNext.cloneNode(true);
+        forgotNext.parentNode.replaceChild(f, forgotNext);
 
-        fresh.addEventListener('click', async function() {
+        f.addEventListener('click', async function() {
             if (isSubmitting) return;
 
             let identifier = '';
@@ -625,7 +629,8 @@ App.register('auth', function() {
                 }
 
                 if (result && result.success) {
-                    if (forgotQuestionText) forgotQuestionText.textContent = result.question || '-';
+                    const q = extractQuestion(result);
+                    if (forgotQuestionText) forgotQuestionText.textContent = q || '-';
                     if (step1) step1.classList.add('hidden');
                     if (step2) step2.classList.remove('hidden');
                     if (msg2) msg2.textContent = '';
@@ -652,14 +657,14 @@ App.register('auth', function() {
         });
     }
 
-    // ================================================================
-    // 13. LUPA AKUN - STEP 2: VERIFIKASI JAWABAN
-    // ================================================================
+    // ============================================================
+    // 13. LUPA AKUN - STEP 2
+    // ============================================================
     if (forgotVerify) {
-        const fresh = forgotVerify.cloneNode(true);
-        forgotVerify.parentNode.replaceChild(fresh, forgotVerify);
+        const f = forgotVerify.cloneNode(true);
+        forgotVerify.parentNode.replaceChild(f, forgotVerify);
 
-        fresh.addEventListener('click', async function() {
+        f.addEventListener('click', async function() {
             if (isSubmitting) return;
 
             const answer = (forgotAnswer.value || '').trim();
@@ -699,7 +704,7 @@ App.register('auth', function() {
                     if (step3) step3.classList.remove('hidden');
 
                     if (forgotMode === 'password') {
-                        // Tampilkan form password baru
+                        // RESET PASSWORD MODE
                         if (forgotResultContent) {
                             forgotResultContent.innerHTML = `
                                 <div class="text-center mb-4">
@@ -727,7 +732,6 @@ App.register('auth', function() {
                             `;
                         }
 
-                        // Attach reset password handler
                         setTimeout(() => {
                             const resetBtn = document.getElementById('forgot-reset');
                             const newPassInput = document.getElementById('forgot-new-password');
@@ -754,7 +758,7 @@ App.register('auth', function() {
                                     }
 
                                     this.disabled = true;
-                                    const originalText = this.innerHTML;
+                                    const orig = this.innerHTML;
                                     this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Mereset...';
                                     if (msg3) {
                                         msg3.textContent = 'Mereset password...';
@@ -796,13 +800,16 @@ App.register('auth', function() {
                                         }
                                     } finally {
                                         this.disabled = false;
-                                        this.innerHTML = originalText;
+                                        this.innerHTML = orig;
                                     }
                                 });
                             }
                         }, 100);
+
                     } else {
-                        // Mode username: tampilkan username
+                        // USERNAME MODE
+                        const usernameStr = extractUsername(result);
+
                         if (forgotResultContent) {
                             forgotResultContent.innerHTML = `
                                 <div class="text-center">
@@ -810,9 +817,9 @@ App.register('auth', function() {
                                     <p class="text-green-600 font-medium mb-4">Verifikasi berhasil!</p>
                                     <p class="text-[var(--text-muted)] text-sm mb-2">Username Anda adalah:</p>
                                     <div class="bg-[var(--bg-stats)] border border-[var(--card-border)] rounded-lg p-4 mb-4">
-                                        <p class="text-xl font-bold text-[var(--text-main)] font-mono break-all">${escapeHtml(result.username || '-')}</p>
+                                        <p class="text-xl font-bold text-[var(--text-main)] font-mono break-all">${escapeHtml(usernameStr || '-')}</p>
                                     </div>
-                                    <button type="button" onclick="copyForgotUsername('${escapeHtml(result.username || '')}')"
+                                    <button type="button" onclick="copyForgotUsername('${escapeHtml(usernameStr || '')}')"
                                         class="text-blue-600 dark:text-blue-400 hover:underline text-sm">
                                         <i class="fas fa-copy mr-1"></i>Copy Username
                                     </button>
@@ -842,9 +849,9 @@ App.register('auth', function() {
         });
     }
 
-    // ================================================================
-    // 14. COPY USERNAME (dari modal lupa akun)
-    // ================================================================
+    // ============================================================
+    // 14. COPY USERNAME
+    // ============================================================
     window.copyForgotUsername = function(username) {
         if (!username) return;
 
@@ -873,26 +880,27 @@ App.register('auth', function() {
         document.body.removeChild(ta);
     }
 
-    // ================================================================
-    // 15. INIT
-    // ================================================================
-    console.log('[auth] Init selesai — v13.0.0 (Prefetch Integrated)');
-
-    // Auto-focus first input pada tab aktif
+    // ============================================================
+    // 15. AUTO-FOCUS
+    // ============================================================
     setTimeout(() => {
         if (loginContainer && !loginContainer.classList.contains('hidden')) {
-            focusFirstInput(loginContainer);
+            focusFirst(loginContainer);
         } else if (registerContainer && !registerContainer.classList.contains('hidden')) {
-            focusFirstInput(registerContainer);
+            focusFirst(registerContainer);
         }
     }, 300);
 
-    // ================================================================
-    // 16. CLEANUP (opsional, untuk navigate keluar)
-    // ================================================================
+    // ============================================================
+    // 16. CLEANUP
+    // ============================================================
     function cleanup() {
         window.__authLoaded = false;
+        loginLock = false;
+        isSubmitting = false;
+        console.log('[auth] Cleanup');
     }
     window.__authCleanup = cleanup;
 
+    console.log('[auth] ✅ Init selesai v16.0.0');
 });

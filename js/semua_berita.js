@@ -1,27 +1,26 @@
 /**
  * js/semua_berita.js
- * Modul Halaman Semua Berita (Publik) - FULL FIX v10.0.0 (FINAL)
+ * Modul Halaman Semua Berita (Publik) - FULL FIX v10.1.0
  * ---------------------------------------------------------
  * FIX:
- *  - Guard anti-duplikasi
+ *  - Guard anti-duplikasi + cleanup
  *  - XSS protection di semua output
  *  - Loading/error/empty state proper
  *  - Clone-replace listener (anti memory leak)
- *  - Support hash routing
- *
- * FEATURES:
+ *  - Null-safe semua DOM elements
  *  - Featured berita (1 terbaru) + grid berita biasa
  *  - Search real-time (judul, isi, tag, penulis)
  *  - Filter by tag + tahun + penulis
  *  - Sort (terbaru, terlama, judul A-Z)
  *  - Pagination "Load More" (6 per load)
  *  - Stats 3 kartu (total berita, tag, penulis)
- *  - Top tags sidebar (klik untuk filter)
  *  - Copy link per berita
  *  - Share cepat (WhatsApp)
  *  - Estimasi waktu baca
  *  - Dark mode aware
  *  - Mobile responsive
+ *  - Cleanup function proper
+ * ---------------------------------------------------------
  */
 
 App.register('semua_berita', function() {
@@ -149,7 +148,7 @@ App.register('semua_berita', function() {
         penulis: 'all',
         sort: 'terbaru'
     };
-    let visibleCount = 6; // load more per 6
+    let visibleCount = 6;
     let isLoading = false;
 
     // ================================================================
@@ -199,8 +198,6 @@ App.register('semua_berita', function() {
                     </div>
                 </div>
             `;
-
-            // Sisipkan sebelum list
             wrapper.insertBefore(statsDiv, container);
         }
 
@@ -258,7 +255,6 @@ App.register('semua_berita', function() {
                 <p id="berita-load-more-info" class="text-xs text-[var(--text-muted)] mt-2"></p>
             `;
 
-            // Sisipkan setelah list
             if (container.parentNode) {
                 container.parentNode.insertBefore(loadMoreWrap, container.nextSibling);
             }
@@ -356,7 +352,6 @@ App.register('semua_berita', function() {
     // 7. UPDATE FILTER OPTIONS (tag, tahun, penulis)
     // ================================================================
     function updateFilterOptions() {
-        // Tags
         const tagSelect = document.getElementById('berita-filter-tag-pub');
         if (tagSelect) {
             const tags = new Set();
@@ -375,7 +370,6 @@ App.register('semua_berita', function() {
             if (Array.from(tags).includes(current)) tagSelect.value = current;
         }
 
-        // Tahun
         const tahunSelect = document.getElementById('berita-filter-tahun-pub');
         if (tahunSelect) {
             const tahuns = new Set();
@@ -397,7 +391,6 @@ App.register('semua_berita', function() {
             if (Array.from(tahuns).includes(current)) tahunSelect.value = current;
         }
 
-        // Penulis
         const penulisSelect = document.getElementById('berita-filter-penulis-pub');
         if (penulisSelect) {
             const penulises = new Set();
@@ -423,25 +416,21 @@ App.register('semua_berita', function() {
     // ================================================================
     function applyFilter() {
         filteredBerita = allBerita.filter(b => {
-            // Filter tag
             if (currentFilter.tag !== 'all') {
                 if (String(b.tag || '').trim() !== currentFilter.tag) return false;
             }
 
-            // Filter tahun
             if (currentFilter.tahun !== 'all') {
                 if (!b.tanggal) return false;
                 const d = new Date(b.tanggal);
                 if (isNaN(d.getTime()) || d.getFullYear().toString() !== currentFilter.tahun) return false;
             }
 
-            // Filter penulis
             if (currentFilter.penulis !== 'all') {
                 const nama = userMap[b.created_by] || 'Admin';
                 if (nama !== currentFilter.penulis) return false;
             }
 
-            // Search
             if (currentFilter.search) {
                 const q = currentFilter.search;
                 const haystack = [
@@ -454,7 +443,6 @@ App.register('semua_berita', function() {
             return true;
         });
 
-        // Sort
         switch (currentFilter.sort) {
             case 'terbaru':
                 filteredBerita.sort((a, b) =>
@@ -511,7 +499,6 @@ App.register('semua_berita', function() {
         if (isLoading) return;
         isLoading = true;
 
-        // Loading state
         if (skeleton) skeleton.classList.remove('hidden');
         container.classList.add('hidden');
 
@@ -528,7 +515,6 @@ App.register('semua_berita', function() {
 
             allBerita = Array.isArray(beritaRes.value.data) ? beritaRes.value.data : [];
 
-            // Build userMap
             userMap = {};
             if (usersRes.status === 'fulfilled' && usersRes.value &&
                 usersRes.value.success && Array.isArray(usersRes.value.data)) {
@@ -578,14 +564,14 @@ App.register('semua_berita', function() {
     // ================================================================
     function renderBerita() {
         const loadMoreWrap = document.getElementById('berita-load-more-wrap');
-        const loadMoreBtn = document.getElementById('berita-load-more-btn');
         const loadMoreInfo = document.getElementById('berita-load-more-info');
 
         if (!filteredBerita || filteredBerita.length === 0) {
             const isFiltered = currentFilter.search || currentFilter.tag !== 'all' ||
                               currentFilter.tahun !== 'all' || currentFilter.penulis !== 'all';
+            container.className = 'col-span-full';
             container.innerHTML = `
-                <div class="col-span-full text-center py-12">
+                <div class="text-center py-12">
                     <i class="fas fa-search text-5xl text-[var(--text-muted)] mb-3 opacity-40"></i>
                     <p class="text-[var(--text-muted)] mb-4">
                         ${isFiltered
@@ -604,11 +590,9 @@ App.register('semua_berita', function() {
             return;
         }
 
-        // Ambil data yang mau ditampilkan
         const toShow = filteredBerita.slice(0, visibleCount);
         const hasMore = filteredBerita.length > visibleCount;
 
-        // Update grid class
         container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
 
         let html = '';
@@ -628,7 +612,6 @@ App.register('semua_berita', function() {
                    </span>`
                 : '';
 
-            // Featured card (index 0 dan 1 di layout)
             const isFeatured = index === 0 && !currentFilter.search && currentFilter.tag === 'all';
             const cardColSpan = isFeatured ? 'md:col-span-2 lg:col-span-2' : '';
 
@@ -671,7 +654,6 @@ App.register('semua_berita', function() {
                     </a>
                 `;
             } else {
-                // Regular card
                 html += `
                     <a href="/berita_detail?id=${encodeURIComponent(item.id)}"
                        class="berita-card group block overflow-hidden rounded-2xl bg-[var(--card-bg)] shadow-md hover:shadow-xl transition-all duration-300 border border-[var(--card-border)] hover:-translate-y-1">
@@ -713,7 +695,6 @@ App.register('semua_berita', function() {
 
         container.innerHTML = html;
 
-        // Update load more
         if (loadMoreWrap) {
             if (hasMore) {
                 loadMoreWrap.classList.remove('hidden');
@@ -727,7 +708,19 @@ App.register('semua_berita', function() {
     }
 
     // ================================================================
-    // 12. INIT
+    // 12. CLEANUP
+    // ================================================================
+    function cleanup() {
+        window.__semuaBeritaLoaded = false;
+        allBerita = [];
+        filteredBerita = [];
+        userMap = {};
+        console.log('[semua_berita] Cleanup');
+    }
+    window.__semuaBeritaCleanup = cleanup;
+
+    // ================================================================
+    // 13. INIT
     // ================================================================
     console.log('[semua_berita] Init dimulai');
     ensureExtraUI();

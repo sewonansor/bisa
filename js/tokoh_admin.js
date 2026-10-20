@@ -1,29 +1,33 @@
 /**
  * js/tokoh_admin.js
- * Modul Admin Tokoh & Penggerak - FULL FIX v11.0.0 (FINAL)
+ * Modul Admin Tokoh & Penggerak — v13.0.0 OFFLINE-FIRST FULL FIX
  * ---------------------------------------------------------
- * FIX v11.0.0:
- *  - ✅ FIX: Modal selector pakai ID eksplisit (#tokoh-modal-content)
- *  - ✅ FIX: Foto preview pakai static DOM (#foto-preview-wrap)
- *  - ✅ FIX: File size validation (max 5 MB)
- *  - ✅ FIX: cleanup() untuk reset guard + hapus detail modal
- *  - ✅ FIX: Lat/Lng validated (range + both-or-none)
- *  - ✅ FIX: Empty state + error state proper
- *  - ✅ FIX: ESC + click-outside modal
- *  - ✅ FIX: Bukti upload (feedback saat upload file)
- *
- * FEATURES:
- *  - CRUD Tokoh lengkap
- *  - Search real-time (nama, alamat, no hp)
- *  - Filter (punya foto, punya lokasi, ada riwayat)
- *  - Stats 4 kartu (total, ada foto, ada lokasi, bulan ini)
- *  - Bulk delete
- *  - Detail modal dengan mini map OpenStreetMap
- *  - Copy koordinat ke clipboard
- *  - Upload foto dengan preview
- *  - Export CSV
- *  - Dark mode aware
- *  - Mobile responsive
+ * CHANGELOG v13.0.0:
+ *   ✅ NEW: Handle response _offline dari apiCall
+ *   ✅ NEW: Badge pending sync di tabel
+ *   ✅ NEW: Auto-refresh saat sync:complete
+ *   ✅ NEW: Safe toast fallback
+ *   ✅ NEW: Upload foto skip saat offline (warning)
+ *   ✅ NEW: FormPhoto controller untuk upload foto
+ *   ✅ NEW: Detail modal dengan mini map OpenStreetMap
+ *   ✅ NEW: Copy koordinat & no HP
+ *   ✅ NEW: Stats 4 kartu (total, ada foto, ada lokasi, bulan ini)
+ *   ✅ NEW: Search real-time (nama, alamat, no hp)
+ *   ✅ NEW: Filter (foto, lokasi, riwayat)
+ *   ✅ NEW: Bulk delete
+ *   ✅ NEW: Export CSV
+ *   ✅ NEW: Grid/List view toggle
+ *   ✅ NEW: Refresh tanpa reload halaman
+ *   ✅ FIX: Semua handler idempotent
+ *   ✅ FIX: Null-safe semua DOM elements
+ *   ✅ FIX: Clone-replace listener (anti memory leak)
+ *   ✅ FIX: Anti double-submit
+ *   ✅ FIX: XSS protection (escapeHtml/escapeAttr)
+ *   ✅ FIX: Lat/Lng validated (range + both-or-none)
+ *   ✅ FIX: File size validation (max 5MB)
+ *   ✅ FIX: Guard anti-duplikasi
+ *   ✅ FIX: Cleanup function proper
+ * ---------------------------------------------------------
  */
 
 App.register('tokoh_admin', function() {
@@ -47,11 +51,13 @@ App.register('tokoh_admin', function() {
     }
     window.__tokohAdminLoaded = true;
 
+    console.log('[tokoh_admin] 🚀 Init v13.0.0 (Offline-First Full Fix)');
+
     // ================================================================
-    // 3. HELPER: TUNGGU ELEMEN DOM SIAP
+    // 3. HELPER: WAIT FOR DOM
     // ================================================================
     function waitForElements(ids, maxRetries, interval) {
-        maxRetries = maxRetries || 30;
+        maxRetries = maxRetries || 40;
         interval = interval || 100;
         return new Promise((resolve) => {
             let attempts = 0;
@@ -107,6 +113,31 @@ App.register('tokoh_admin', function() {
         return !isNaN(n) && n >= -180 && n <= 180;
     }
 
+    function getInitials(name) {
+        if (!name || name === '-') return '?';
+        const parts = String(name).trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function getAvatarColor(str) {
+        const colors = [
+            'from-teal-400 to-emerald-600',
+            'from-blue-400 to-indigo-600',
+            'from-purple-400 to-fuchsia-600',
+            'from-pink-400 to-rose-600',
+            'from-amber-400 to-orange-600',
+            'from-cyan-400 to-blue-600'
+        ];
+        let hash = 0;
+        const s = String(str || '');
+        for (let i = 0; i < s.length; i++) {
+            hash = ((hash << 5) - hash) + s.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
     function copyToClipboard(text) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             return navigator.clipboard.writeText(text);
@@ -129,8 +160,68 @@ App.register('tokoh_admin', function() {
         });
     }
 
+    /**
+     * ✅ Deteksi pending sync
+     */
+    function isPendingSync(id) {
+        try {
+            if (!window.SyncManager) return false;
+            const queue = window.SyncManager.getQueue() || [];
+            const idStr = String(id);
+            return queue.some(item => {
+                const d = item.data || {};
+                return String(d.id) === idStr;
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function safeToast(msg, type, dur) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type || 'info', dur || 3000);
+        } else {
+            console.log('[tokoh_admin:' + (type || 'info') + ']', msg);
+        }
+    }
+
     // ================================================================
-    // 5. INIT UTAMA
+    // 5. STATE
+    // ================================================================
+    let dataCache = [];
+    let filteredCache = [];
+    let currentFilter = {
+        search: '',
+        filter: 'all',
+        sort: 'nama-asc'
+    };
+    let currentView = 'list';
+    let isEdit = false;
+    let isSubmitting = false;
+    let selectedIds = new Set();
+    let tokohPhotoCtrl = null;
+
+    // ================================================================
+    // 6. REFRESH TANPA RELOAD
+    // ================================================================
+    function refreshDataOnly() {
+        console.log('[tokoh_admin] 🔄 Refresh data without reload');
+
+        try {
+            const cKey = 'cache_getTokoh_' + user.id + '_' + JSON.stringify({});
+            SafeSessionStorage.removeItem(cKey);
+        } catch (e) {}
+
+        dataCache = [];
+        selectedIds.clear();
+
+        return loadData(true).then(() => {
+            console.log('[tokoh_admin] ✅ Data refreshed');
+        });
+    }
+
+    // ================================================================
+    // 7. INIT UTAMA
     // ================================================================
     async function init() {
         const requiredIds = [
@@ -172,17 +263,36 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 6. STATE
+        // 8. FORMPHOTO CONTROLLER
         // ================================================================
-        let isEdit = false;
-        let dataCache = [];
-        let filteredCache = [];
-        let currentFilter = { search: '', filter: 'all' };
-        let isSubmitting = false;
-        let selectedIds = new Set();
+        if (typeof window.FormPhoto !== 'undefined' && fotoFileInput) {
+            tokohPhotoCtrl = window.FormPhoto.attach(
+                'foto_file',
+                'foto-preview-img',
+                null,
+                {
+                    onPreview: function() {
+                        if (fotoPreviewWrap) fotoPreviewWrap.style.display = 'block';
+                    },
+                    onClear: function() {
+                        if (fotoPreviewWrap) fotoPreviewWrap.style.display = 'none';
+                        if (fotoUrlInput) fotoUrlInput.value = '';
+                    }
+                }
+            );
+            console.log('[tokoh_admin] ✅ FormPhoto controller attached');
+        }
+
+        function resetTokohPhoto() {
+            if (tokohPhotoCtrl) {
+                try { tokohPhotoCtrl.reset(); } catch (e) {}
+            }
+            if (fotoPreviewWrap) fotoPreviewWrap.style.display = 'none';
+            if (fotoUrlInput) fotoUrlInput.value = '';
+        }
 
         // ================================================================
-        // 7. ENSURE EXTRA UI
+        // 9. ENSURE EXTRA UI
         // ================================================================
         function ensureExtraUI() {
             const mainContent = document.getElementById('main-content');
@@ -246,7 +356,7 @@ App.register('tokoh_admin', function() {
                 }
             }
 
-            // ===== Search & Filter =====
+            // ===== Search & Filter Bar =====
             if (!document.getElementById('tokoh-search-wrap')) {
                 const wrapper = document.createElement('div');
                 wrapper.id = 'tokoh-search-wrap';
@@ -263,8 +373,24 @@ App.register('tokoh_admin', function() {
                         <option value="lokasi">Ada Lokasi</option>
                         <option value="riwayat">Ada Riwayat</option>
                     </select>
+                    <select id="tokoh-sort" class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm">
+                        <option value="nama-asc">Nama A-Z</option>
+                        <option value="nama-desc">Nama Z-A</option>
+                        <option value="terbaru">Terbaru</option>
+                    </select>
+                    <div class="flex rounded-lg border border-[var(--card-border)] overflow-hidden">
+                        <button id="tokoh-view-list" type="button" class="px-3 py-2 text-sm bg-[var(--text-main)] text-[var(--text-inverse)]" title="List view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button id="tokoh-view-grid" type="button" class="px-3 py-2 text-sm bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-stats)]" title="Grid view">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
                     <button id="tokoh-export-btn" type="button" class="btn-secondary px-3 py-2 rounded-lg text-sm">
                         <i class="fas fa-download mr-1"></i>CSV
+                    </button>
+                    <button id="tokoh-clear-filter" type="button" class="px-3 py-2 rounded-lg bg-[var(--bg-stats)] hover:bg-[var(--card-border)] text-[var(--text-main)] text-sm transition" title="Reset filter">
+                        <i class="fas fa-times"></i>
                     </button>
                 `;
                 if (header && header.parentNode) {
@@ -296,22 +422,46 @@ App.register('tokoh_admin', function() {
                     searchWrap.parentNode.insertBefore(bulkBar, searchWrap.nextSibling);
                 }
             }
+
+            // ===== Grid View =====
+            if (!document.getElementById('tokoh-grid-view')) {
+                const gridView = document.createElement('div');
+                gridView.id = 'tokoh-grid-view';
+                gridView.className = 'hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6';
+
+                const tableWrapper = tableBody.closest('.table-wrapper') ||
+                                     tableBody.closest('.bg-\\[var\\(--card-bg\\)\\]') ||
+                                     tableBody.closest('table');
+                if (tableWrapper && tableWrapper.parentNode) {
+                    const realWrapper = tableWrapper.tagName === 'TABLE'
+                        ? tableWrapper.parentNode
+                        : tableWrapper;
+                    if (realWrapper && realWrapper.parentNode) {
+                        realWrapper.parentNode.insertBefore(gridView, realWrapper.nextSibling);
+                    }
+                }
+            }
         }
 
         // ================================================================
-        // 8. ATTACH FILTER LISTENERS
+        // 10. ATTACH FILTER LISTENERS
         // ================================================================
         function attachFilterListeners() {
             const searchInput = document.getElementById('tokoh-search');
             const filterSelect = document.getElementById('tokoh-filter');
+            const sortSelect = document.getElementById('tokoh-sort');
             const exportBtn = document.getElementById('tokoh-export-btn');
+            const clearBtn = document.getElementById('tokoh-clear-filter');
+            const viewListBtn = document.getElementById('tokoh-view-list');
+            const viewGridBtn = document.getElementById('tokoh-view-grid');
 
             if (searchInput && !searchInput.dataset.attached) {
                 searchInput.dataset.attached = 'true';
-                searchInput.addEventListener('input', debounceEvent.bind(null, 'tokoh-search', () => {
-                    currentFilter.search = (searchInput.value || '').toLowerCase().trim();
-                    applyFilter();
-                }, 250));
+                searchInput.addEventListener('input',
+                    debounceEvent.bind(null, 'tokoh-search', () => {
+                        currentFilter.search = (searchInput.value || '').toLowerCase().trim();
+                        applyFilter();
+                    }, 250));
             }
 
             if (filterSelect && !filterSelect.dataset.attached) {
@@ -322,14 +472,54 @@ App.register('tokoh_admin', function() {
                 });
             }
 
+            if (sortSelect && !sortSelect.dataset.attached) {
+                sortSelect.dataset.attached = 'true';
+                sortSelect.addEventListener('change', () => {
+                    currentFilter.sort = sortSelect.value;
+                    applyFilter();
+                });
+            }
+
+            if (clearBtn && !clearBtn.dataset.attached) {
+                clearBtn.dataset.attached = 'true';
+                clearBtn.addEventListener('click', () => {
+                    currentFilter = { search: '', filter: 'all', sort: 'nama-asc' };
+                    if (searchInput) searchInput.value = '';
+                    if (filterSelect) filterSelect.value = 'all';
+                    if (sortSelect) sortSelect.value = 'nama-asc';
+                    applyFilter();
+                    safeToast('Filter direset.', 'info', 2000);
+                });
+            }
+
             if (exportBtn && !exportBtn.dataset.attached) {
                 exportBtn.dataset.attached = 'true';
                 exportBtn.addEventListener('click', exportCSV);
             }
+
+            if (viewListBtn && !viewListBtn.dataset.attached) {
+                viewListBtn.dataset.attached = 'true';
+                viewListBtn.addEventListener('click', () => {
+                    currentView = 'list';
+                    viewListBtn.className = 'px-3 py-2 text-sm bg-[var(--text-main)] text-[var(--text-inverse)]';
+                    viewGridBtn.className = 'px-3 py-2 text-sm bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-stats)]';
+                    renderView();
+                });
+            }
+
+            if (viewGridBtn && !viewGridBtn.dataset.attached) {
+                viewGridBtn.dataset.attached = 'true';
+                viewGridBtn.addEventListener('click', () => {
+                    currentView = 'grid';
+                    viewGridBtn.className = 'px-3 py-2 text-sm bg-[var(--text-main)] text-[var(--text-inverse)]';
+                    viewListBtn.className = 'px-3 py-2 text-sm bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-stats)]';
+                    renderView();
+                });
+            }
         }
 
         // ================================================================
-        // 9. APPLY FILTER
+        // 11. APPLY FILTER & SORT
         // ================================================================
         function applyFilter() {
             filteredCache = dataCache.filter(t => {
@@ -348,14 +538,24 @@ App.register('tokoh_admin', function() {
                 return true;
             });
 
-            filteredCache.sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
+            switch (currentFilter.sort) {
+                case 'nama-asc':
+                    filteredCache.sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
+                    break;
+                case 'nama-desc':
+                    filteredCache.sort((a, b) => String(b.nama || '').localeCompare(String(a.nama || '')));
+                    break;
+                case 'terbaru':
+                    filteredCache.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                    break;
+            }
 
-            renderTable(filteredCache);
+            renderView();
             updateStats();
         }
 
         // ================================================================
-        // 10. UPDATE STATS
+        // 12. UPDATE STATS
         // ================================================================
         function updateStats() {
             const total = dataCache.length;
@@ -382,7 +582,32 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 11. LOAD DATA (SWR)
+        // 13. RENDER VIEW (List / Grid)
+        // ================================================================
+        function renderView() {
+            const tableView = tableBody.closest('.table-wrapper') ||
+                             tableBody.closest('.bg-\\[var\\(--card-bg\\)\\]') ||
+                             tableBody.closest('table');
+            const realTableView = tableView && tableView.tagName === 'TABLE'
+                ? tableView.parentNode
+                : tableView;
+            const gridView = document.getElementById('tokoh-grid-view');
+
+            if (currentView === 'grid') {
+                if (realTableView) realTableView.classList.add('hidden');
+                if (gridView) {
+                    gridView.classList.remove('hidden');
+                    renderGrid();
+                }
+            } else {
+                if (realTableView) realTableView.classList.remove('hidden');
+                if (gridView) gridView.classList.add('hidden');
+                renderTable();
+            }
+        }
+
+        // ================================================================
+        // 14. LOAD DATA (SWR)
         // ================================================================
         async function loadData(force) {
             force = force || false;
@@ -393,7 +618,7 @@ App.register('tokoh_admin', function() {
                 return;
             }
 
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8">' +
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8">' +
                 '<i class="fas fa-spinner fa-spin text-2xl"></i>' +
                 '<p class="text-[var(--text-muted)] text-sm mt-2">Memuat data tokoh...</p></td></tr>';
 
@@ -405,18 +630,16 @@ App.register('tokoh_admin', function() {
                     applyFilter();
                 } else if (result && result.success) {
                     dataCache = [];
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">' +
-                        '<i class="fas fa-user-tie text-3xl mb-2 opacity-40"></i>' +
-                        '<p>Belum ada data tokoh</p></td></tr>';
-                    updateStats();
+                    filteredCache = [];
+                    applyFilter();
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">' +
+                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">' +
                         '<i class="fas fa-exclamation-triangle text-2xl mb-2"></i>' +
                         '<p>' + escapeHtml((result && result.message) || 'Gagal memuat data') + '</p></td></tr>';
                 }
             } catch (error) {
                 console.error('[tokoh_admin] Load error:', error);
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">' +
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">' +
                     'Error: ' + escapeHtml(error.message) + '</td></tr>';
             }
         }
@@ -434,12 +657,12 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 12. RENDER TABLE
+        // 15. RENDER TABLE
         // ================================================================
-        function renderTable(data) {
-            if (!data || data.length === 0) {
+        function renderTable() {
+            if (!filteredCache || filteredCache.length === 0) {
                 const isFiltered = currentFilter.search || currentFilter.filter !== 'all';
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">' +
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-[var(--text-muted)]">' +
                     (isFiltered
                         ? '<i class="fas fa-search text-3xl mb-2 opacity-40"></i><p>Tidak ada hasil yang cocok</p>'
                         : '<i class="fas fa-user-tie text-3xl mb-2 opacity-40"></i><p>Belum ada data tokoh</p>') +
@@ -450,43 +673,50 @@ App.register('tokoh_admin', function() {
             updateThead();
 
             let html = '';
-            data.forEach((item, idx) => {
+            filteredCache.forEach((item, idx) => {
                 const isSelected = selectedIds.has(item.id);
                 const hasLoc = isValidLat(item.lat) && isValidLng(item.lng);
+                const name = item.nama || '-';
+                const pending = isPendingSync(item.id);
+                const avatarColor = getAvatarColor(name);
 
                 const foto = item.foto_url
-                    ? `<img src="${escapeAttr(item.foto_url)}" alt="${escapeAttr(item.nama)}"
+                    ? `<img src="${escapeAttr(item.foto_url)}" alt="${escapeAttr(name)}"
                             class="w-10 h-10 rounded-full object-cover border border-[var(--card-border)] cursor-pointer"
-                            onclick="viewDetail('${item.id}')"
+                            onclick="viewDetail('${escapeAttr(item.id)}')"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                             loading="lazy" decoding="async">
-                       <div class="hidden w-10 h-10 rounded-full bg-[var(--bg-stats)] items-center justify-center text-[var(--text-muted)]">
-                            <i class="fas fa-user"></i>
+                       <div class="hidden w-10 h-10 rounded-full bg-gradient-to-br ${avatarColor} items-center justify-center text-white font-bold">
+                            ${escapeHtml(getInitials(name))}
                        </div>`
-                    : `<div class="w-10 h-10 rounded-full bg-[var(--bg-stats)] flex items-center justify-center text-[var(--text-muted)]">
-                            <i class="fas fa-user"></i>
+                    : `<div class="w-10 h-10 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold text-sm">
+                            ${escapeHtml(getInitials(name))}
                        </div>`;
 
                 const locBadge = hasLoc
-                    ? `<button onclick="copyCoord('${item.id}')"
+                    ? `<button onclick="copyCoord('${escapeAttr(item.id)}')"
                           class="text-purple-600 hover:text-purple-800 dark:text-purple-400 mr-2"
                           title="Copy koordinat">
                           <i class="fas fa-map-marker-alt"></i>
                        </button>`
                     : '';
 
+                const pendingBadge = pending
+                    ? ' <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" title="Menunggu sinkronisasi">⟳</span>'
+                    : '';
+
                 html += `
-                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''}">
+                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''} ${pending ? 'border-l-2 border-amber-500' : ''}">
                         <td class="px-3 py-3 text-center">
                             <input type="checkbox" class="tokoh-checkbox w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
-                                data-id="${item.id}" ${isSelected ? 'checked' : ''}>
+                                data-id="${escapeAttr(item.id)}" ${isSelected ? 'checked' : ''}>
                         </td>
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${idx + 1}</td>
+                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${idx + 1}${pendingBadge}</td>
                         <td class="px-3 py-3">${foto}</td>
                         <td class="px-3 py-3 text-sm">
-                            <button onclick="viewDetail('${item.id}')"
+                            <button onclick="viewDetail('${escapeAttr(item.id)}')"
                                 class="font-medium text-[var(--text-main)] hover:text-blue-600 dark:hover:text-blue-400 text-left">
-                                ${escapeHtml(item.nama || '-')}
+                                ${escapeHtml(name)}
                             </button>
                         </td>
                         <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${escapeHtml(item.alamat || '-')}</td>
@@ -495,17 +725,17 @@ App.register('tokoh_admin', function() {
                         </td>
                         <td class="px-3 py-3 text-sm whitespace-nowrap">
                             ${locBadge}
-                            <button onclick="viewDetail('${item.id}')"
+                            <button onclick="viewDetail('${escapeAttr(item.id)}')"
                                 class="text-green-600 hover:text-green-800 dark:text-green-400 mr-2"
                                 title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="editItem('${item.id}')"
+                            <button onclick="editItem('${escapeAttr(item.id)}')"
                                 class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-2"
                                 title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteItem('${item.id}')"
+                            <button onclick="deleteItem('${escapeAttr(item.id)}')"
                                 class="text-red-600 hover:text-red-800 dark:text-red-400"
                                 title="Hapus">
                                 <i class="fas fa-trash"></i>
@@ -520,6 +750,93 @@ App.register('tokoh_admin', function() {
             updateBulkBar();
         }
 
+        // ================================================================
+        // 16. RENDER GRID
+        // ================================================================
+        function renderGrid() {
+            const gridView = document.getElementById('tokoh-grid-view');
+            if (!gridView) return;
+
+            if (!filteredCache || filteredCache.length === 0) {
+                gridView.className = 'grid grid-cols-1 gap-4 mb-6';
+                gridView.innerHTML = '<div class="text-center py-8 text-[var(--text-muted)]">' +
+                    '<i class="fas fa-user-tie text-3xl mb-2 opacity-40"></i>' +
+                    '<p>Belum ada data tokoh</p></div>';
+                return;
+            }
+
+            gridView.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6';
+
+            let html = '';
+            filteredCache.forEach((item) => {
+                const name = item.nama || '-';
+                const alamat = item.alamat || '-';
+                const avatarColor = getAvatarColor(name);
+                const pending = isPendingSync(item.id);
+                const hasLoc = isValidLat(item.lat) && isValidLng(item.lng);
+                const hasPhone = !!item.no_hp;
+
+                const foto = item.foto_url
+                    ? `<img src="${escapeAttr(item.foto_url)}" alt="${escapeAttr(name)}"
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                            onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-3xl font-bold\\'>${escapeHtml(getInitials(name))}</div>'">`
+                    : `<div class="w-full h-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-3xl font-bold">
+                            ${escapeHtml(getInitials(name))}
+                       </div>`;
+
+                const pendingBadge = pending
+                    ? '<span class="absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold bg-amber-500 text-white z-10">⟳ SYNC</span>'
+                    : '';
+
+                html += `
+                    <div class="relative bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] overflow-hidden shadow-sm hover:shadow-lg transition-all">
+                        ${pendingBadge}
+                        <div class="aspect-square relative overflow-hidden bg-[var(--bg-stats)] cursor-pointer" onclick="viewDetail('${escapeAttr(item.id)}')">
+                            ${foto}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-[var(--text-main)] line-clamp-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                                onclick="viewDetail('${escapeAttr(item.id)}')">
+                                ${escapeHtml(name)}
+                            </h3>
+                            <p class="text-sm text-[var(--text-muted)] mt-1 line-clamp-2">
+                                <i class="fas fa-map-marker-alt mr-1"></i>${escapeHtml(alamat)}
+                            </p>
+                            <div class="flex gap-2 mt-3 pt-3 border-t border-[var(--card-border)]">
+                                <button onclick="viewDetail('${escapeAttr(item.id)}')"
+                                    class="flex-1 text-xs px-2 py-1.5 rounded-lg bg-[var(--bg-stats)] hover:bg-[var(--card-border)] text-[var(--text-main)] transition">
+                                    <i class="fas fa-eye mr-1"></i>Detail
+                                </button>
+                                <button onclick="editItem('${escapeAttr(item.id)}')"
+                                    class="flex-1 text-xs px-2 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 hover:bg-blue-200 transition">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                ${hasPhone ? `
+                                    <a href="tel:${escapeAttr(item.no_hp)}"
+                                        class="text-xs px-2 py-1.5 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 hover:bg-green-200 transition"
+                                        title="Telepon">
+                                        <i class="fas fa-phone"></i>
+                                    </a>
+                                ` : ''}
+                                ${hasLoc ? `
+                                    <button onclick="copyCoord('${escapeAttr(item.id)}')"
+                                        class="text-xs px-2 py-1.5 rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 hover:bg-purple-200 transition"
+                                        title="Copy koordinat">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            gridView.innerHTML = html;
+        }
+
+        // ================================================================
+        // 17. TH ADAPTERS
+        // ================================================================
         function updateThead() {
             const thead = tableBody.closest('table')?.querySelector('thead tr');
             if (!thead || thead.querySelector('.bulk-select-all-tokoh')) return;
@@ -572,7 +889,7 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 13. BULK DELETE
+        // 18. BULK DELETE (Offline-aware)
         // ================================================================
         function attachBulkListeners() {
             const delBtn = document.getElementById('bulk-delete-tokoh-btn');
@@ -585,13 +902,14 @@ App.register('tokoh_admin', function() {
                     if (ids.length === 0) return;
 
                     showConfirm(`Hapus ${ids.length} tokoh? Tindakan ini tidak bisa dibatalkan.`, async () => {
-                        let ok = 0, fail = 0;
+                        let ok = 0, fail = 0, offline = 0;
                         for (const id of ids) {
                             try {
                                 const r = await apiCall('deleteTokoh', 'POST', { id });
                                 if (r && r.success) {
                                     ok++;
-                                    dataCache = dataCache.filter(t => t.id !== id);
+                                    if (r._offline) offline++;
+                                    dataCache = dataCache.filter(t => String(t.id) !== String(id));
                                 } else fail++;
                             } catch (e) { fail++; }
                         }
@@ -603,8 +921,12 @@ App.register('tokoh_admin', function() {
                         updateBulkBar();
                         applyFilter();
 
-                        if (fail === 0) showToast(`✅ ${ok} tokoh berhasil dihapus!`, 'success');
-                        else showToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
+                        if (fail === 0) {
+                            safeToast(`✅ ${ok} tokoh berhasil dihapus!` +
+                                (offline > 0 ? ` (${offline} pending sync)` : ''), 'success');
+                        } else {
+                            safeToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
+                        }
                     });
                 });
             }
@@ -625,12 +947,12 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 14. VIEW DETAIL (modal dengan map)
+        // 19. VIEW DETAIL MODAL
         // ================================================================
         window.viewDetail = function(id) {
-            const item = dataCache.find(t => t.id === id);
+            const item = dataCache.find(t => String(t.id) === String(id));
             if (!item) {
-                showToast('Data tidak ditemukan.', 'warning');
+                safeToast('Data tidak ditemukan.', 'warning');
                 return;
             }
 
@@ -685,20 +1007,23 @@ App.register('tokoh_admin', function() {
             const nama = document.getElementById('tokoh-detail-nama');
             const alamat = document.getElementById('tokoh-detail-alamat');
             const body = document.getElementById('tokoh-detail-body');
+            const nameStr = item.nama || 'Tanpa Nama';
 
-            // Foto
             if (item.foto_url) {
                 foto.src = item.foto_url;
                 foto.style.display = 'block';
                 foto.onerror = () => {
-                    foto.src = 'https://placehold.co/200x200/e5e7eb/9ca3af?text=' + encodeURIComponent((item.nama || '?').charAt(0).toUpperCase());
+                    foto.src = 'https://placehold.co/200x200/e5e7eb/9ca3af?text=' +
+                        encodeURIComponent(getInitials(nameStr));
                 };
             } else {
-                foto.src = 'https://placehold.co/200x200/e5e7eb/9ca3af?text=' + encodeURIComponent((item.nama || '?').charAt(0).toUpperCase());
+                foto.src = 'https://placehold.co/200x200/e5e7eb/9ca3af?text=' +
+                    encodeURIComponent(getInitials(nameStr));
             }
 
-            nama.textContent = item.nama || '-';
-            alamat.innerHTML = '<i class="fas fa-map-marker-alt mr-1"></i>' + escapeHtml(item.alamat || 'Alamat tidak tersedia');
+            nama.textContent = nameStr;
+            alamat.innerHTML = '<i class="fas fa-map-marker-alt mr-1"></i>' +
+                escapeHtml(item.alamat || 'Alamat tidak tersedia');
 
             let bodyHtml = '';
 
@@ -713,7 +1038,6 @@ App.register('tokoh_admin', function() {
                 `;
             }
 
-            // Map embed
             if (isValidLat(item.lat) && isValidLng(item.lng)) {
                 const lat = parseFloat(item.lat);
                 const lng = parseFloat(item.lng);
@@ -728,7 +1052,7 @@ App.register('tokoh_admin', function() {
                         <div class="flex items-center gap-2 mt-2 text-xs text-[var(--text-muted)]">
                             <i class="fas fa-map-pin"></i>
                             <span>${lat.toFixed(6)}, ${lng.toFixed(6)}</span>
-                            <button onclick="copyCoord('${item.id}')" class="text-blue-600 hover:underline">
+                            <button onclick="copyCoord('${escapeAttr(item.id)}')" class="text-blue-600 hover:underline">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
@@ -769,7 +1093,6 @@ App.register('tokoh_admin', function() {
 
             body.innerHTML = bodyHtml;
 
-            // Edit button
             const editBtn = document.getElementById('tokoh-detail-edit');
             if (editBtn) {
                 const newEdit = editBtn.cloneNode(true);
@@ -794,43 +1117,47 @@ App.register('tokoh_admin', function() {
         };
 
         // ================================================================
-        // 15. COPY COORDINATES
+        // 20. COPY COORDINATES
         // ================================================================
         window.copyCoord = function(id) {
-            const item = dataCache.find(t => t.id === id);
+            const item = dataCache.find(t => String(t.id) === String(id));
             if (!item) return;
 
             const lat = parseFloat(item.lat);
             const lng = parseFloat(item.lng);
 
             if (isNaN(lat) || isNaN(lng)) {
-                showToast('Koordinat tidak tersedia.', 'warning');
+                safeToast('Koordinat tidak tersedia.', 'warning');
                 return;
             }
 
             const text = lat.toFixed(6) + ', ' + lng.toFixed(6);
             copyToClipboard(text)
-                .then(() => showToast('📍 Koordinat dicopy: ' + text, 'success', 2500))
-                .catch(() => showToast('Gagal copy', 'error'));
+                .then(() => safeToast('📍 Koordinat dicopy: ' + text, 'success', 2500))
+                .catch(() => safeToast('Gagal copy', 'error'));
         };
 
         // ================================================================
-        // 16. MODAL FORM
+        // 21. MODAL FORM
         // ================================================================
         function openModal() {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             requestAnimationFrame(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }
             });
             document.body.style.overflow = 'hidden';
             setTimeout(() => { if (namaInput) namaInput.focus(); }, 150);
         }
 
         function closeModal() {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
+            if (modalContent) {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+            }
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
@@ -839,8 +1166,7 @@ App.register('tokoh_admin', function() {
             form.reset();
             if (idInput) idInput.value = '';
             if (fotoUrlInput) fotoUrlInput.value = '';
-            if (fotoFileInput) fotoFileInput.value = '';
-            hideFotoPreview();
+            resetTokohPhoto();
             isEdit = false;
         }
 
@@ -853,7 +1179,6 @@ App.register('tokoh_admin', function() {
             if (e.target === modal) closeModal();
         });
 
-        // ESC
         document.addEventListener('keydown', function(e) {
             if (e.key !== 'Escape') return;
             const detailModal = document.getElementById('tokoh-detail-modal');
@@ -867,7 +1192,7 @@ App.register('tokoh_admin', function() {
         });
 
         // ================================================================
-        // 17. FOTO PREVIEW (pakai static DOM)
+        // 22. FOTO PREVIEW
         // ================================================================
         function showFotoPreview(src) {
             if (fotoPreviewImg) fotoPreviewImg.src = src;
@@ -879,37 +1204,8 @@ App.register('tokoh_admin', function() {
             if (fotoPreviewWrap) fotoPreviewWrap.style.display = 'none';
         }
 
-        // Attach listener hanya sekali
-        if (fotoFileInput && !fotoFileInput.dataset.previewAttached) {
-            fotoFileInput.dataset.previewAttached = 'true';
-            fotoFileInput.addEventListener('change', function() {
-                const file = this.files && this.files[0];
-                if (!file) {
-                    hideFotoPreview();
-                    return;
-                }
-                // Validasi ukuran
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast('File terlalu besar (maks 5 MB)', 'warning');
-                    this.value = '';
-                    hideFotoPreview();
-                    return;
-                }
-                // Validasi tipe
-                if (!file.type.startsWith('image/')) {
-                    showToast('File harus berupa gambar', 'warning');
-                    this.value = '';
-                    hideFotoPreview();
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = (e) => showFotoPreview(e.target.result);
-                reader.readAsDataURL(file);
-            });
-        }
-
         // ================================================================
-        // 18. TAMBAH
+        // 23. TAMBAH
         // ================================================================
         if (addBtn) {
             const fresh = addBtn.cloneNode(true);
@@ -920,19 +1216,18 @@ App.register('tokoh_admin', function() {
                 form.reset();
                 if (idInput) idInput.value = '';
                 if (fotoUrlInput) fotoUrlInput.value = '';
-                if (fotoFileInput) fotoFileInput.value = '';
-                hideFotoPreview();
+                resetTokohPhoto();
                 openModal();
             });
         }
 
         // ================================================================
-        // 19. EDIT
+        // 24. EDIT
         // ================================================================
         window.editItem = function(id) {
-            const item = dataCache.find(t => t.id === id);
+            const item = dataCache.find(t => String(t.id) === String(id));
             if (!item) {
-                showToast('Data tidak ditemukan.', 'warning');
+                safeToast('Data tidak ditemukan.', 'warning');
                 return;
             }
             isEdit = true;
@@ -947,40 +1242,51 @@ App.register('tokoh_admin', function() {
             if (pengalamanInput) pengalamanInput.value = item.pengalaman_organisasi || '';
             if (detailInput) detailInput.value = item.detail_lain || '';
             if (fotoUrlInput) fotoUrlInput.value = item.foto_url || '';
-            if (fotoFileInput) fotoFileInput.value = '';
 
-            // Tampilkan preview jika ada foto URL
-            if (item.foto_url) {
-                showFotoPreview(item.foto_url);
-            } else {
-                hideFotoPreview();
-            }
+            resetTokohPhoto();
+            if (item.foto_url) showFotoPreview(item.foto_url);
+            else hideFotoPreview();
 
             openModal();
         };
 
         // ================================================================
-        // 20. DELETE SINGLE
+        // 25. DELETE SINGLE (Offline-aware)
         // ================================================================
         window.deleteItem = function(id) {
-            const item = dataCache.find(t => t.id === id);
+            const item = dataCache.find(t => String(t.id) === String(id));
             const nama = item ? (item.nama || 'tokoh ini') : 'tokoh ini';
 
             showConfirm('Hapus "' + nama + '"?', async () => {
-                const result = await apiCall('deleteTokoh', 'POST', { id });
-                if (result && result.success) {
-                    dataCache = dataCache.filter(t => t.id !== id);
-                    applyFilter();
-                    await logActivity('DELETE', 'tokoh', id, 'Hapus: ' + nama);
-                    showToast('Tokoh berhasil dihapus!', 'success');
-                } else {
-                    showToast((result && result.message) || 'Gagal menghapus', 'error');
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                try {
+                    const result = await apiCall('deleteTokoh', 'POST', { id });
+                    if (result && result.success) {
+                        dataCache = dataCache.filter(t => String(t.id) !== String(id));
+                        applyFilter();
+                        await logActivity('DELETE', 'tokoh', id, 'Hapus: ' + nama);
+
+                        if (result._offline) {
+                            safeToast('📴 Tokoh dihapus lokal, akan disinkronkan saat online', 'warning', 4000);
+                        } else {
+                            safeToast('✅ Tokoh berhasil dihapus!', 'success');
+                        }
+                    } else {
+                        safeToast((result && result.message) || 'Gagal menghapus', 'error');
+                    }
+                } catch (e) {
+                    console.error('[tokoh_admin] deleteItem error:', e);
+                    safeToast('Error: ' + e.message, 'error');
+                } finally {
+                    isSubmitting = false;
                 }
             });
         };
 
         // ================================================================
-        // 21. SUBMIT FORM
+        // 26. SUBMIT FORM (Offline-aware)
         // ================================================================
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -998,27 +1304,26 @@ App.register('tokoh_admin', function() {
             const detail_lain = (detailInput.value || '').trim();
             const foto_url = (fotoUrlInput.value || '').trim();
 
-            // === VALIDATION ===
             if (!nama) {
-                showToast('Nama wajib diisi!', 'warning');
+                safeToast('Nama wajib diisi!', 'warning');
                 namaInput.focus();
                 return;
             }
 
             if (lat && !isValidLat(lat)) {
-                showToast('Latitude tidak valid (harus -90 sampai 90)!', 'warning');
+                safeToast('Latitude tidak valid (harus -90 sampai 90)!', 'warning');
                 latInput.focus();
                 return;
             }
 
             if (lng && !isValidLng(lng)) {
-                showToast('Longitude tidak valid (harus -180 sampai 180)!', 'warning');
+                safeToast('Longitude tidak valid (harus -180 sampai 180)!', 'warning');
                 lngInput.focus();
                 return;
             }
 
             if ((lat && !lng) || (!lat && lng)) {
-                showToast('Latitude dan Longitude harus diisi keduanya atau dikosongkan!', 'warning');
+                safeToast('Latitude dan Longitude harus diisi keduanya atau dikosongkan!', 'warning');
                 return;
             }
 
@@ -1027,6 +1332,30 @@ App.register('tokoh_admin', function() {
             startLoading(submitBtn, 'Menyimpan...');
 
             try {
+                // Upload foto terlebih dahulu (jika ada)
+                let finalFotoUrl = foto_url;
+                if (tokohPhotoCtrl && tokohPhotoCtrl.hasFile()) {
+                    if (!navigator.onLine) {
+                        safeToast('📴 Upload foto memerlukan koneksi internet. Menyimpan tanpa foto.', 'warning', 4500);
+                    } else {
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengunggah foto...';
+                        }
+                        try {
+                            finalFotoUrl = await window.FormPhoto.uploadIfAny(tokohPhotoCtrl, foto_url);
+                        } catch (uploadErr) {
+                            console.error('[tokoh_admin] Upload foto error:', uploadErr);
+                            safeToast('Gagal upload foto: ' + uploadErr.message, 'error', 4000);
+                            stopLoading(submitBtn);
+                            isSubmitting = false;
+                            return;
+                        }
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+                        }
+                    }
+                }
+
                 const data = {
                     nama: nama,
                     no_hp: no_hp,
@@ -1036,7 +1365,7 @@ App.register('tokoh_admin', function() {
                     riwayat_hidup: riwayat_hidup,
                     pengalaman_organisasi: pengalaman_organisasi,
                     detail_lain: detail_lain,
-                    foto_url: foto_url,
+                    foto_url: finalFotoUrl,
                     created_by: user.id
                 };
 
@@ -1047,13 +1376,12 @@ App.register('tokoh_admin', function() {
                 const result = await apiCall(action, 'POST', payload);
 
                 if (result && result.success) {
-                    // Update cache
                     if (id) {
-                        const idx = dataCache.findIndex(t => t.id === id);
+                        const idx = dataCache.findIndex(t => String(t.id) === String(id));
                         if (idx !== -1) dataCache[idx] = Object.assign({}, dataCache[idx], data, { id: id });
                     } else {
                         const newItem = Object.assign({}, data, {
-                            id: result.id,
+                            id: result.id || ('tmp_' + Date.now()),
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         });
@@ -1061,36 +1389,6 @@ App.register('tokoh_admin', function() {
                     }
 
                     applyFilter();
-
-                    // === UPLOAD FOTO (background) ===
-                    if (fotoFileInput && fotoFileInput.files && fotoFileInput.files.length > 0) {
-                        const targetId = id || result.id;
-                        showToast('Mengunggah foto...', 'info', 3000);
-
-                        try {
-                            const uploadResult = await uploadFileToDrive(fotoFileInput.files[0]);
-                            if (uploadResult && uploadResult.success) {
-                                const updateRes = await apiCall('updateTokoh', 'POST', {
-                                    id: targetId,
-                                    foto_url: uploadResult.url
-                                });
-                                if (updateRes && updateRes.success) {
-                                    const idx = dataCache.findIndex(t => t.id === targetId);
-                                    if (idx !== -1) dataCache[idx].foto_url = uploadResult.url;
-                                    applyFilter();
-                                    showToast('✅ Foto berhasil diunggah!', 'success');
-                                } else {
-                                    showToast('Data tersimpan, tapi gagal update foto URL', 'warning');
-                                }
-                            } else {
-                                showToast('Gagal upload foto: ' + (uploadResult.message || 'Unknown'), 'error');
-                            }
-                        } catch (uploadErr) {
-                            console.error('[tokoh_admin] Upload error:', uploadErr);
-                            showToast('Gagal upload: ' + uploadErr.message, 'error');
-                        }
-                    }
-
                     closeModal();
                     form.reset();
 
@@ -1101,16 +1399,20 @@ App.register('tokoh_admin', function() {
                         'Tokoh: ' + nama
                     );
 
-                    showToast(
-                        id ? '✅ Tokoh berhasil diperbarui!' : '✅ Tokoh berhasil disimpan!',
-                        'success'
-                    );
+                    if (result._offline) {
+                        safeToast('📴 Tokoh tersimpan lokal, akan disinkronkan saat online', 'warning', 4500);
+                    } else {
+                        safeToast(
+                            id ? '✅ Tokoh berhasil diperbarui!' : '✅ Tokoh berhasil disimpan!',
+                            'success'
+                        );
+                    }
                 } else {
-                    showToast((result && result.message) || 'Gagal menyimpan', 'error');
+                    safeToast((result && result.message) || 'Gagal menyimpan', 'error');
                 }
             } catch (error) {
                 console.error('[tokoh_admin] Submit error:', error);
-                showToast('Error: ' + error.message, 'error');
+                safeToast('Error: ' + error.message, 'error');
             } finally {
                 stopLoading(submitBtn);
                 isSubmitting = false;
@@ -1118,11 +1420,11 @@ App.register('tokoh_admin', function() {
         });
 
         // ================================================================
-        // 22. EXPORT CSV
+        // 27. EXPORT CSV
         // ================================================================
         function exportCSV() {
             if (filteredCache.length === 0) {
-                showToast('Tidak ada data untuk diekspor.', 'warning');
+                safeToast('Tidak ada data untuk diekspor.', 'warning');
                 return;
             }
 
@@ -1153,11 +1455,11 @@ App.register('tokoh_admin', function() {
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-            showToast('✅ CSV berhasil diunduh!', 'success');
+            safeToast('✅ CSV berhasil diunduh!', 'success');
         }
 
         // ================================================================
-        // 23. REFRESH BUTTON
+        // 28. REFRESH BUTTON
         // ================================================================
         if (refreshBtn) {
             const fresh = refreshBtn.cloneNode(true);
@@ -1167,12 +1469,9 @@ App.register('tokoh_admin', function() {
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Memuat...';
 
-                dataCache = [];
-                selectedIds.clear();
-
                 try {
-                    await loadData(true);
-                    showToast('Data tokoh diperbarui!', 'success');
+                    await refreshDataOnly();
+                    safeToast('✅ Data tokoh diperbarui!', 'success');
                 } finally {
                     this.disabled = false;
                     this.innerHTML = original;
@@ -1181,31 +1480,46 @@ App.register('tokoh_admin', function() {
         }
 
         // ================================================================
-        // 24. CLEANUP
+        // 29. LISTEN SYNC EVENT
+        // ================================================================
+        window.addEventListener('sync:complete', function(e) {
+            const detail = e.detail || {};
+            if (detail.processed > 0) {
+                console.log('[tokoh_admin] Sync complete, refreshing...');
+                refreshDataOnly();
+            }
+        });
+
+        // ================================================================
+        // 30. CLEANUP
         // ================================================================
         function cleanup() {
             window.__tokohAdminLoaded = false;
+            isSubmitting = false;
+            selectedIds.clear();
             const detailModal = document.getElementById('tokoh-detail-modal');
             if (detailModal) detailModal.remove();
             document.body.style.overflow = '';
+            console.log('[tokoh_admin] Cleanup');
         }
-
         window.__tokohAdminCleanup = cleanup;
 
         // ================================================================
-        // 25. INIT
+        // 31. INIT
         // ================================================================
-        console.log('[tokoh_admin] Init selesai v11.0.0, memuat data...');
+        console.log('[tokoh_admin] Loading initial data...');
 
         ensureExtraUI();
         attachFilterListeners();
         attachBulkListeners();
 
-        loadData();
+        await loadData();
+
+        console.log('[tokoh_admin] ✅ Init selesai v13.0.0');
     }
 
     // ================================================================
-    // 26. RUN INIT
+    // 32. RUN INIT
     // ================================================================
     init();
 });

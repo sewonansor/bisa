@@ -1,30 +1,26 @@
 /**
  * js/surat_member.js
- * Modul Member Surat - FULL FIX v11.0.0 (FINAL)
+ * Modul Member Surat - FULL FIX v11.1.0
  * ---------------------------------------------------------
  * FIX:
- *  - Guard anti-duplikasi + cleanup via router
- *  - XSS protection di semua output
- *  - Clone-replace listener (anti memory leak)
- *  - isSubmitting anti double-submit
- *  - Nomor surat dari response backend langsung
- *  - Edit dari cache (tanpa fetch ulang)
- *  - ESC + click-outside modal
- *
- * FEATURES:
- *  - CRUD Surat member (hanya milik sendiri)
- *  - Nomor surat otomatis dari backend
- *  - Edit dari cache (instan)
- *  - Search real-time (nomor, perihal, pengirim, penerima)
- *  - Filter jenis surat (internal/eksternal)
- *  - Stats 4 kartu (total, internal, eksternal, bulan ini)
- *  - Bulk delete multiple surat
- *  - Copy nomor surat ke clipboard
- *  - Preview & cetak via /surat_preview
- *  - Download lampiran langsung
- *  - Upload lampiran background
- *  - Dark mode aware
- *  - Mobile responsive
+ *  - ✅ Guard anti-duplikasi + cleanup via router
+ *  - ✅ XSS protection di semua output
+ *  - ✅ Clone-replace listener (anti memory leak)
+ *  - ✅ isSubmitting anti double-submit
+ *  - ✅ Nomor surat dari response backend langsung
+ *  - ✅ Edit dari cache (tanpa fetch ulang)
+ *  - ✅ ESC + click-outside modal
+ *  - ✅ Null-safe semua DOM elements
+ *  - ✅ Stats 4 kartu (total, internal, eksternal, bulan ini)
+ *  - ✅ Search real-time (nomor, perihal, pengirim, penerima)
+ *  - ✅ Filter jenis surat (internal/eksternal)
+ *  - ✅ Bulk delete multiple surat
+ *  - ✅ Copy nomor surat ke clipboard
+ *  - ✅ Preview & cetak via /surat_preview
+ *  - ✅ Upload lampiran background
+ *  - ✅ Draft persist via localStorage
+ *  - ✅ Reset nomor otomatis saat create
+ * ---------------------------------------------------------
  */
 
 App.register('surat_member', function() {
@@ -184,7 +180,7 @@ App.register('surat_member', function() {
         let selectedIds = new Set();
 
         // ================================================================
-        // 7. ENSURE EXTRA UI (Stats + Search + Filter + Bulk Bar)
+        // 7. ENSURE EXTRA UI
         // ================================================================
         function ensureExtraUI() {
             const memberContent = document.getElementById('member-frame-content') ||
@@ -332,13 +328,11 @@ App.register('surat_member', function() {
         // ================================================================
         function applyFilter() {
             filteredCache = dataCache.filter(item => {
-                // Filter jenis
                 if (currentFilter.jenis !== 'all') {
                     const jenis = getJenisFromNomor(item.nomor_surat);
                     if (jenis !== currentFilter.jenis) return false;
                 }
 
-                // Filter search
                 if (currentFilter.search) {
                     const q = currentFilter.search;
                     const haystack = [
@@ -350,7 +344,6 @@ App.register('surat_member', function() {
                 return true;
             });
 
-            // Sort by tanggal descending
             filteredCache.sort((a, b) => {
                 const da = new Date(a.tanggal || 0);
                 const db = new Date(b.tanggal || 0);
@@ -701,7 +694,6 @@ App.register('surat_member', function() {
             });
         }
 
-        // ESC key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 closeModal();
@@ -799,7 +791,6 @@ App.register('surat_member', function() {
 
             if (isSubmitting) return;
 
-            // === Validation ===
             const perihal = (perihalInput.value || '').trim();
             const tanggal = tanggalInput.value;
             const pengirim = (pengirimInput.value || '').trim();
@@ -857,14 +848,12 @@ App.register('surat_member', function() {
                 const result = await apiCall(action, 'POST', payload);
 
                 if (result && result.success) {
-                    // Update cache lokal
                     if (isEdit) {
                         const idx = dataCache.findIndex(s => s.id === id);
                         if (idx !== -1) {
                             dataCache[idx] = Object.assign({}, dataCache[idx], data, { id: id });
                         }
                     } else {
-                        // ✅ Ambil nomor_surat langsung dari response backend
                         const newItem = Object.assign({}, data, {
                             id: result.id,
                             nomor_surat: result.nomor_surat || '(generating...)',
@@ -872,7 +861,6 @@ App.register('surat_member', function() {
                         });
                         dataCache.unshift(newItem);
 
-                        // Kalau nomor_surat tidak ada di response, fetch BG
                         if (!result.nomor_surat) {
                             fetchDataBackground();
                         }
@@ -880,7 +868,6 @@ App.register('surat_member', function() {
 
                     applyFilter();
 
-                    // Upload lampiran background
                     if (fileInput && fileInput.files && fileInput.files.length > 0) {
                         const targetId = isEdit ? id : result.id;
                         showToast('Data tersimpan, mengunggah lampiran...', 'info', 3000);
@@ -961,6 +948,8 @@ App.register('surat_member', function() {
         // ================================================================
         function cleanup() {
             window.__suratMemberLoaded = false;
+            selectedIds.clear();
+            console.log('[surat_member] Cleanup');
         }
         window.__suratMemberCleanup = cleanup;
 
@@ -969,17 +958,14 @@ App.register('surat_member', function() {
         // ================================================================
         console.log('[surat_member] Init dimulai');
 
-        // Set default tanggal
         if (tanggalInput && !tanggalInput.value) {
             tanggalInput.value = todayISO();
         }
 
-        // Setup UI
         ensureExtraUI();
         attachFilterListeners();
         attachBulkListeners();
 
-        // Load data
         loadSurat();
 
         console.log('[surat_member] Init selesai');

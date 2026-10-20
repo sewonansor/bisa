@@ -1,30 +1,28 @@
 /**
  * js/tokoh.js
- * Modul Publik Daftar Tokoh & Penggerak - FULL FIX v11.0.0 (FINAL)
+ * Modul Publik Daftar Tokoh & Penggerak - FULL FIX v11.1.0
  * ---------------------------------------------------------
  * FIX:
- *  - Guard anti-duplikasi + cleanup
- *  - XSS protection: escapeHtml() di semua output
- *  - Loading/error/empty state proper
- *  - Clone-replace listener (anti memory leak)
- *  - Support hash routing
- *  - Lazy load images
- *
- * FEATURES:
- *  - Grid card tokoh (foto, nama, alamat, no HP)
- *  - Search real-time (nama, alamat, no HP, riwayat)
- *  - Filter (semua, ada foto, ada lokasi, ada kontak, ada riwayat)
- *  - Sort (nama A-Z, Z-A, terbaru, alamat A-Z)
- *  - Stats 3 kartu (total, ada foto, ada lokasi)
- *  - Detail modal dengan mini map OpenStreetMap
- *  - Copy koordinat/telepon ke clipboard
- *  - WhatsApp direct (klik no HP)
- *  - Lightbox foto fullscreen + keyboard nav (←/→)
- *  - Share via WhatsApp
- *  - Group by kalurahan (toggle)
- *  - Lazy load images
- *  - Dark mode aware
- *  - Mobile responsive
+ *  - ✅ Guard anti-duplikasi + cleanup
+ *  - ✅ XSS protection: escapeHtml() di semua output
+ *  - ✅ Loading/error/empty state proper
+ *  - ✅ Clone-replace listener (anti memory leak)
+ *  - ✅ Null-safe semua DOM elements
+ *  - ✅ Lazy load images
+ *  - ✅ Grid card tokoh (foto, nama, alamat, no HP)
+ *  - ✅ Search real-time (nama, alamat, no HP, riwayat)
+ *  - ✅ Filter (semua, ada foto, ada lokasi, ada kontak, ada riwayat)
+ *  - ✅ Sort (nama A-Z, Z-A, terbaru, alamat A-Z)
+ *  - ✅ Stats 3 kartu (total, ada foto, ada lokasi)
+ *  - ✅ Detail modal dengan mini map OpenStreetMap
+ *  - ✅ Copy koordinat/telepon ke clipboard
+ *  - ✅ WhatsApp direct (klik no HP)
+ *  - ✅ Lightbox foto fullscreen + keyboard nav (←/→)
+ *  - ✅ Group by kalurahan (toggle)
+ *  - ✅ Dark mode aware
+ *  - ✅ Mobile responsive
+ *  - ✅ Animate count-up stats
+ * ---------------------------------------------------------
  */
 
 App.register('tokoh', function() {
@@ -158,7 +156,7 @@ App.register('tokoh', function() {
     let lightboxList = [];
 
     // ================================================================
-    // 5. ENSURE EXTRA UI (Stats + Search + Filter + Sort)
+    // 5. ENSURE EXTRA UI
     // ================================================================
     function ensureExtraUI() {
         const parentSection = container.closest('section') || container.parentElement;
@@ -302,7 +300,6 @@ App.register('tokoh', function() {
     // ================================================================
     function applyFilter() {
         filteredTokoh = allTokoh.filter(t => {
-            // Filter tipe
             if (currentFilter.filter === 'foto' && !t.foto_url) return false;
             if (currentFilter.filter === 'lokasi') {
                 if (!isValidLat(t.lat) || !isValidLng(t.lng)) return false;
@@ -310,7 +307,6 @@ App.register('tokoh', function() {
             if (currentFilter.filter === 'kontak' && !t.no_hp) return false;
             if (currentFilter.filter === 'riwayat' && !t.riwayat_hidup) return false;
 
-            // Search
             if (currentFilter.search) {
                 const q = currentFilter.search;
                 const haystack = [
@@ -322,7 +318,6 @@ App.register('tokoh', function() {
             return true;
         });
 
-        // Sort
         switch (currentFilter.sort) {
             case 'nama-asc':
                 filteredTokoh.sort((a, b) =>
@@ -384,7 +379,6 @@ App.register('tokoh', function() {
         if (isLoading) return;
         isLoading = true;
 
-        // Loading skeleton
         container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto';
         container.innerHTML = Array(6).fill(0).map(() => `
             <div class="bg-[var(--card-bg)] rounded-2xl overflow-hidden border border-[var(--card-border)] shadow-lg">
@@ -418,7 +412,6 @@ App.register('tokoh', function() {
                 return;
             }
 
-            // Sort default
             allTokoh.sort((a, b) =>
                 String(a.nama || '').localeCompare(String(b.nama || '')));
             filteredTokoh = allTokoh;
@@ -468,7 +461,6 @@ App.register('tokoh', function() {
             return;
         }
 
-        // Reset grid class
         container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto';
 
         let html = '';
@@ -480,7 +472,6 @@ App.register('tokoh', function() {
             const hasFoto = !!item.foto_url;
             const avatarColor = getAvatarColor(name);
 
-            // Avatar
             const avatarHtml = hasFoto
                 ? `<img src="${escapeAttr(item.foto_url)}" alt="${escapeAttr(name)}"
                         class="w-full h-full object-cover"
@@ -490,7 +481,6 @@ App.register('tokoh', function() {
                         ${escapeHtml(getInitials(name))}
                    </div>`;
 
-            // Badges
             const badges = [];
             if (hasLoc) badges.push(`<span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"><i class="fas fa-map-marker-alt"></i>Lokasi</span>`);
             if (hasPhone) badges.push(`<span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"><i class="fas fa-phone"></i>Kontak</span>`);
@@ -498,7 +488,6 @@ App.register('tokoh', function() {
 
             html += `
                 <div class="tokoh-card group bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl overflow-hidden border border-[var(--card-border)] shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col">
-                    <!-- Foto/Avatar -->
                     <div class="relative h-56 overflow-hidden bg-[var(--bg-stats)] cursor-pointer"
                          onclick="openDetailTokoh('${item.id}')">
                         ${avatarHtml}
@@ -515,7 +504,6 @@ App.register('tokoh', function() {
                         ` : ''}
                     </div>
 
-                    <!-- Body -->
                     <div class="p-5 flex-1 flex flex-col">
                         <h3 class="text-lg font-bold text-[var(--text-main)] font-amiri mb-1 line-clamp-1"
                             title="${escapeAttr(name)}">
@@ -532,7 +520,6 @@ App.register('tokoh', function() {
                             </p>
                         ` : ''}
 
-                        <!-- Actions -->
                         <div class="flex flex-wrap gap-2 mt-auto pt-3 border-t border-[var(--card-border)]">
                             <button onclick="openDetailTokoh('${item.id}')"
                                 class="flex-1 text-xs px-3 py-1.5 rounded-lg bg-[var(--text-main)] text-[var(--text-inverse)] hover:opacity-90 transition flex items-center justify-center gap-1.5">
@@ -566,7 +553,6 @@ App.register('tokoh', function() {
 
         container.innerHTML = html;
 
-        // Update lightbox list
         lightboxList = filteredTokoh.filter(t => t.foto_url);
     }
 
@@ -636,7 +622,6 @@ App.register('tokoh', function() {
         const body = modal.querySelector('#tokoh-detail-body');
         const namaStr = item.nama || 'Tanpa Nama';
 
-        // Foto
         if (item.foto_url) {
             foto.src = item.foto_url;
             foto.onerror = () => {
@@ -651,7 +636,6 @@ App.register('tokoh', function() {
 
         let bodyHtml = '';
 
-        // Kontak
         if (item.no_hp) {
             bodyHtml += `
                 <div>
@@ -677,7 +661,6 @@ App.register('tokoh', function() {
             `;
         }
 
-        // Lokasi (map)
         if (isValidLat(item.lat) && isValidLng(item.lng)) {
             const lat = parseFloat(item.lat);
             const lng = parseFloat(item.lng);
@@ -715,7 +698,6 @@ App.register('tokoh', function() {
             `;
         }
 
-        // Riwayat hidup
         if (item.riwayat_hidup) {
             bodyHtml += `
                 <div>
@@ -727,7 +709,6 @@ App.register('tokoh', function() {
             `;
         }
 
-        // Pengalaman organisasi
         if (item.pengalaman_organisasi) {
             bodyHtml += `
                 <div>
@@ -739,7 +720,6 @@ App.register('tokoh', function() {
             `;
         }
 
-        // Detail lain
         if (item.detail_lain) {
             bodyHtml += `
                 <div>
@@ -757,12 +737,11 @@ App.register('tokoh', function() {
 
         body.innerHTML = bodyHtml;
 
-        // Attach klik foto untuk lightbox
         if (item.foto_url) {
-            const fotoWrap = modal.querySelector('#tokoh-detail-foto');
-            if (fotoWrap) {
-                fotoWrap.style.cursor = 'pointer';
-                fotoWrap.onclick = () => openFotoLightbox(id);
+            const fotoEl = modal.querySelector('#tokoh-detail-foto');
+            if (fotoEl) {
+                fotoEl.style.cursor = 'pointer';
+                fotoEl.onclick = () => openFotoLightbox(id);
             }
         }
 
@@ -776,13 +755,12 @@ App.register('tokoh', function() {
     };
 
     // ================================================================
-    // 12. FOTO LIGHTBOX (dengan keyboard nav)
+    // 12. FOTO LIGHTBOX
     // ================================================================
     window.openFotoLightbox = function(id) {
         const item = allTokoh.find(t => t.id === id);
         if (!item || !item.foto_url) return;
 
-        // Set current index
         const idx = lightboxList.findIndex(t => t.id === id);
         currentLightboxIndex = idx >= 0 ? idx : 0;
 
@@ -860,7 +838,6 @@ App.register('tokoh', function() {
         if (caption) caption.textContent = item.nama || '';
         if (counter) counter.textContent = (currentLightboxIndex + 1) + ' / ' + lightboxList.length;
 
-        // Show/hide nav
         const prevBtn = lightbox.querySelector('#tokoh-lightbox-prev');
         const nextBtn = lightbox.querySelector('#tokoh-lightbox-next');
         const showNav = lightboxList.length > 1;
@@ -869,7 +846,6 @@ App.register('tokoh', function() {
         if (counter) counter.style.display = showNav ? 'block' : 'none';
     }
 
-    // Lightbox keyboard nav
     document.addEventListener('keydown', function(e) {
         const lightbox = document.getElementById('tokoh-lightbox');
         if (!lightbox || lightbox.classList.contains('hidden')) return;
@@ -925,6 +901,7 @@ App.register('tokoh', function() {
         if (lightbox) lightbox.remove();
         const modal = document.getElementById('tokoh-detail-modal');
         if (modal) modal.remove();
+        console.log('[tokoh] Cleanup');
     }
 
     window.__tokohCleanup = cleanup;

@@ -1,26 +1,27 @@
 /**
  * js/kader_admin.js
- * Modul Admin Database Kader & Masa Bakti - FULL FIX v10.0.0 (FINAL)
- * ---------------------------------------------------------
- * FIX:
- *  - B5: Guard anti-duplikasi + reset via router
- *  - B8: Clone-replace listener (anti memory leak)
- *  - XSS: escapeHtml() di semua output
- *  - isSubmitting anti double-submit
- *  - ESC + click-outside modal
- *
- * FEATURES:
- *  - CRUD Data Kader (dari users)
- *  - Search real-time (nama, username, alamat, angkatan)
- *  - Filter role (admin/member) + filter angkatan
- *  - Stats 4 kartu (total, admin, member, angkatan terbanyak)
- *  - Bulk actions (delete)
- *  - Detail modal dengan riwayat jabatan
- *  - Copy username
- *  - Export CSV
- *  - Sort (angkatan terbaru, nama A-Z, alamat)
- *  - Dark mode aware
- *  - Mobile responsive
+ * Modul Admin Database Kader — v13.0.0 OFFLINE-FIRST FULL FIX
+ * ============================================================
+ * CHANGELOG v13.0.0:
+ *   ✅ NEW: Handle response _offline dari apiCall
+ *   ✅ NEW: Badge pending sync di tabel
+ *   ✅ NEW: Auto-refresh saat sync:complete
+ *   ✅ NEW: Safe toast fallback
+ *   ✅ NEW: Upload foto skip saat offline
+ *   ✅ FIX: Semua handler idempotent
+ *   ✅ FIX: Null-safe seluruh DOM elements
+ *   ✅ FIX: Refresh tanpa reload halaman
+ *   ✅ FIX: Guard anti-duplikasi
+ *   ✅ FIX: Search + filter + sort real-time
+ *   ✅ FIX: Bulk delete dengan handling offline
+ *   ✅ FIX: Detail modal dengan foto
+ *   ✅ FIX: Copy username ke clipboard
+ *   ✅ FIX: Export CSV dengan filter aktif
+ *   ✅ FIX: Stats 4 kartu (total, admin, member, angkatan terbanyak)
+ *   ✅ FIX: Upload foto via window.FormPhoto
+ *   ✅ FIX: Avatar thumbnail dengan fallback initials
+ *   ✅ PRESERVED: Semua fitur v12.0.0
+ * ============================================================
  */
 
 App.register('kader_admin', function() {
@@ -44,11 +45,13 @@ App.register('kader_admin', function() {
     }
     window.__kaderAdminLoaded = true;
 
+    console.log('[kader_admin] 🚀 Init v13.0.0 (Offline-First Full Fix)');
+
     // ================================================================
-    // 3. HELPER: TUNGGU ELEMEN DOM SIAP
+    // 3. HELPER: WAIT FOR DOM
     // ================================================================
     function waitForElements(ids, maxRetries, interval) {
-        maxRetries = maxRetries || 30;
+        maxRetries = maxRetries || 40;
         interval = interval || 100;
         return new Promise((resolve) => {
             let attempts = 0;
@@ -94,7 +97,6 @@ App.register('kader_admin', function() {
         });
     }
 
-    // Backward compat helpers
     function getUsername(u) {
         if (!u) return '-';
         return u.username || u.email || '-';
@@ -132,8 +134,91 @@ App.register('kader_admin', function() {
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
+    function getAvatarColor(str) {
+        const colors = [
+            'from-blue-400 to-indigo-600',
+            'from-teal-400 to-emerald-600',
+            'from-purple-400 to-fuchsia-600',
+            'from-pink-400 to-rose-600',
+            'from-amber-400 to-orange-600',
+            'from-cyan-400 to-blue-600',
+            'from-violet-400 to-purple-600',
+            'from-green-400 to-teal-600'
+        ];
+        let hash = 0;
+        const s = String(str || '');
+        for (let i = 0; i < s.length; i++) {
+            hash = ((hash << 5) - hash) + s.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    function safeToast(msg, type, dur) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type || 'info', dur || 3000);
+        } else {
+            console.log('[kader_admin:' + (type || 'info') + ']', msg);
+        }
+    }
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+        }
+        return new Promise((resolve, reject) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                resolve();
+            } catch (e) {
+                document.body.removeChild(ta);
+                reject(e);
+            }
+        });
+    }
+
+    /**
+     * ✅ NEW: Deteksi pending sync
+     */
+    function isPendingSync(id) {
+        try {
+            if (!window.SyncManager) return false;
+            const queue = window.SyncManager.getQueue() || [];
+            const idStr = String(id);
+            return queue.some(item => {
+                const d = item.data || {};
+                return String(d.id) === idStr;
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
     // ================================================================
-    // 5. INIT UTAMA
+    // 5. REFRESH TANPA RELOAD
+    // ================================================================
+    function refreshDataOnly() {
+        console.log('[kader_admin] 🔄 Refresh data without reload');
+
+        try {
+            const cKey = 'cache_getUsers_' + user.id + '_' + JSON.stringify({});
+            SafeSessionStorage.removeItem(cKey);
+        } catch (e) {}
+
+        return loadData(true).then(() => {
+            console.log('[kader_admin] ✅ Data refreshed');
+        });
+    }
+
+    // ================================================================
+    // 6. INIT UTAMA
     // ================================================================
     async function init() {
         const requiredIds = [
@@ -143,38 +228,45 @@ App.register('kader_admin', function() {
             'refresh-kader-btn',
             'edit-id', 'kader_nama', 'kader_username', 'kader_role',
             'kader_alamat', 'kader_angkatan', 'kader_riwayat_jabatan',
+            'kader_foto', 'kader_foto_url',
+            'kader-foto-preview', 'kader-foto-preview-wrap', 'kader-foto-remove',
             'total-anggota', 'total-admin', 'total-member', 'angkatan-terbanyak'
         ];
 
         const els = await waitForElements(requiredIds);
 
-        const tableBody       = els['table-body'];
-        const modal           = els['kader-modal'];
-        const modalContent    = els['modal-content'];
-        const form            = els['kader-form'];
-        const closeBtn        = els['modal-close'];
-        const refreshBtn      = els['refresh-kader-btn'];
-        const idInput         = els['edit-id'];
-        const namaInput       = els['kader_nama'];
-        const usernameInput   = els['kader_username'];
-        const roleSelect      = els['kader_role'];
-        const alamatInput     = els['kader_alamat'];
-        const angkatanInput   = els['kader_angkatan'];
+        const tableBody = els['table-body'];
+        const modal = els['kader-modal'];
+        const modalContent = els['modal-content'];
+        const form = els['kader-form'];
+        const closeBtn = els['modal-close'];
+        const refreshBtn = els['refresh-kader-btn'];
+        const idInput = els['edit-id'];
+        const namaInput = els['kader_nama'];
+        const usernameInput = els['kader_username'];
+        const roleSelect = els['kader_role'];
+        const alamatInput = els['kader_alamat'];
+        const angkatanInput = els['kader_angkatan'];
         const riwayatJabatanInput = els['kader_riwayat_jabatan'];
-        const totalAnggotaEl  = els['total-anggota'];
-        const totalAdminEl    = els['total-admin'];
-        const totalMemberEl   = els['total-member'];
+        const fotoUrlInput = els['kader_foto_url'];
+        const fotoFileInput = els['kader_foto'];
+        const totalAnggotaEl = els['total-anggota'];
+        const totalAdminEl = els['total-admin'];
+        const totalMemberEl = els['total-member'];
         const angkatanTerbanyakEl = els['angkatan-terbanyak'];
 
         if (!tableBody || !modal || !form) {
-            console.error('[kader_admin] Elemen utama tidak ditemukan.');
+            console.error('[kader_admin] ❌ Elemen utama tidak ditemukan.');
             return;
         }
 
+        console.log('[kader_admin] ✅ Semua elemen ditemukan');
+
         // ================================================================
-        // 6. STATE
+        // 7. STATE
         // ================================================================
         let isEdit = false;
+        let isSubmitting = false;
         let dataCache = [];
         let filteredCache = [];
         let currentFilter = {
@@ -183,19 +275,54 @@ App.register('kader_admin', function() {
             angkatan: 'all',
             sort: 'angkatan-desc'
         };
-        let isSubmitting = false;
         let selectedIds = new Set();
 
+        // ✅ FormPhoto controller
+        let kaderPhotoCtrl = null;
+
         // ================================================================
-        // 7. ENSURE EXTRA UI
+        // 8. ATTACH FORMPHOTO CONTROLLER
+        // ================================================================
+        if (typeof window.FormPhoto !== 'undefined' && fotoFileInput) {
+            kaderPhotoCtrl = window.FormPhoto.attach(
+                'kader_foto',
+                'kader-foto-preview',
+                'kader-foto-remove',
+                {
+                    onPreview: function() {
+                        const wrap = document.getElementById('kader-foto-preview-wrap');
+                        if (wrap) wrap.style.display = 'block';
+                    },
+                    onClear: function() {
+                        const wrap = document.getElementById('kader-foto-preview-wrap');
+                        if (wrap) wrap.style.display = 'none';
+                        if (fotoUrlInput) fotoUrlInput.value = '';
+                    }
+                }
+            );
+            console.log('[kader_admin] ✅ FormPhoto controller attached');
+        } else {
+            console.warn('[kader_admin] ⚠️ FormPhoto tidak tersedia');
+        }
+
+        function resetKaderPhoto() {
+            if (kaderPhotoCtrl) {
+                try { kaderPhotoCtrl.reset(); } catch (e) {}
+            }
+            const wrap = document.getElementById('kader-foto-preview-wrap');
+            if (wrap) wrap.style.display = 'none';
+            if (fotoUrlInput) fotoUrlInput.value = '';
+        }
+
+        // ================================================================
+        // 9. ENSURE EXTRA UI
         // ================================================================
         function ensureExtraUI() {
             const mainContent = document.getElementById('main-content');
             if (!mainContent) return;
-            const header = mainContent.querySelector('.flex.justify-between.items-center')
-                        || mainContent.querySelector('.flex.flex-wrap.justify-between.items-center');
+            const header = mainContent.querySelector('.flex.flex-wrap.justify-between.items-center')
+                        || mainContent.querySelector('.flex.justify-between.items-center');
 
-            // ===== Search & Filter & Sort =====
             if (!document.getElementById('kader-search-wrap')) {
                 const wrapper = document.createElement('div');
                 wrapper.id = 'kader-search-wrap';
@@ -204,7 +331,7 @@ App.register('kader_admin', function() {
                     <div class="flex-1 min-w-[200px] relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
                         <input type="text" id="kader-search" placeholder="Cari nama, username, alamat, angkatan..."
-                            class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)]">
+                            class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)] transition">
                     </div>
                     <select id="kader-filter-role" class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm">
                         <option value="all">Semua Role</option>
@@ -229,7 +356,6 @@ App.register('kader_admin', function() {
                 }
             }
 
-            // ===== Bulk Actions Bar =====
             if (!document.getElementById('kader-bulk-bar')) {
                 const bulkBar = document.createElement('div');
                 bulkBar.id = 'kader-bulk-bar';
@@ -254,7 +380,6 @@ App.register('kader_admin', function() {
                 }
             }
 
-            // ===== Detail Modal =====
             if (!document.getElementById('kader-detail-modal')) {
                 const detailModal = document.createElement('div');
                 detailModal.id = 'kader-detail-modal';
@@ -292,7 +417,7 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 8. ATTACH FILTER LISTENERS
+        // 10. ATTACH FILTER LISTENERS
         // ================================================================
         function attachFilterListeners() {
             const searchInput = document.getElementById('kader-search');
@@ -303,10 +428,11 @@ App.register('kader_admin', function() {
 
             if (searchInput && !searchInput.dataset.attached) {
                 searchInput.dataset.attached = 'true';
-                searchInput.addEventListener('input', debounceEvent.bind(null, 'kader-search', () => {
-                    currentFilter.search = (searchInput.value || '').toLowerCase().trim();
-                    applyFilter();
-                }, 250));
+                searchInput.addEventListener('input',
+                    debounceEvent.bind(null, 'kader-search', () => {
+                        currentFilter.search = (searchInput.value || '').toLowerCase().trim();
+                        applyFilter();
+                    }, 250));
             }
 
             if (roleFilter && !roleFilter.dataset.attached) {
@@ -340,7 +466,7 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 9. UPDATE ANGKATAN FILTER OPTIONS
+        // 11. UPDATE ANGKATAN OPTIONS
         // ================================================================
         function updateAngkatanOptions() {
             const select = document.getElementById('kader-filter-angkatan');
@@ -366,7 +492,7 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 10. APPLY FILTER & SORT
+        // 12. APPLY FILTER & SORT
         // ================================================================
         function applyFilter() {
             filteredCache = dataCache.filter(u => {
@@ -387,7 +513,6 @@ App.register('kader_admin', function() {
                 return true;
             });
 
-            // Sort
             switch (currentFilter.sort) {
                 case 'angkatan-desc':
                     filteredCache.sort((a, b) => String(b.angkatan || '').localeCompare(String(a.angkatan || '')));
@@ -408,20 +533,17 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 11. UPDATE STATS
+        // 13. UPDATE STATS
         // ================================================================
         function updateStats() {
             const total = dataCache.length;
             const admin = dataCache.filter(u => getRole(u) === 'admin').length;
             const member = dataCache.filter(u => getRole(u) === 'member').length;
 
-            // Angkatan terbanyak
             const angkatanCount = {};
             dataCache.forEach(u => {
                 const a = u.angkatan;
-                if (a) {
-                    angkatanCount[a] = (angkatanCount[a] || 0) + 1;
-                }
+                if (a) angkatanCount[a] = (angkatanCount[a] || 0) + 1;
             });
 
             let topAngkatan = '-';
@@ -433,27 +555,14 @@ App.register('kader_admin', function() {
                 }
             });
 
-            const el1 = document.getElementById('stats-total-kader') || totalAnggotaEl;
-            const el2 = document.getElementById('stats-admin-kader') || totalAdminEl;
-            const el3 = document.getElementById('stats-member-kader') || totalMemberEl;
-            const el4 = angkatanTerbanyakEl;
-
             if (totalAnggotaEl) totalAnggotaEl.textContent = total;
             if (totalAdminEl) totalAdminEl.textContent = admin;
             if (totalMemberEl) totalMemberEl.textContent = member;
             if (angkatanTerbanyakEl) angkatanTerbanyakEl.textContent = topAngkatan;
-
-            // Stats tambahan (jika auto-create)
-            const elTotal = document.getElementById('stats-total-kader');
-            const elAdmin = document.getElementById('stats-admin-kader');
-            const elMember = document.getElementById('stats-member-kader');
-            if (elTotal) elTotal.textContent = total;
-            if (elAdmin) elAdmin.textContent = admin;
-            if (elMember) elMember.textContent = member;
         }
 
         // ================================================================
-        // 12. LOAD DATA (SWR)
+        // 14. LOAD DATA (SWR)
         // ================================================================
         async function loadData(force) {
             force = force || false;
@@ -464,8 +573,8 @@ App.register('kader_admin', function() {
                 return;
             }
 
-            tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-8">' +
-                '<i class="fas fa-spinner fa-spin text-2xl"></i>' +
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8">' +
+                '<i class="fas fa-spinner fa-spin text-2xl text-[var(--text-main)]"></i>' +
                 '<p class="text-[var(--text-muted)] text-sm mt-2">Memuat data kader...</p></td></tr>';
 
             try {
@@ -477,18 +586,17 @@ App.register('kader_admin', function() {
                     applyFilter();
                 } else if (result && result.success) {
                     dataCache = [];
-                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-[var(--text-muted)]">' +
-                        '<i class="fas fa-user-graduate text-3xl mb-2 opacity-40"></i>' +
-                        '<p>Belum ada data kader</p></td></tr>';
+                    filteredCache = [];
+                    renderTable([]);
                     updateStats();
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500">' +
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">' +
                         '<i class="fas fa-exclamation-triangle text-2xl mb-2"></i>' +
                         '<p>' + escapeHtml((result && result.message) || 'Gagal memuat data') + '</p></td></tr>';
                 }
             } catch (error) {
-                console.error('[kader_admin] Load error:', error);
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500">' +
+                console.error('[kader_admin] loadData error:', error);
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">' +
                     'Error: ' + escapeHtml(error.message) + '</td></tr>';
             }
         }
@@ -502,17 +610,17 @@ App.register('kader_admin', function() {
                     applyFilter();
                 }
             } catch (e) {
-                console.warn('[kader_admin] BG refresh gagal:', e);
+                console.warn('[kader_admin] fetchDataBackground error:', e);
             }
         }
 
         // ================================================================
-        // 13. RENDER TABLE
+        // 15. RENDER TABLE — WITH PENDING SYNC BADGE
         // ================================================================
         function renderTable(data) {
             if (!data || data.length === 0) {
                 const isFiltered = currentFilter.search || currentFilter.role !== 'all' || currentFilter.angkatan !== 'all';
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-[var(--text-muted)]">' +
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-[var(--text-muted)]">' +
                     (isFiltered
                         ? '<i class="fas fa-search text-3xl mb-2 opacity-40"></i><p>Tidak ada hasil yang cocok</p>'
                         : '<i class="fas fa-user-graduate text-3xl mb-2 opacity-40"></i><p>Belum ada data kader</p>') +
@@ -527,6 +635,7 @@ App.register('kader_admin', function() {
                 const status = getStatus(u);
                 const role = getRole(u);
                 const isSelected = selectedIds.has(u.id);
+                const pending = isPendingSync(u.id);
 
                 let statusBadge;
                 if (status === 'approved') {
@@ -541,20 +650,34 @@ App.register('kader_admin', function() {
                     ? '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"><i class="fas fa-shield-alt mr-1"></i>Admin</span>'
                     : '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Member</span>';
 
+                const nama = getName(u);
+                const avatarColor = getAvatarColor(nama);
+                const initials = getInitials(nama);
+                const avatarHtml = u.foto_url
+                    ? `<img src="${escapeAttr(u.foto_url)}"
+                            alt="${escapeAttr(nama)}"
+                            class="kader-avatar"
+                            loading="lazy"
+                            onclick="viewDetail('${escapeAttr(u.id)}')"
+                            onerror="this.outerHTML='<div class=\\'kader-avatar-placeholder bg-gradient-to-br ${avatarColor}\\'>${escapeHtml(initials)}</div>'">`
+                    : `<div class="kader-avatar-placeholder bg-gradient-to-br ${avatarColor}">${escapeHtml(initials)}</div>`;
+
+                const pendingBadge = pending
+                    ? ' <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" title="Menunggu sinkronisasi">⟳ SYNC</span>'
+                    : '';
+
                 html += `
-                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''}">
+                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''} ${pending ? 'border-l-2 border-amber-500' : ''}">
                         <td class="px-3 py-3 text-center">
                             <input type="checkbox" class="kader-checkbox w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer"
-                                data-id="${u.id}" ${isSelected ? 'checked' : ''}>
+                                data-id="${escapeAttr(u.id)}" ${isSelected ? 'checked' : ''}>
                         </td>
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${index + 1}</td>
+                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${index + 1}${pendingBadge}</td>
                         <td class="px-3 py-3 text-sm">
-                            <button onclick="viewDetail('${u.id}')"
+                            <button onclick="viewDetail('${escapeAttr(u.id)}')"
                                 class="font-medium text-[var(--text-main)] hover:text-blue-600 dark:hover:text-blue-400 text-left flex items-center gap-2">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 text-white text-xs font-bold flex-shrink-0">
-                                    ${escapeHtml(getInitials(getName(u)))}
-                                </span>
-                                <span class="truncate">${escapeHtml(getName(u))}</span>
+                                ${avatarHtml}
+                                <span class="truncate">${escapeHtml(nama)}</span>
                             </button>
                         </td>
                         <td class="px-3 py-3 text-sm text-[var(--text-muted)]">
@@ -573,19 +696,16 @@ App.register('kader_admin', function() {
                         </td>
                         <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${escapeHtml(u.riwayat_jabatan || '-')}</td>
                         <td class="px-3 py-3 text-sm whitespace-nowrap">
-                            <button onclick="viewDetail('${u.id}')"
-                                class="text-green-600 hover:text-green-800 dark:text-green-400 mr-2"
-                                title="Detail">
+                            <button onclick="viewDetail('${escapeAttr(u.id)}')"
+                                class="text-green-600 hover:text-green-800 dark:text-green-400 mr-2" title="Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="editKader('${u.id}')"
-                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-2"
-                                title="Edit">
+                            <button onclick="editKader('${escapeAttr(u.id)}')"
+                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-2" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteKader('${u.id}')"
-                                class="text-red-600 hover:text-red-800 dark:text-red-400"
-                                title="Hapus">
+                            <button onclick="deleteKader('${escapeAttr(u.id)}')"
+                                class="text-red-600 hover:text-red-800 dark:text-red-400" title="Hapus">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -650,7 +770,7 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 14. BULK ACTIONS
+        // 16. BULK DELETE
         // ================================================================
         function attachBulkListeners() {
             const delBtn = document.getElementById('bulk-delete-kader-btn');
@@ -663,12 +783,14 @@ App.register('kader_admin', function() {
                     if (ids.length === 0) return;
 
                     showConfirm(`Hapus ${ids.length} kader? Tindakan ini tidak bisa dibatalkan.`, async () => {
-                        let ok = 0, fail = 0;
+                        let ok = 0, fail = 0, offline = 0;
                         for (const id of ids) {
                             try {
                                 const r = await apiCall('deleteUser', 'POST', { id });
-                                if (r && r.success) ok++;
-                                else fail++;
+                                if (r && r.success) {
+                                    ok++;
+                                    if (r._offline) offline++;
+                                } else fail++;
                             } catch (e) { fail++; }
                         }
 
@@ -681,8 +803,13 @@ App.register('kader_admin', function() {
                         dataCache = [];
                         await loadData(true);
 
-                        if (fail === 0) showToast(`✅ ${ok} kader berhasil dihapus!`, 'success');
-                        else showToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
+                        if (fail === 0) {
+                            safeToast(`✅ ${ok} kader berhasil dihapus!` +
+                                (offline > 0 ? ' (' + offline + ' pending sync)' : ''),
+                                'success');
+                        } else {
+                            safeToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
+                        }
                     });
                 });
             }
@@ -703,12 +830,12 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 15. DETAIL MODAL
+        // 17. DETAIL MODAL
         // ================================================================
         window.viewDetail = function(id) {
-            const u = dataCache.find(x => x.id === id);
+            const u = dataCache.find(x => String(x.id) === String(id));
             if (!u) {
-                showToast('Data tidak ditemukan.', 'warning');
+                safeToast('Data tidak ditemukan.', 'warning');
                 return;
             }
 
@@ -719,12 +846,21 @@ App.register('kader_admin', function() {
             const name = getName(u);
             const role = getRole(u);
             const status = getStatus(u);
+            const avatarColor = getAvatarColor(name);
+            const initials = getInitials(name);
+
+            const avatarHtml = u.foto_url
+                ? `<img src="${escapeAttr(u.foto_url)}"
+                        alt="${escapeAttr(name)}"
+                        class="w-20 h-20 rounded-full object-cover border-4 border-[var(--card-border)] shadow-lg flex-shrink-0"
+                        onerror="this.outerHTML='<div class=&quot;w-20 h-20 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-2xl font-bold flex-shrink-0&quot;>${escapeHtml(initials)}</div>'">`
+                : `<div class="w-20 h-20 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 shadow-lg">
+                        ${escapeHtml(initials)}
+                   </div>`;
 
             body.innerHTML = `
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-                        ${escapeHtml(getInitials(name))}
-                    </div>
+                    ${avatarHtml}
                     <div class="flex-1 min-w-0">
                         <h3 class="text-xl font-bold text-[var(--text-main)] truncate">${escapeHtml(name)}</h3>
                         <p class="text-sm text-[var(--text-muted)] truncate">${escapeHtml(getUsername(u))}</p>
@@ -748,7 +884,7 @@ App.register('kader_admin', function() {
                     </div>
                     <div>
                         <p class="text-xs text-[var(--text-muted)] uppercase font-bold mb-1">Tanggal Daftar</p>
-                        <p class="text-[var(--text-main)]">${formatDate(getJoinDate(u))}</p>
+                        <p class="text-[var(--text-main)]">${escapeHtml(formatDate(getJoinDate(u)))}</p>
                     </div>
                     <div class="col-span-2">
                         <p class="text-xs text-[var(--text-muted)] uppercase font-bold mb-1">Alamat / Kalurahan</p>
@@ -761,7 +897,6 @@ App.register('kader_admin', function() {
                 </div>
             `;
 
-            // Edit button
             const editBtn = document.getElementById('kader-detail-edit');
             if (editBtn) {
                 const newEdit = editBtn.cloneNode(true);
@@ -787,29 +922,17 @@ App.register('kader_admin', function() {
         };
 
         // ================================================================
-        // 16. COPY TEXT
+        // 18. COPY TEXT
         // ================================================================
         window.copyText = function(text) {
             if (!text) return;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text)
-                    .then(() => showToast('Dicopy: ' + text, 'success', 2000))
-                    .catch(() => showToast('Gagal copy', 'error'));
-            } else {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                try {
-                    document.execCommand('copy');
-                    showToast('Dicopy: ' + text, 'success', 2000);
-                } catch (e) {}
-                document.body.removeChild(ta);
-            }
+            copyToClipboard(text)
+                .then(() => safeToast('Dicopy: ' + text, 'success', 2000))
+                .catch(() => safeToast('Gagal copy', 'error'));
         };
 
         // ================================================================
-        // 17. MODAL FORM
+        // 19. MODAL FUNCTIONS
         // ================================================================
         function openModal() {
             modal.classList.remove('hidden');
@@ -837,6 +960,7 @@ App.register('kader_admin', function() {
             form.reset();
             if (idInput) idInput.value = '';
             isEdit = false;
+            resetKaderPhoto();
         }
 
         if (closeBtn) {
@@ -844,11 +968,12 @@ App.register('kader_admin', function() {
             closeBtn.parentNode.replaceChild(fresh, closeBtn);
             fresh.addEventListener('click', closeModal);
         }
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
 
-        // ESC
         document.addEventListener('keydown', function(e) {
             if (e.key !== 'Escape') return;
             const detailModal = document.getElementById('kader-detail-modal');
@@ -856,18 +981,18 @@ App.register('kader_admin', function() {
                 detailModal.classList.add('hidden');
                 detailModal.classList.remove('flex');
                 document.body.style.overflow = '';
-            } else if (!modal.classList.contains('hidden')) {
+            } else if (modal && !modal.classList.contains('hidden')) {
                 closeModal();
             }
         });
 
         // ================================================================
-        // 18. EDIT
+        // 20. EDIT KADER
         // ================================================================
         window.editKader = function(id) {
-            const kader = dataCache.find(u => u.id === id);
+            const kader = dataCache.find(u => String(u.id) === String(id));
             if (!kader) {
-                showToast('Kader tidak ditemukan.', 'warning');
+                safeToast('Kader tidak ditemukan.', 'warning');
                 return;
             }
             isEdit = true;
@@ -878,32 +1003,62 @@ App.register('kader_admin', function() {
             if (alamatInput) alamatInput.value = getAlamat(kader) === '-' ? '' : getAlamat(kader);
             if (angkatanInput) angkatanInput.value = kader.angkatan || '';
             if (riwayatJabatanInput) riwayatJabatanInput.value = kader.riwayat_jabatan || '';
+
+            resetKaderPhoto();
+            const existingUrl = kader.foto_url || '';
+            if (fotoUrlInput) fotoUrlInput.value = existingUrl;
+
+            if (existingUrl && kaderPhotoCtrl) {
+                try {
+                    kaderPhotoCtrl.setExisting(existingUrl);
+                    const wrap = document.getElementById('kader-foto-preview-wrap');
+                    if (wrap) wrap.style.display = 'block';
+                } catch (e) {
+                    console.warn('[kader_admin] setExisting error:', e);
+                }
+            }
+
             openModal();
         };
 
         // ================================================================
-        // 19. DELETE SINGLE
+        // 21. DELETE KADER — HANDLE OFFLINE
         // ================================================================
         window.deleteKader = function(id) {
-            const u = dataCache.find(x => x.id === id);
+            const u = dataCache.find(x => String(x.id) === String(id));
             const name = u ? getName(u) : 'kader ini';
 
             showConfirm('Hapus kader "' + name + '"?', async () => {
-                const result = await apiCall('deleteUser', 'POST', { id });
-                if (result && result.success) {
-                    dataCache = dataCache.filter(x => x.id !== id);
-                    updateAngkatanOptions();
-                    applyFilter();
-                    await logActivity('DELETE', 'kader', id, 'Hapus: ' + name);
-                    showToast('Kader berhasil dihapus!', 'success');
-                } else {
-                    showToast((result && result.message) || 'Gagal menghapus', 'error');
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                try {
+                    const result = await apiCall('deleteUser', 'POST', { id });
+                    if (result && result.success) {
+                        dataCache = dataCache.filter(x => String(x.id) !== String(id));
+                        updateAngkatanOptions();
+                        applyFilter();
+                        await logActivity('DELETE', 'kader', id, 'Hapus: ' + name);
+
+                        if (result._offline) {
+                            safeToast('📴 Kader dihapus lokal, akan disinkronkan saat online', 'warning', 4000);
+                        } else {
+                            safeToast('✅ Kader berhasil dihapus!', 'success');
+                        }
+                    } else {
+                        safeToast((result && result.message) || 'Gagal menghapus', 'error');
+                    }
+                } catch (e) {
+                    console.error('[kader_admin] deleteKader error:', e);
+                    safeToast('Error: ' + e.message, 'error');
+                } finally {
+                    isSubmitting = false;
                 }
             });
         };
 
         // ================================================================
-        // 20. SUBMIT FORM (UPDATE)
+        // 22. SUBMIT FORM — HANDLE OFFLINE
         // ================================================================
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -911,22 +1066,22 @@ App.register('kader_admin', function() {
 
             if (isSubmitting) return;
 
-            const id = idInput.value;
-            const nama = (namaInput.value || '').trim();
-            const username = (usernameInput.value || '').trim();
-            const role = roleSelect.value || 'member';
-            const alamat = (alamatInput.value || '').trim();
-            const angkatan = (angkatanInput.value || '').trim();
-            const riwayat_jabatan = (riwayatJabatanInput.value || '').trim();
+            const id = idInput ? idInput.value : '';
+            const nama = namaInput ? (namaInput.value || '').trim() : '';
+            const username = usernameInput ? (usernameInput.value || '').trim() : '';
+            const role = roleSelect ? roleSelect.value : 'member';
+            const alamat = alamatInput ? (alamatInput.value || '').trim() : '';
+            const angkatan = angkatanInput ? (angkatanInput.value || '').trim() : '';
+            const riwayat_jabatan = riwayatJabatanInput ? (riwayatJabatanInput.value || '').trim() : '';
 
             if (!nama) {
-                showToast('Nama wajib diisi!', 'warning');
-                namaInput.focus();
+                safeToast('Nama wajib diisi!', 'warning');
+                if (namaInput) namaInput.focus();
                 return;
             }
             if (!username) {
-                showToast('Username wajib diisi!', 'warning');
-                usernameInput.focus();
+                safeToast('Username wajib diisi!', 'warning');
+                if (usernameInput) usernameInput.focus();
                 return;
             }
 
@@ -935,13 +1090,48 @@ App.register('kader_admin', function() {
             startLoading(submitBtn, 'Menyimpan...');
 
             try {
-                const data = { nama, username, role, alamat, angkatan, riwayat_jabatan };
+                const existingUrl = fotoUrlInput ? fotoUrlInput.value : '';
+                let foto_url = existingUrl;
+
+                if (kaderPhotoCtrl && kaderPhotoCtrl.hasFile()) {
+                    if (!navigator.onLine) {
+                        safeToast('📴 Upload foto memerlukan koneksi internet. Menyimpan tanpa foto.', 'warning', 4500);
+                    } else {
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengunggah foto...';
+                        }
+
+                        try {
+                            foto_url = await window.FormPhoto.uploadIfAny(kaderPhotoCtrl, existingUrl);
+                        } catch (uploadErr) {
+                            console.error('[kader_admin] Upload foto error:', uploadErr);
+                            safeToast('Gagal upload foto: ' + uploadErr.message, 'error', 4000);
+                            stopLoading(submitBtn);
+                            isSubmitting = false;
+                            return;
+                        }
+
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+                        }
+                    }
+                }
+
+                const data = {
+                    nama,
+                    username,
+                    role,
+                    alamat,
+                    angkatan,
+                    riwayat_jabatan,
+                    foto_url
+                };
                 const payload = Object.assign({ id: id }, data);
 
                 const result = await apiCall('updateUser', 'POST', payload);
 
                 if (result && result.success) {
-                    const idx = dataCache.findIndex(u => u.id === id);
+                    const idx = dataCache.findIndex(u => String(u.id) === String(id));
                     if (idx !== -1) {
                         dataCache[idx] = Object.assign({}, dataCache[idx], data, { id: id });
                     }
@@ -950,13 +1140,18 @@ App.register('kader_admin', function() {
                     closeModal();
 
                     await logActivity('UPDATE', 'kader', id, 'Update: ' + username);
-                    showToast('✅ Data kader berhasil diperbarui!', 'success');
+
+                    if (result._offline) {
+                        safeToast('📴 Data kader tersimpan lokal, akan disinkronkan saat online', 'warning', 4500);
+                    } else {
+                        safeToast('✅ Data kader berhasil diperbarui!', 'success');
+                    }
                 } else {
-                    showToast((result && result.message) || 'Gagal menyimpan', 'error');
+                    safeToast((result && result.message) || 'Gagal menyimpan', 'error');
                 }
             } catch (error) {
                 console.error('[kader_admin] Submit error:', error);
-                showToast('Error: ' + error.message, 'error');
+                safeToast('Error: ' + error.message, 'error');
             } finally {
                 stopLoading(submitBtn);
                 isSubmitting = false;
@@ -964,15 +1159,15 @@ App.register('kader_admin', function() {
         });
 
         // ================================================================
-        // 21. EXPORT CSV
+        // 23. EXPORT CSV
         // ================================================================
         function exportCSV() {
             if (filteredCache.length === 0) {
-                showToast('Tidak ada data untuk diekspor.', 'warning');
+                safeToast('Tidak ada data untuk diekspor.', 'warning');
                 return;
             }
 
-            const headers = ['No', 'Nama', 'Username', 'Role', 'Status', 'Alamat', 'Angkatan', 'Riwayat Jabatan', 'Tanggal Daftar'];
+            const headers = ['No', 'Nama', 'Username', 'Role', 'Status', 'Alamat', 'Angkatan', 'Riwayat Jabatan', 'Tanggal Daftar', 'Foto'];
             const rows = filteredCache.map((u, i) => [
                 i + 1,
                 getName(u),
@@ -982,7 +1177,8 @@ App.register('kader_admin', function() {
                 getAlamat(u),
                 u.angkatan || '',
                 u.riwayat_jabatan || '',
-                formatDate(getJoinDate(u))
+                formatDate(getJoinDate(u)),
+                u.foto_url ? 'Ada' : '-'
             ]);
 
             const csvContent = [headers, ...rows]
@@ -999,11 +1195,11 @@ App.register('kader_admin', function() {
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-            showToast('✅ CSV berhasil diunduh!', 'success');
+            safeToast('✅ CSV berhasil diunduh!', 'success');
         }
 
         // ================================================================
-        // 22. REFRESH
+        // 24. REFRESH BUTTON
         // ================================================================
         if (refreshBtn) {
             const fresh = refreshBtn.cloneNode(true);
@@ -1011,14 +1207,14 @@ App.register('kader_admin', function() {
             fresh.addEventListener('click', async function() {
                 const original = this.innerHTML;
                 this.disabled = true;
-                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Memuat...';
+                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> <span class="hidden sm:inline">Memuat...</span>';
 
                 dataCache = [];
                 selectedIds.clear();
 
                 try {
-                    await loadData(true);
-                    showToast('Data kader diperbarui!', 'success');
+                    await refreshDataOnly();
+                    safeToast('✅ Data kader diperbarui!', 'success');
                 } finally {
                     this.disabled = false;
                     this.innerHTML = original;
@@ -1027,19 +1223,46 @@ App.register('kader_admin', function() {
         }
 
         // ================================================================
-        // 23. INIT
+        // 25. LISTEN SYNC EVENT
         // ================================================================
-        console.log('[kader_admin] Init selesai, memuat data...');
+        window.addEventListener('sync:complete', function(e) {
+            const detail = e.detail || {};
+            if (detail.processed > 0) {
+                console.log('[kader_admin] Sync complete, refreshing...');
+                refreshDataOnly();
+            }
+        });
+
+        // ================================================================
+        // 26. CLEANUP
+        // ================================================================
+        function cleanup() {
+            window.__kaderAdminLoaded = false;
+            isSubmitting = false;
+            selectedIds.clear();
+            const detailModal = document.getElementById('kader-detail-modal');
+            if (detailModal) detailModal.remove();
+            document.body.style.overflow = '';
+            console.log('[kader_admin] Cleanup');
+        }
+        window.__kaderAdminCleanup = cleanup;
+
+        // ================================================================
+        // 27. INIT
+        // ================================================================
+        console.log('[kader_admin] Loading initial data...');
 
         ensureExtraUI();
         attachFilterListeners();
         attachBulkListeners();
 
-        loadData();
+        await loadData();
+
+        console.log('[kader_admin] ✅ Init selesai v13.0.0');
     }
 
     // ================================================================
-    // 24. RUN INIT
+    // 28. RUN INIT
     // ================================================================
     init();
 });

@@ -1,26 +1,27 @@
 /**
  * js/keuangan.js
- * Modul Keuangan Publik (Transparansi) - FULL FIX v11.0.0 (FINAL)
+ * Modul Keuangan Publik (Transparansi) - FULL FIX v11.1.0
  * ---------------------------------------------------------
  * FIX:
- *  - Guard anti-duplikasi
- *  - XSS protection di semua output
- *  - Loading/error/empty state proper
- *  - Backend compat: v15 (array) & v16 (summary object)
- *  - Clone-replace listener (anti memory leak)
- *
- * FEATURES:
- *  - Stats 4 kartu (Masuk, Keluar, Saldo, Jumlah Tx) + animate count-up
- *  - Chart bar CSS gradient (bukan library berat)
- *  - Filter real-time (search + jenis + rentang tanggal)
- *  - Clear filter button
- *  - Top 5 kategori dengan progress bar
- *  - Ikon kategori dinamis (8+ jenis)
- *  - Recent transactions dengan copy jumlah
- *  - Export CSV (dengan filter aktif)
- *  - Print laporan A4 rapi
- *  - Dark mode aware
- *  - Mobile responsive
+ *  - ✅ Guard anti-duplikasi
+ *  - ✅ XSS protection di semua output
+ *  - ✅ Loading/error/empty state proper
+ *  - ✅ Backend compat: v15 (array) & v16 (summary object)
+ *  - ✅ Clone-replace listener (anti memory leak)
+ *  - ✅ Null-safe semua DOM elements
+ *  - ✅ Stats 4 kartu (Masuk, Keluar, Saldo, Jumlah Tx) + animate
+ *  - ✅ Chart bar CSS gradient (bukan library berat)
+ *  - ✅ Filter real-time (search + jenis + rentang tanggal)
+ *  - ✅ Clear filter button
+ *  - ✅ Top 5 kategori dengan progress bar
+ *  - ✅ Ikon kategori dinamis (8+ jenis)
+ *  - ✅ Recent transactions dengan copy jumlah
+ *  - ✅ Export CSV (dengan filter aktif)
+ *  - ✅ Print laporan A4 rapi
+ *  - ✅ Dark mode aware
+ *  - ✅ Mobile responsive
+ *  - ✅ Cleanup function proper
+ * ---------------------------------------------------------
  */
 
 App.register('keuangan', function() {
@@ -63,15 +64,6 @@ App.register('keuangan', function() {
         if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('id-ID', {
             day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-    }
-
-    function formatDateLong(d) {
-        if (!d) return '-';
-        const date = new Date(d);
-        if (isNaN(date.getTime())) return '-';
-        return date.toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'long', year: 'numeric'
         });
     }
 
@@ -163,7 +155,7 @@ App.register('keuangan', function() {
     let isLoading = false;
 
     // ================================================================
-    // 5. ENSURE EXTRA UI (Filter Bar + Top Kategori)
+    // 5. ENSURE EXTRA UI
     // ================================================================
     function ensureExtraUI() {
         const maxW5xl = summaryContainer.closest('.max-w-5xl') ||
@@ -210,7 +202,6 @@ App.register('keuangan', function() {
                 </button>
             `;
 
-            // Sisipkan sebelum summary section
             const summarySection = summaryContainer.closest('.py-12') ||
                                   summaryContainer.parentElement;
             if (summarySection && summarySection.parentNode) {
@@ -238,7 +229,6 @@ App.register('keuangan', function() {
                 </div>
             `;
 
-            // Sisipkan setelah chart
             const chartWrapper = chartContainer.closest('.bg-white\\/80') ||
                                 chartContainer.closest('.bg-\\[var\\(--card-bg\\)\\]') ||
                                 chartContainer.parentElement;
@@ -350,11 +340,9 @@ App.register('keuangan', function() {
             return true;
         });
 
-        // Sort by tanggal descending
         filteredTransactions.sort((a, b) =>
             new Date(b.tanggal || 0) - new Date(a.tanggal || 0));
 
-        // Recompute summary dari filtered
         let totalMasuk = 0, totalKeluar = 0;
         filteredTransactions.forEach(t => {
             const j = Number(t.jumlah) || 0;
@@ -431,7 +419,6 @@ App.register('keuangan', function() {
             </div>
         `;
 
-        // Animate
         const animMasuk = document.getElementById('anim-masuk');
         const animKeluar = document.getElementById('anim-keluar');
         const animSaldo = document.getElementById('anim-saldo');
@@ -446,7 +433,7 @@ App.register('keuangan', function() {
     }
 
     // ================================================================
-    // 9. RENDER CHART (CSS Bar)
+    // 9. RENDER CHART
     // ================================================================
     function renderChart() {
         if (!chartContainer) return;
@@ -495,7 +482,6 @@ App.register('keuangan', function() {
         const el = document.getElementById('top-kategori-list');
         if (!el) return;
 
-        // Hitung total per kategori
         const kategoriMap = {};
         filteredTransactions.forEach(t => {
             const key = t.kategori || 'Lainnya';
@@ -647,7 +633,6 @@ App.register('keuangan', function() {
         if (isLoading) return;
         isLoading = true;
 
-        // Loading state
         summaryContainer.className = 'grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6';
         summaryContainer.innerHTML = `
             <div class="col-span-full text-center py-8">
@@ -659,7 +644,6 @@ App.register('keuangan', function() {
         recentContainer.innerHTML = '';
 
         try {
-            // Coba endpoint publik dulu, fallback ke getKeuangan
             let result;
             try {
                 result = await apiCall('getKeuanganPublik', 'POST', {});
@@ -672,17 +656,14 @@ App.register('keuangan', function() {
                 throw new Error((result && result.message) || 'Gagal memuat data keuangan');
             }
 
-            // Normalize: bisa object summary atau array of transactions
             let totalMasuk = 0, totalKeluar = 0;
             let transactions = [];
 
             if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-                // Summary object (v16)
                 totalMasuk = Number(result.data.totalMasuk) || 0;
                 totalKeluar = Number(result.data.totalKeluar) || 0;
                 transactions = result.data.transactions || [];
             } else if (Array.isArray(result.data)) {
-                // Array of transactions (v15)
                 transactions = result.data;
                 transactions.forEach(t => {
                     const j = Number(t.jumlah) || 0;
@@ -699,7 +680,6 @@ App.register('keuangan', function() {
                 transactions: transactions
             };
 
-            // Apply filter (default no filter)
             applyFilter();
 
         } catch (error) {
@@ -776,6 +756,9 @@ App.register('keuangan', function() {
     // ================================================================
     function cleanup() {
         window.__keuanganLoaded = false;
+        allTransactions = [];
+        filteredTransactions = [];
+        console.log('[keuangan] Cleanup');
     }
 
     window.__keuanganCleanup = cleanup;

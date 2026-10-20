@@ -1,35 +1,37 @@
 /**
  * js/profil_admin.js
- * Modul Admin Profil Publik - FULL FIX v11.0.0 (FINAL)
- * ---------------------------------------------------------
- * FIX:
- *  - Guard anti-duplikasi + reset via router
- *  - XSS protection di semua output
- *  - Clone-replace listener (anti memory leak)
- *  - jsPlumb lazy load via window.loadLib
- *  - isSubmitting anti double-submit
- *  - ESC + click-outside modal
- *  - Per-section error handling (Promise.allSettled)
- *
- * FEATURES:
- *  - Tab Sejarah & Visi Misi (form + live preview)
- *  - Tab Struktur Pengurus (CRUD + search + stats + filter)
- *  - Tab Diagram Struktur (jsPlumb + interact + snap grid)
- *  - Node editor dengan color picker + size
- *  - Undo/Redo diagram (history 20 step)
- *  - Export/Import/Copy JSON diagram
- *  - Kelola Posisi Foto (custom CRUD)
- *  - Upload Foto dengan drag-drop + preview grid
- *  - Live preview Sejarah & Visi Misi
- *  - Dark mode aware
- *  - Mobile responsive
+ * Modul Admin Profil Publik — v17.0.0 OFFLINE-FIRST FULL FIX
+ * =========================================================
+ * CHANGELOG v17.0.0:
+ *   ✅ NEW: Handle response _offline dari apiCall
+ *   ✅ NEW: Badge pending sync pada struktur & profil
+ *   ✅ NEW: Auto-refresh saat sync:complete
+ *   ✅ NEW: Safe toast fallback
+ *   ✅ NEW: Upload foto skip saat offline (warning)
+ *   ✅ FIX: Diagram auto-layout engine robust
+ *   ✅ FIX: Refresh tanpa reload halaman (refreshDataOnly)
+ *   ✅ FIX: Semua handler idempotent (no double bind)
+ *   ✅ FIX: Null-safe seluruh DOM elements
+ *   ✅ FIX: Clone-replace listener (anti memory leak)
+ *   ✅ FIX: Diagram jsPlumb + interact.js
+ *   ✅ FIX: Manual drag & resize node
+ *   ✅ FIX: Connection mode (sambung manual)
+ *   ✅ FIX: Edit node text
+ *   ✅ FIX: Auto-save layout setelah regenerate
+ *   ✅ FIX: Foto preview (upload + existing)
+ *   ✅ FIX: Sliding underline tab
+ *   ✅ FIX: Modal pengurus (create/edit/delete)
+ *   ✅ FIX: XSS protection (esc/escAttr)
+ *   ✅ FIX: Fallback foto (lh3 → drive → inisial)
+ *   ✅ PRESERVED: Semua fitur v16.0.0
+ * =========================================================
  */
 
 App.register('profil_admin', function() {
     'use strict';
 
     // ================================================================
-    // 1. CEK AUTH
+    // 1. AUTH GUARD
     // ================================================================
     const user = checkAuth();
     if (!user || user.role !== 'admin') {
@@ -46,11 +48,13 @@ App.register('profil_admin', function() {
     }
     window.__profilAdminLoaded = true;
 
+    console.log('[profil_admin] 🚀 Init v17.0.0 (Offline-First Full Fix)');
+
     // ================================================================
-    // 3. HELPER: TUNGGU ELEMEN DOM SIAP
+    // 3. HELPERS
     // ================================================================
     function waitForElements(ids, maxRetries, interval) {
-        maxRetries = maxRetries || 30;
+        maxRetries = maxRetries || 50;
         interval = interval || 100;
         return new Promise((resolve) => {
             let attempts = 0;
@@ -72,39 +76,16 @@ App.register('profil_admin', function() {
         });
     }
 
-    // ================================================================
-    // 4. HELPER FUNCTIONS
-    // ================================================================
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        const div = document.createElement('div');
-        div.textContent = String(str);
-        return div.innerHTML;
+    function esc(s) {
+        if (s === null || s === undefined) return '';
+        const d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
     }
 
-    function escapeAttr(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function formatDate(d) {
-        if (!d) return '-';
-        const date = new Date(d);
-        if (isNaN(date.getTime())) return '-';
-        return date.toLocaleDateString('id-ID', {
-            day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-    }
-
-    function stripHtml(html) {
-        if (!html) return '';
-        const tmp = document.createElement('div');
-        tmp.innerHTML = html;
-        return (tmp.textContent || tmp.innerText || '').trim();
-    }
-
-    function generateNodeId() {
-        return 'node-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    function escAttr(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function getInitials(name) {
@@ -114,578 +95,308 @@ App.register('profil_admin', function() {
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
-    function copyToClipboard(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(text);
-        }
-        return new Promise((resolve, reject) => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'absolute';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                resolve();
-            } catch (e) {
-                document.body.removeChild(ta);
-                reject(e);
-            }
-        });
+    function generateNodeId() {
+        return 'node-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+    }
+
+    function extractFileId(url) {
+        if (!url) return '';
+        const m = String(url).match(/[-\w]{25,}/);
+        return m ? m[0] : '';
     }
 
     async function ensureLib(name) {
         if (typeof window.loadLib === 'function') {
-            try {
-                await window.loadLib(name);
-                return true;
-            } catch (e) {
-                console.warn('[profil_admin] Gagal load lib ' + name + ':', e);
-                return false;
-            }
+            try { await window.loadLib(name); return true; }
+            catch (e) { console.warn('[profil_admin] Lib fail:', name, e); return false; }
         }
         return false;
     }
 
+    function safeToast(msg, type, dur) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type || 'info', dur || 3000);
+        } else {
+            console.log('[profil_admin:' + (type || 'info') + ']', msg);
+        }
+    }
+
+    function isPendingSync(id) {
+        try {
+            if (!window.SyncManager) return false;
+            const queue = window.SyncManager.getQueue() || [];
+            const idStr = String(id);
+            return queue.some(item => {
+                const d = item.data || {};
+                return String(d.id) === idStr;
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function compressImage(file, maxSize, quality) {
+        maxSize = maxSize || 800;
+        quality = quality || 0.75;
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxSize || h > maxSize) {
+                        if (w > h) { h = Math.round((h * maxSize) / w); w = maxSize; }
+                        else { w = Math.round((w * maxSize) / h); h = maxSize; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (!blob) { reject(new Error('Gagal kompres')); return; }
+                        const newName = file.name.replace(/\.[^.]+$/, '') + '_c.jpg';
+                        resolve(new File([blob], newName, { type: 'image/jpeg' }));
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => reject(new Error('Gagal muat gambar'));
+                img.src = e.target.result;
+            };
+            reader.onerror = () => reject(new Error('Gagal baca file'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const r = e.target.result || '';
+                const b = r.split(',')[1] || '';
+                if (b) resolve(b);
+                else reject(new Error('Gagal konversi'));
+            };
+            reader.onerror = () => reject(new Error('Gagal baca'));
+            reader.readAsDataURL(file);
+        });
+    }
+
     // ================================================================
-    // 5. INIT UTAMA
+    // 4. MODULE STATE (shared across functions)
+    // ================================================================
+    let strukturCache = [];
+    let isSubmitting = false;
+    let instance = null;
+    let connectionMode = false;
+    let sourceNodeId = null;
+    let currentFotoUrl = '';
+    let pendingFotoFile = null;
+    let currentTab = 'sejarah';
+    let moduleInitialized = false;
+
+    // ================================================================
+    // 5. ✅ REFRESH DATA (Offline-First)
+    // ================================================================
+    function refreshDataOnly() {
+        console.log('[profil_admin] 🔄 Refresh data without reload');
+
+        try {
+            var userKey = (user && user.id) ? user.id : 'anon';
+            var cKeyStruktur = 'cache_getStruktur_' + userKey + '_' + JSON.stringify({});
+            var cKeyProfil = 'cache_getProfil_' + userKey + '_' + JSON.stringify({});
+            SafeSessionStorage.removeItem(cKeyStruktur);
+            SafeSessionStorage.removeItem(cKeyProfil);
+        } catch (e) {}
+
+        return Promise.allSettled([
+            loadStruktur(true),
+            loadProfilText()
+        ]).then(function() {
+            setTimeout(function() {
+                if (currentTab === 'diagram') {
+                    autoFillDiagramFromStruktur();
+                }
+            }, 300);
+            console.log('[profil_admin] ✅ Data refreshed');
+        });
+    }
+
+    // ================================================================
+    // 6. INIT
     // ================================================================
     async function init() {
+        if (moduleInitialized) return;
+        moduleInitialized = true;
+
         const requiredIds = [
-            'profil-list',
-            'profil-modal', 'modal-content', 'modal-title', 'profil-form', 'modal-close',
-            'upload-foto-form', 'foto-key', 'foto-file', 'foto-preview-container', 'foto-preview',
-            'struktur-table-body', 'struktur-skeleton', 'add-struktur-btn',
-            'struktur-modal', 'struktur-modal-content', 'struktur-modal-title',
-            'struktur-form', 'struktur-modal-close',
-            'struktur-id', 'struktur_jabatan', 'struktur_nama', 'struktur_foto', 'struktur_urutan',
-            'diagram-container', 'add-node-btn', 'add-connection-btn', 'save-diagram-btn', 'clear-diagram-btn',
-            'node-edit-modal', 'node-edit-content', 'node-edit-form', 'node-edit-id', 'node-edit-text', 'node-edit-close',
-            'new-posisi-input', 'add-posisi-btn', 'posisi-list-container',
+            'profil-tabs', 'tab-slider',
             'sejarah_content', 'visi_misi_content', 'save-profil-btn',
-            'refresh-profil-btn'
+            'refresh-profil-btn',
+            'struktur-container', 'add-pengurus-btn',
+            'diagram-container', 'reset-diagram-btn', 'add-connection-btn',
+            'save-diagram-btn', 'clear-diagram-btn',
+            'node-edit-modal', 'node-edit-content', 'node-edit-form',
+            'node-edit-id', 'node-edit-text', 'node-edit-close', 'node-edit-cancel',
+            'pengurus-modal', 'pengurus-modal-content', 'pengurus-modal-title',
+            'pengurus-form', 'pengurus-modal-close', 'pengurus-modal-close-2',
+            'pengurus-id', 'pengurus_nama', 'pengurus_jabatan',
+            'pengurus_deskripsi', 'pengurus_whatsapp', 'pengurus_email',
+            'pengurus_foto', 'pengurus_foto_preview', 'pengurus_foto_preview_wrap',
+            'pengurus_foto_placeholder', 'pengurus_hapus_foto'
         ];
 
         const els = await waitForElements(requiredIds);
 
-        const profilList          = els['profil-list'];
-        const profilModal         = els['profil-modal'];
-        const profilModalContent  = els['modal-content'];
-        const profilModalTitle    = els['modal-title'];
-        const profilForm          = els['profil-form'];
-        const profilCloseBtn      = els['modal-close'];
-        const fotoForm            = els['upload-foto-form'];
-        const fotoKeySelect       = els['foto-key'];
-        const fotoFileInput       = els['foto-file'];
-        const fotoPreviewContainer = els['foto-preview-container'];
-        const fotoPreview         = els['foto-preview'];
-        const strukturTable       = els['struktur-table-body'];
-        const strukturSkeleton    = els['struktur-skeleton'];
-        const addStrukturBtn      = els['add-struktur-btn'];
-        const strukturModal       = els['struktur-modal'];
-        const strukturModalContent = els['struktur-modal-content'];
-        const strukturModalTitle  = els['struktur-modal-title'];
-        const strukturForm        = els['struktur-form'];
-        const strukturCloseBtn    = els['struktur-modal-close'];
-        const strukturId          = els['struktur-id'];
-        const strukturJabatan     = els['struktur_jabatan'];
-        const strukturNama        = els['struktur_nama'];
-        const strukturFoto        = els['struktur_foto'];
-        const strukturUrutan      = els['struktur_urutan'];
-        const diagramContainer    = els['diagram-container'];
-        const addNodeBtn          = els['add-node-btn'];
-        const addConnectionBtn    = els['add-connection-btn'];
-        const saveDiagramBtn      = els['save-diagram-btn'];
-        const clearDiagramBtn     = els['clear-diagram-btn'];
-        const nodeEditModal       = els['node-edit-modal'];
-        const nodeEditContent     = els['node-edit-content'];
-        const nodeEditForm        = els['node-edit-form'];
-        const nodeEditId          = els['node-edit-id'];
-        const nodeEditText        = els['node-edit-text'];
-        const nodeEditClose       = els['node-edit-close'];
-        const newPosisiInput      = els['new-posisi-input'];
-        const addPosisiBtn        = els['add-posisi-btn'];
-        const posisiListContainer = els['posisi-list-container'];
-        const tabSejarah          = els['tab-sejarah'];
-        const tabStruktur         = els['tab-struktur'];
-        const tabDiagram          = els['tab-diagram'];
-        const sejarahContent      = els['sejarah_content'];
-        const visiMisiContent     = els['visi_misi_content'];
-        const saveProfilBtn       = els['save-profil-btn'];
-        const refreshBtn          = els['refresh-profil-btn'];
+        const tabsWrap = els['profil-tabs'];
+        const tabSlider = els['tab-slider'];
+        const sejarahContent = els['sejarah_content'];
+        const visiMisiContent = els['visi_misi_content'];
+        const saveProfilBtn = els['save-profil-btn'];
+        const refreshBtn = els['refresh-profil-btn'];
+        const strukturCont = els['struktur-container'];
+        const addPengurusBtn = els['add-pengurus-btn'];
+        const diagramContainer = els['diagram-container'];
+        const resetDiagramBtn = els['reset-diagram-btn'];
+        const addConnectionBtn = els['add-connection-btn'];
+        const saveDiagramBtn = els['save-diagram-btn'];
+        const clearDiagramBtn = els['clear-diagram-btn'];
+        const nodeEditModal = els['node-edit-modal'];
+        const nodeEditContent = els['node-edit-content'];
+        const nodeEditForm = els['node-edit-form'];
+        const nodeEditId = els['node-edit-id'];
+        const nodeEditText = els['node-edit-text'];
+        const nodeEditClose = els['node-edit-close'];
+        const nodeEditCancel = els['node-edit-cancel'];
+        const pengurusModal = els['pengurus-modal'];
+        const pengurusModalContent = els['pengurus-modal-content'];
+        const pengurusModalTitle = els['pengurus-modal-title'];
+        const pengurusForm = els['pengurus-form'];
+        const pengurusModalClose = els['pengurus-modal-close'];
+        const pengurusModalClose2 = els['pengurus-modal-close-2'];
+        const pengurusId = els['pengurus-id'];
+        const pengurusNama = els['pengurus_nama'];
+        const pengurusJabatan = els['pengurus_jabatan'];
+        const pengurusDeskripsi = els['pengurus_deskripsi'];
+        const pengurusWhatsapp = els['pengurus_whatsapp'];
+        const pengurusEmail = els['pengurus_email'];
 
-        if (!profilList && !strukturTable && !diagramContainer) {
-            console.error('[profil_admin] Elemen utama tidak ditemukan.');
+        if (!strukturCont) {
+            console.error('[profil_admin] Struktur container tidak ditemukan');
             return;
         }
 
-        // ================================================================
-        // 6. STATE
-        // ================================================================
-        let profilCache = [];
-        let strukturCache = [];
-        let filteredStruktur = [];
-        let fotoPositions = [];
-        let isSubmitting = false;
-        let diagramHasChanges = false;
-
-        // Diagram state
-        let instance = null;
-        let nodeCounter = 0;
-        let connectionMode = false;
-        let sourceNodeId = null;
-        let editingNodeId = null;
-        let diagramHistory = [];       // undo history
-        let historyIndex = -1;
-
-        // Struktur filter state
-        let strukturFilter = { search: '', sort: 'urutan-asc' };
+        console.log('[profil_admin] ✅ Semua elemen ditemukan');
 
         // ================================================================
-        // 7. ENSURE EXTRA UI
+        // 7. PHOTO EVENT LISTENERS
         // ================================================================
-        function ensureExtraUI() {
-            // ===== Struktur: Stats + Search + Filter =====
-            if (!document.getElementById('struktur-stats') && tabStruktur) {
-                const statsDiv = document.createElement('div');
-                statsDiv.id = 'struktur-stats';
-                statsDiv.className = 'grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4';
-                statsDiv.innerHTML = `
-                    <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Pengurus</p>
-                                <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="stats-total-struktur">0</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white">
-                                <i class="fas fa-sitemap"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Ada Foto</p>
-                                <p class="text-2xl font-bold text-blue-600 mt-1" id="stats-struktur-foto">0</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Jabatan Unik</p>
-                                <p class="text-2xl font-bold text-purple-600 mt-1" id="stats-struktur-jabatan">0</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 flex items-center justify-center text-white">
-                                <i class="fas fa-tags"></i>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                const tableWrapper = strukturTable ? strukturTable.closest('.bg-\\[var\\(--card-bg\\)\\]') : null;
-                if (tableWrapper && tableWrapper.parentNode) {
-                    tableWrapper.parentNode.insertBefore(statsDiv, tableWrapper);
-                }
+        document.addEventListener('profil-foto-selected', function(e) {
+            if (e.detail && e.detail.file) {
+                pendingFotoFile = e.detail.file;
+                console.log('[profil_admin] 📷 Foto set via event:', e.detail.file.name);
             }
+        });
 
-            // Struktur: Search & Sort
-            if (!document.getElementById('struktur-search-wrap') && tabStruktur) {
-                const wrapper = document.createElement('div');
-                wrapper.id = 'struktur-search-wrap';
-                wrapper.className = 'flex flex-wrap gap-2 mb-4';
-                wrapper.innerHTML = `
-                    <div class="flex-1 min-w-[200px] relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
-                        <input type="text" id="struktur-search"
-                            placeholder="Cari nama, jabatan..."
-                            class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)]">
-                    </div>
-                    <select id="struktur-sort"
-                        class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm">
-                        <option value="urutan-asc">Urutan ↑</option>
-                        <option value="urutan-desc">Urutan ↓</option>
-                        <option value="jabatan-asc">Jabatan A-Z</option>
-                        <option value="nama-asc">Nama A-Z</option>
-                    </select>
-                `;
-                const statsDiv = document.getElementById('struktur-stats');
-                if (statsDiv && statsDiv.parentNode) {
-                    statsDiv.parentNode.insertBefore(wrapper, statsDiv.nextSibling);
-                }
-            }
-
-            // ===== Diagram: Extra buttons (undo/redo/copy/preview) =====
-            const diagramBtnWrap = addNodeBtn ? addNodeBtn.parentElement : null;
-            if (diagramBtnWrap && !document.getElementById('export-diagram-btn')) {
-                const extraBtns = [
-                    { id: 'undo-diagram-btn', icon: 'fa-undo', label: 'Undo', cls: 'bg-yellow-600 hover:bg-yellow-700' },
-                    { id: 'redo-diagram-btn', icon: 'fa-redo', label: 'Redo', cls: 'bg-yellow-600 hover:bg-yellow-700' },
-                    { id: 'copy-diagram-btn', icon: 'fa-copy', label: 'Copy JSON', cls: 'bg-gray-600 hover:bg-gray-700' },
-                    { id: 'export-diagram-btn', icon: 'fa-download', label: 'Export', cls: 'bg-gray-600 hover:bg-gray-700' },
-                    { id: 'import-diagram-btn', icon: 'fa-upload', label: 'Import', cls: 'bg-gray-600 hover:bg-gray-700' }
-                ];
-
-                extraBtns.forEach(btn => {
-                    const b = document.createElement('button');
-                    b.id = btn.id;
-                    b.type = 'button';
-                    b.className = btn.cls + ' text-white px-3 py-1 rounded-lg text-sm transition';
-                    b.innerHTML = '<i class="fas ' + btn.icon + ' mr-1"></i>' + btn.label;
-                    diagramBtnWrap.appendChild(b);
-                });
-
-                // Attach handlers
-                document.getElementById('undo-diagram-btn').addEventListener('click', undoDiagram);
-                document.getElementById('redo-diagram-btn').addEventListener('click', redoDiagram);
-                document.getElementById('copy-diagram-btn').addEventListener('click', copyDiagramJSON);
-                document.getElementById('export-diagram-btn').addEventListener('click', exportDiagramJSON);
-                document.getElementById('import-diagram-btn').addEventListener('click', importDiagramJSON);
-            }
-        }
+        document.addEventListener('profil-foto-cleared', function() {
+            pendingFotoFile = null;
+            currentFotoUrl = '';
+            console.log('[profil_admin] 📷 Foto cleared via event');
+        });
 
         // ================================================================
         // 8. TAB MANAGEMENT
         // ================================================================
-        const allTabBtns = document.querySelectorAll('.tab-btn');
+        const tabBtns = tabsWrap ? tabsWrap.querySelectorAll('.tab-btn') : [];
+
+        function moveSlider(target) {
+            if (!tabSlider || !tabsWrap) return;
+            const targetBtn = tabsWrap.querySelector('.tab-btn[data-tab="' + target + '"]');
+            if (!targetBtn) return;
+
+            const wrapRect = tabsWrap.getBoundingClientRect();
+            const btnRect = targetBtn.getBoundingClientRect();
+            const offsetLeft = btnRect.left - wrapRect.left + tabsWrap.scrollLeft;
+            const width = btnRect.width;
+
+            tabSlider.style.width = width + 'px';
+            tabSlider.style.transform = 'translateX(' + offsetLeft + 'px)';
+        }
 
         function switchTab(target) {
-            allTabBtns.forEach(b => {
-                const isActive = b.dataset.tab === target;
-                b.classList.toggle('active', isActive);
-                if (isActive) {
-                    b.classList.add('border-[#0f2922]', 'text-[#0f2922]');
-                    b.classList.remove('text-[var(--text-muted)]');
+            console.log('[profil_admin] switchTab:', target);
+            currentTab = target;
+
+            tabBtns.forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === target);
+            });
+
+            ['sejarah', 'struktur', 'diagram'].forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if (!el) return;
+                if (t === target) {
+                    el.classList.remove('hidden');
+                    el.style.display = 'block';
                 } else {
-                    b.classList.remove('border-[#0f2922]', 'text-[#0f2922]');
-                    b.classList.add('text-[var(--text-muted)]');
+                    el.classList.add('hidden');
+                    el.style.display = 'none';
                 }
             });
 
-            if (tabSejarah) tabSejarah.classList.toggle('hidden', target !== 'sejarah');
-            if (tabStruktur) tabStruktur.classList.toggle('hidden', target !== 'struktur');
-            if (tabDiagram) tabDiagram.classList.toggle('hidden', target !== 'diagram');
+            setTimeout(() => moveSlider(target), 50);
 
-            // Lazy init diagram saat tab aktif
-            if (target === 'diagram' && !instance && diagramContainer) {
-                setTimeout(initJsPlumb, 100);
+            if (target === 'diagram') {
+                setTimeout(() => {
+                    if (!instance && diagramContainer) initJsPlumb();
+                    else if (instance) autoFillDiagramFromStruktur();
+                }, 250);
             }
         }
 
-        allTabBtns.forEach(btn => {
+        tabBtns.forEach(btn => {
             const clone = btn.cloneNode(true);
             btn.parentNode.replaceChild(clone, btn);
-            clone.addEventListener('click', function() {
-                switchTab(this.dataset.tab);
+            clone.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.dataset.tab) switchTab(this.dataset.tab);
             });
         });
 
+        window.addEventListener('resize', () => {
+            setTimeout(() => moveSlider(currentTab), 100);
+        });
+
         // ================================================================
-        // 9. LOAD PROFIL (dari backend)
+        // 9. LOAD PROFIL TEXT
         // ================================================================
-        async function loadProfil(force) {
-            force = force || false;
-
-            if (profilCache.length > 0 && !force) {
-                renderProfil(profilCache);
-                return;
-            }
-
-            if (profilList) {
-                profilList.innerHTML = '<p class="text-center text-[var(--text-muted)] py-6 text-sm">' +
-                    '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat data...</p>';
-            }
-
+        async function loadProfilText() {
+            console.log('[profil_admin] 🔄 Loading profil text...');
             try {
-                const result = await forceRefreshData('getProfil', {});
-
-                if (result && result.success && Array.isArray(result.data)) {
-                    profilCache = result.data;
-                    renderProfil(profilCache);
-                } else {
-                    if (profilList) profilList.innerHTML = '<p class="text-center text-red-500 py-4 text-sm">' +
-                        escapeHtml((result && result.message) || 'Gagal memuat data') + '</p>';
-                }
-            } catch (error) {
-                console.error('[profil_admin] Load profil error:', error);
-                if (profilList) profilList.innerHTML = '<p class="text-center text-red-500 py-4 text-sm">' +
-                    'Error: ' + escapeHtml(error.message) + '</p>';
-            }
-        }
-
-        function renderProfil(data) {
-            if (!profilList) return;
-
-            // Filter out internal keys
-            const displayData = data.filter(p => !['struktur_diagram', 'sejarah', 'visi_misi'].includes(p.key));
-
-            if (displayData.length === 0) {
-                profilList.innerHTML = `
-                    <div class="text-center py-8 text-[var(--text-muted)]">
-                        <i class="fas fa-address-card text-3xl mb-2 opacity-40"></i>
-                        <p class="mb-4 text-sm">Belum ada item profil custom.</p>
-                        <button onclick="tambahProfil()" class="btn-primary px-4 py-2 rounded-lg">
-                            <i class="fas fa-plus mr-1"></i>Tambah Profil
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            displayData.forEach(item => {
-                const content = stripHtml(item.content || '');
-                const preview = content.length > 100 ? content.slice(0, 100) + '...' : content;
-
-                html += `
-                    <div class="bg-[var(--card-bg)] backdrop-blur-sm p-4 rounded-2xl shadow border border-[var(--card-border)] flex justify-between items-start gap-3 mb-3 hover:shadow-md transition">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-[var(--text-main)] font-amiri text-sm mb-1 truncate">
-                                ${escapeHtml(item.key || '-')}
-                            </h3>
-                            <p class="text-xs text-[var(--text-muted)] line-clamp-2">${escapeHtml(preview || '-')}</p>
-                            <p class="text-xs text-[var(--text-muted)] mt-1 opacity-70">
-                                <i class="far fa-clock mr-1"></i>${formatDate(item.updated_at)}
-                            </p>
-                        </div>
-                        <div class="flex gap-1 flex-shrink-0">
-                            <button onclick="editProfil('${item.id}')"
-                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 p-1.5" title="Edit">
-                                <i class="fas fa-edit text-sm"></i>
-                            </button>
-                            <button onclick="deleteProfil('${item.id}')"
-                                class="text-red-600 hover:text-red-800 dark:text-red-400 p-1.5" title="Hapus">
-                                <i class="fas fa-trash text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                <div class="text-center mt-4">
-                    <button onclick="tambahProfil()" class="btn-primary px-4 py-2 rounded-lg">
-                        <i class="fas fa-plus mr-1"></i>Tambah Profil Baru
-                    </button>
-                </div>
-            `;
-            profilList.innerHTML = html;
-        }
-
-        // ================================================================
-        // 10. PROFIL CRUD
-        // ================================================================
-        window.tambahProfil = function() {
-            if (!profilModal) return;
-            if (profilModalTitle) profilModalTitle.textContent = 'Tambah Profil';
-            if (profilForm) profilForm.reset();
-            const idField = document.getElementById('profil-id');
-            if (idField) idField.value = '';
-            openProfilModal();
-        };
-
-        window.editProfil = function(id) {
-            const item = profilCache.find(p => p.id === id);
-            if (!item) {
-                showToast('Profil tidak ditemukan.', 'warning');
-                return;
-            }
-            if (profilModalTitle) profilModalTitle.textContent = 'Edit Profil';
-            const idField = document.getElementById('profil-id');
-            if (idField) idField.value = item.id;
-            const keyField = document.getElementById('profil-key');
-            if (keyField) keyField.value = item.key || '';
-            const contentField = document.getElementById('profil-content');
-            if (contentField) contentField.value = item.content || '';
-            openProfilModal();
-        };
-
-        window.deleteProfil = function(id) {
-            const item = profilCache.find(p => p.id === id);
-            const key = item ? (item.key || 'item ini') : 'item ini';
-            showConfirm('Hapus profil "' + key + '"?', async () => {
-                const result = await apiCall('deleteProfil', 'POST', { id });
-                if (result && result.success) {
-                    profilCache = profilCache.filter(p => p.id !== id);
-                    renderProfil(profilCache);
-                    await logActivity('DELETE', 'profil', id, 'Hapus key: ' + key);
-                    showToast('Profil berhasil dihapus!', 'success');
-                } else {
-                    showToast((result && result.message) || 'Gagal menghapus', 'error');
-                }
-            });
-        };
-
-        function openProfilModal() {
-            if (!profilModal) return;
-            profilModal.classList.remove('hidden');
-            profilModal.classList.add('flex');
-            requestAnimationFrame(() => {
-                if (profilModalContent) {
-                    profilModalContent.classList.remove('scale-95', 'opacity-0');
-                    profilModalContent.classList.add('scale-100', 'opacity-100');
-                }
-            });
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeProfilModal() {
-            if (!profilModal) return;
-            if (profilModalContent) {
-                profilModalContent.classList.remove('scale-100', 'opacity-100');
-                profilModalContent.classList.add('scale-95', 'opacity-0');
-            }
-            setTimeout(() => {
-                profilModal.classList.add('hidden');
-                profilModal.classList.remove('flex');
-            }, 150);
-            document.body.style.overflow = '';
-        }
-
-        if (profilCloseBtn) {
-            const fresh = profilCloseBtn.cloneNode(true);
-            profilCloseBtn.parentNode.replaceChild(fresh, profilCloseBtn);
-            fresh.addEventListener('click', closeProfilModal);
-        }
-        if (profilModal) {
-            profilModal.addEventListener('click', (e) => {
-                if (e.target === profilModal) closeProfilModal();
-            });
-        }
-
-        if (profilForm) {
-            profilForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (isSubmitting) return;
-
-                const idField = document.getElementById('profil-id');
-                const keyField = document.getElementById('profil-key');
-                const contentField = document.getElementById('profil-content');
-
-                const id = idField ? idField.value : '';
-                const key = keyField ? (keyField.value || '').trim() : '';
-                const content = contentField ? contentField.value : '';
-
-                if (!key) {
-                    showToast('Key wajib diisi!', 'warning');
-                    if (keyField) keyField.focus();
+                const res = await forceRefreshData('getProfil', {});
+                if (!res || !res.success || !Array.isArray(res.data)) {
+                    console.warn('[profil_admin] getProfil invalid:', res);
                     return;
                 }
 
-                isSubmitting = true;
-                const submitBtn = profilForm.querySelector('button[type="submit"]');
-                startLoading(submitBtn, 'Menyimpan...');
+                const map = {};
+                res.data.forEach(item => {
+                    if (!item || !item.key) return;
+                    const key = String(item.key).toLowerCase().trim();
+                    map[key] = item.content || '';
+                });
 
-                try {
-                    const data = { key, content };
-                    const action = id ? 'updateProfil' : 'createProfil';
-                    const payload = id ? Object.assign({ id: id }, data) : data;
-
-                    const result = await apiCall(action, 'POST', payload);
-
-                    if (result && result.success) {
-                        if (id) {
-                            const idx = profilCache.findIndex(p => p.id === id);
-                            if (idx !== -1) profilCache[idx] = Object.assign({}, profilCache[idx], data, { id: id });
-                        } else {
-                            profilCache.push(Object.assign({}, data, {
-                                id: result.id,
-                                updated_at: new Date().toISOString()
-                            }));
-                        }
-                        renderProfil(profilCache);
-                        closeProfilModal();
-                        if (profilForm) profilForm.reset();
-                        await logActivity(id ? 'UPDATE' : 'CREATE', 'profil', result.id || id, 'Key: ' + key);
-                        showToast('✅ Profil berhasil disimpan!', 'success');
-                    } else {
-                        showToast((result && result.message) || 'Gagal menyimpan', 'error');
-                    }
-                } catch (error) {
-                    console.error('[profil_admin] Submit profil error:', error);
-                    showToast('Error: ' + error.message, 'error');
-                } finally {
-                    stopLoading(submitBtn);
-                    isSubmitting = false;
-                }
-            });
-        }
-
-        // ================================================================
-        // 11. SEJARAH & VISI MISI + LIVE PREVIEW
-        // ================================================================
-        function updateLivePreview() {
-            let preview = document.getElementById('profil-text-preview');
-            if (!preview && sejarahContent && sejarahContent.parentElement) {
-                preview = document.createElement('div');
-                preview.id = 'profil-text-preview';
-                preview.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-[var(--bg-stats)] rounded-lg border border-[var(--card-border)]';
-                preview.innerHTML = `
-                    <div>
-                        <p class="text-xs text-[var(--text-muted)] uppercase font-bold mb-2">
-                            <i class="fas fa-eye mr-1"></i>Preview Sejarah
-                        </p>
-                        <div id="preview-sejarah" class="text-sm text-[var(--text-main)] leading-relaxed max-h-40 overflow-y-auto"></div>
-                    </div>
-                    <div>
-                        <p class="text-xs text-[var(--text-muted)] uppercase font-bold mb-2">
-                            <i class="fas fa-eye mr-1"></i>Preview Visi & Misi
-                        </p>
-                        <div id="preview-visi" class="text-sm text-[var(--text-main)] leading-relaxed max-h-40 overflow-y-auto"></div>
-                    </div>
-                `;
-                sejarahContent.parentElement.appendChild(preview);
-
-                // Attach listeners
-                if (sejarahContent && !sejarahContent.dataset.previewAttached) {
-                    sejarahContent.dataset.previewAttached = 'true';
-                    sejarahContent.addEventListener('input',
-                        debounceEvent.bind(null, 'preview-sejarah', () => {
-                            const el = document.getElementById('preview-sejarah');
-                            if (el) el.innerHTML = sejarahContent.value || '<p class="italic text-[var(--text-muted)]">(kosong)</p>';
-                        }, 400));
-                }
-                if (visiMisiContent && !visiMisiContent.dataset.previewAttached) {
-                    visiMisiContent.dataset.previewAttached = 'true';
-                    visiMisiContent.addEventListener('input',
-                        debounceEvent.bind(null, 'preview-visi', () => {
-                            const el = document.getElementById('preview-visi');
-                            if (el) el.innerHTML = visiMisiContent.value || '<p class="italic text-[var(--text-muted)]">(kosong)</p>';
-                        }, 400));
-                }
-            }
-        }
-
-        async function loadProfilText() {
-            try {
-                const result = await forceRefreshData('getProfil', {});
-                if (result && result.success && Array.isArray(result.data)) {
-                    const map = {};
-                    result.data.forEach(i => { map[i.key] = i.content; });
-
-                    if (sejarahContent) sejarahContent.value = map['sejarah'] || '';
-                    if (visiMisiContent) visiMisiContent.value = map['visi_misi'] || '';
-
-                    // Update preview
-                    const prevSejarah = document.getElementById('preview-sejarah');
-                    const prevVisi = document.getElementById('preview-visi');
-                    if (prevSejarah) prevSejarah.innerHTML = map['sejarah'] || '<p class="italic text-[var(--text-muted)]">(kosong)</p>';
-                    if (prevVisi) prevVisi.innerHTML = map['visi_misi'] || '<p class="italic text-[var(--text-muted)]">(kosong)</p>';
-
-                    // Update profil cache
-                    profilCache = result.data;
-                }
+                if (sejarahContent) sejarahContent.value = map['sejarah'] || '';
+                if (visiMisiContent) visiMisiContent.value = map['visi_misi'] || '';
             } catch (e) {
-                console.error('[profil_admin] Load profil text error:', e);
+                console.error('[profil_admin] loadProfilText error:', e);
             }
         }
 
+        // ================================================================
+        // 10. SAVE PROFIL TEXT
+        // ================================================================
         if (saveProfilBtn) {
             const fresh = saveProfilBtn.cloneNode(true);
             saveProfilBtn.parentNode.replaceChild(fresh, saveProfilBtn);
@@ -696,589 +407,470 @@ App.register('profil_admin', function() {
                 const visi_misi = visiMisiContent ? visiMisiContent.value.trim() : '';
 
                 if (!sejarah && !visi_misi) {
-                    showToast('Tidak ada perubahan untuk disimpan.', 'warning');
+                    safeToast('Tidak ada perubahan', 'warning');
                     return;
                 }
 
                 isSubmitting = true;
-                const original = this.innerHTML;
+                const orig = this.innerHTML;
                 this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
                 try {
-                    // Upsert - updateProfil sudah handle create jika tidak ada
-                    await apiCall('updateProfil', 'POST', { key: 'sejarah', content: sejarah });
-                    await apiCall('updateProfil', 'POST', { key: 'visi_misi', content: visi_misi });
+                    const res1 = await apiCall('updateProfil', 'POST', { key: 'sejarah', content: sejarah });
+                    const res2 = await apiCall('updateProfil', 'POST', { key: 'visi_misi', content: visi_misi });
 
-                    await logActivity('UPDATE', 'profil_teks', null, 'Sejarah & Visi Misi');
-                    showToast('✅ Sejarah & Visi Misi berhasil disimpan!', 'success');
+                    if (res1 && res1.success && res2 && res2.success) {
+                        await logActivity('UPDATE', 'profil_teks', null, 'Sejarah & Visi Misi');
 
-                    // Reload cache
-                    profilCache = [];
-                    await loadProfilText();
+                        try {
+                            const cKey = 'cache_getProfil_' + user.id + '_' + JSON.stringify({});
+                            SafeSessionStorage.removeItem(cKey);
+                        } catch (e) {}
+
+                        const indicator = document.getElementById('profil-save-indicator');
+                        if (indicator) {
+                            indicator.classList.remove('hidden');
+                            setTimeout(() => indicator.classList.add('hidden'), 2500);
+                        }
+
+                        const isOffline = res1._offline || res2._offline;
+                        if (isOffline) {
+                            safeToast('📴 Tersimpan lokal, akan disinkronkan saat online', 'warning', 4000);
+                        } else {
+                            safeToast('✅ Sejarah & Visi Misi disimpan!', 'success');
+                        }
+                    } else {
+                        safeToast('Gagal menyimpan (partial)', 'warning');
+                    }
                 } catch (e) {
-                    showToast('Gagal menyimpan: ' + e.message, 'error');
+                    console.error('[profil_admin] Save error:', e);
+                    safeToast('Gagal: ' + e.message, 'error');
                 } finally {
                     this.disabled = false;
-                    this.innerHTML = original;
+                    this.innerHTML = orig;
                     isSubmitting = false;
                 }
             });
         }
 
         // ================================================================
-        // 12. STRUKTUR PENGURUS CRUD
+        // 11. LOAD STRUKTUR
         // ================================================================
         async function loadStruktur(force) {
             force = force || false;
+            if (!strukturCont) return;
 
-            if (strukturCache.length > 0 && !force) {
-                applyFilterStruktur();
-                return;
-            }
-
-            if (strukturSkeleton) strukturSkeleton.classList.remove('hidden');
-            if (strukturTable) strukturTable.innerHTML = '';
+            strukturCont.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                    <p class="text-sm text-[var(--text-muted)] mt-2">Memuat struktur...</p>
+                </div>`;
 
             try {
-                const result = await forceRefreshData('getStruktur', {});
+                if (force) {
+                    try {
+                        const cKey = 'cache_getStruktur_' + user.id + '_' + JSON.stringify({});
+                        SafeSessionStorage.removeItem(cKey);
+                    } catch (e) {}
+                }
 
-                if (strukturSkeleton) strukturSkeleton.classList.add('hidden');
+                const res = await apiCall('getStruktur', 'POST', { _t: Date.now() });
 
-                if (result && result.success && Array.isArray(result.data)) {
-                    strukturCache = result.data;
-                    applyFilterStruktur();
-                    updateStrukturStats();
+                if (res && res.success && Array.isArray(res.data)) {
+                    strukturCache = res.data;
+                    console.log('[profil_admin] Struktur loaded:', strukturCache.length);
                 } else {
-                    if (strukturTable) {
-                        strukturTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">' +
-                            '<i class="fas fa-sitemap text-3xl mb-2 opacity-40"></i><p>Belum ada data pengurus</p></td></tr>';
-                    }
-                    updateStrukturStats();
+                    console.warn('[profil_admin] Struktur response invalid:', res);
+                    strukturCache = [];
                 }
-            } catch (error) {
-                if (strukturSkeleton) strukturSkeleton.classList.add('hidden');
-                console.error('[profil_admin] Load struktur error:', error);
-                if (strukturTable) {
-                    strukturTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">' +
-                        'Error: ' + escapeHtml(error.message) + '</td></tr>';
-                }
-            }
-        }
-
-        function applyFilterStruktur() {
-            filteredStruktur = strukturCache.filter(s => {
-                if (strukturFilter.search) {
-                    const q = strukturFilter.search.toLowerCase();
-                    const haystack = [s.jabatan, s.nama]
-                        .map(v => String(v || '').toLowerCase()).join(' ');
-                    if (!haystack.includes(q)) return false;
-                }
-                return true;
-            });
-
-            // Sort
-            switch (strukturFilter.sort) {
-                case 'urutan-asc':
-                    filteredStruktur.sort((a, b) => (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
-                    break;
-                case 'urutan-desc':
-                    filteredStruktur.sort((a, b) => (Number(b.urutan) || 0) - (Number(a.urutan) || 0));
-                    break;
-                case 'jabatan-asc':
-                    filteredStruktur.sort((a, b) => String(a.jabatan || '').localeCompare(String(b.jabatan || '')));
-                    break;
-                case 'nama-asc':
-                    filteredStruktur.sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
-                    break;
+            } catch (e) {
+                console.error('[profil_admin] loadStruktur error:', e);
+                strukturCache = [];
             }
 
-            renderStruktur(filteredStruktur);
+            renderStruktur();
         }
 
-        function updateStrukturStats() {
-            const total = strukturCache.length;
-            const adaFoto = strukturCache.filter(s => s.foto_url).length;
-            const jabatanUnik = new Set(strukturCache.map(s => s.jabatan).filter(Boolean)).size;
+        // ================================================================
+        // 12. RENDER STRUKTUR
+        // ================================================================
+        function renderStruktur() {
+            if (!strukturCont) return;
 
-            const el1 = document.getElementById('stats-total-struktur');
-            const el2 = document.getElementById('stats-struktur-foto');
-            const el3 = document.getElementById('stats-struktur-jabatan');
-
-            if (el1) el1.textContent = total;
-            if (el2) el2.textContent = adaFoto;
-            if (el3) el3.textContent = jabatanUnik;
-        }
-
-        function renderStruktur(data) {
-            if (!strukturTable) return;
-
-            if (!data || data.length === 0) {
-                const isFiltered = strukturFilter.search;
-                strukturTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">' +
-                    (isFiltered
-                        ? '<i class="fas fa-search text-3xl mb-2 opacity-40"></i><p>Tidak ada hasil yang cocok</p>'
-                        : '<i class="fas fa-sitemap text-3xl mb-2 opacity-40"></i><p>Belum ada data pengurus</p>') +
-                    '</td></tr>';
+            if (strukturCache.length === 0) {
+                strukturCont.innerHTML = `
+                    <div class="text-center py-12 text-[var(--text-muted)]">
+                        <i class="fas fa-users text-4xl mb-3 opacity-40"></i>
+                        <p class="font-medium">Belum ada pengurus</p>
+                        <p class="text-sm mt-1">Klik "Tambah Pengurus" untuk menambahkan.</p>
+                    </div>`;
                 return;
             }
 
-            let html = '';
-            data.forEach((item, idx) => {
-                const foto = item.foto_url
-                    ? `<img src="${escapeAttr(item.foto_url)}" alt="${escapeAttr(item.nama)}"
-                            class="w-10 h-10 rounded-full object-cover border-2 border-[var(--card-border)]"
-                            loading="lazy" decoding="async"
-                            onerror="this.outerHTML='<div class=&quot;w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold&quot;>${escapeHtml(getInitials(item.nama))}</div>'">`
-                    : `<div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
-                            ${escapeHtml(getInitials(item.nama))}
-                       </div>`;
+            const sorted = strukturCache.slice().sort((a, b) =>
+                (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
+
+            let html = '<div class="space-y-3">';
+
+            sorted.forEach((item, idx) => {
+                const nama = item.nama || '';
+                const jabatan = item.jabatan || '';
+                const foto = item.foto_url || '';
+                const urutan = item.urutan || (idx + 1);
+                const fileId = extractFileId(foto);
+                const pending = isPendingSync(item.id);
+
+                let fotoHtml;
+                if (foto) {
+                    fotoHtml = `
+                        <img src="${escAttr(foto)}"
+                             alt="${escAttr(nama || jabatan)}"
+                             class="w-14 h-14 rounded-full object-cover border-2 border-amber-400"
+                             loading="lazy"
+                             onerror="if(this.dataset.triedAlt==='1'){this.outerHTML='<div class=&quot;w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold&quot;>${esc(getInitials(nama || jabatan))}</div>'}else{this.dataset.triedAlt='1';this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w200';}">`;
+                } else {
+                    fotoHtml = `<div class="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-lg font-bold">${esc(getInitials(nama || jabatan))}</div>`;
+                }
+
+                const waDisplay = item.whatsapp ? `<span class="text-xs text-[var(--text-muted)]"><i class="fab fa-whatsapp mr-1"></i>${esc(item.whatsapp)}</span>` : '';
+                const emailDisplay = item.email ? `<span class="text-xs text-[var(--text-muted)] ml-2"><i class="fas fa-envelope mr-1"></i>${esc(item.email)}</span>` : '';
+
+                const pendingBadge = pending
+                    ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">⟳ SYNC</span>'
+                    : '';
 
                 html += `
-                    <tr class="hover:bg-[var(--bg-stats)] transition-colors">
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)] text-center">
-                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--bg-stats)] text-xs font-bold">
-                                ${item.urutan || 0}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3">${foto}</td>
-                        <td class="px-3 py-3 text-sm font-bold text-[var(--text-main)]">${escapeHtml(item.jabatan || '-')}</td>
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${escapeHtml(item.nama || '-')}</td>
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${formatDate(item.updated_at)}</td>
-                        <td class="px-3 py-3 text-sm whitespace-nowrap">
-                            <button onclick="editStruktur('${item.id}')"
-                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-2" title="Edit">
-                                <i class="fas fa-edit"></i>
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-4 p-4 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:shadow-md transition ${pending ? 'border-l-4 border-amber-500' : ''}">
+                        <div class="flex-shrink-0">${fotoHtml}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-base text-[var(--text-main)] truncate flex items-center gap-2">
+                                ${esc(nama || '(belum diisi)')} ${pendingBadge}
+                            </div>
+                            <div class="text-sm text-[var(--text-muted)] mt-0.5">
+                                <i class="fas fa-user-tag mr-1"></i>${esc(jabatan || '-')}
+                            </div>
+                            <div class="text-xs text-[var(--text-muted)] mt-0.5">
+                                <i class="fas fa-sort-numeric-up mr-1"></i>Urutan: ${urutan}
+                            </div>
+                            ${(waDisplay || emailDisplay) ? `<div class="mt-1 flex flex-wrap items-center gap-2">${waDisplay}${emailDisplay}</div>` : ''}
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button type="button" data-action="edit-pengurus" data-id="${escAttr(item.id)}"
+                                class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center gap-1">
+                                <i class="fas fa-edit"></i><span>Edit</span>
                             </button>
-                            <button onclick="deleteStruktur('${item.id}')"
-                                class="text-red-600 hover:text-red-800 dark:text-red-400" title="Hapus">
+                            <button type="button" data-action="delete-pengurus" data-id="${escAttr(item.id)}" data-nama="${escAttr(nama)}"
+                                class="px-3 py-2 rounded-lg text-sm bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:text-red-300 transition">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
                 `;
             });
-            strukturTable.innerHTML = html;
+            html += '</div>';
+            strukturCont.innerHTML = html;
+
+            strukturCont.querySelectorAll('[data-action="edit-pengurus"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const item = strukturCache.find(s => String(s.id) === String(id));
+                    if (item) openPengurusModal(true, item);
+                });
+            });
+            strukturCont.querySelectorAll('[data-action="delete-pengurus"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deletePengurusConfirm(this.dataset.id, this.dataset.nama || 'data ini');
+                });
+            });
         }
 
-        // Attach struktur search/sort listeners
-        setTimeout(() => {
-            const searchInput = document.getElementById('struktur-search');
-            const sortSelect = document.getElementById('struktur-sort');
+        // ================================================================
+        // 13. DELETE PENGURUS (Offline-aware)
+        // ================================================================
+        function deletePengurusConfirm(id, nama) {
+            showConfirm('Hapus data "' + nama + '"?', async () => {
+                try {
+                    const res = await apiCall('deleteStruktur', 'POST', { id: id });
+                    if (res && res.success) {
+                        await logActivity('DELETE', 'struktur_organisasi', id, 'Hapus: ' + nama);
 
-            if (searchInput && !searchInput.dataset.attached) {
-                searchInput.dataset.attached = 'true';
-                searchInput.addEventListener('input',
-                    debounceEvent.bind(null, 'struktur-search', () => {
-                        strukturFilter.search = (searchInput.value || '').trim();
-                        applyFilterStruktur();
-                    }, 250));
-            }
+                        if (res._offline) {
+                            safeToast('📴 Data dihapus lokal, akan disinkronkan saat online', 'warning', 4000);
+                        } else {
+                            safeToast('✅ ' + nama + ' dihapus', 'success');
+                        }
 
-            if (sortSelect && !sortSelect.dataset.attached) {
-                sortSelect.dataset.attached = 'true';
-                sortSelect.addEventListener('change', () => {
-                    strukturFilter.sort = sortSelect.value;
-                    applyFilterStruktur();
-                });
-            }
-        }, 200);
-
-        window.editStruktur = function(id) {
-            const item = strukturCache.find(s => s.id === id);
-            if (!item) {
-                showToast('Data tidak ditemukan.', 'warning');
-                return;
-            }
-            if (strukturModalTitle) strukturModalTitle.textContent = 'Edit Pengurus';
-            if (strukturId) strukturId.value = item.id;
-            if (strukturJabatan) strukturJabatan.value = item.jabatan || '';
-            if (strukturNama) strukturNama.value = item.nama || '';
-            if (strukturFoto) strukturFoto.value = item.foto_url || '';
-            if (strukturUrutan) strukturUrutan.value = item.urutan || 0;
-            openStrukturModal();
-        };
-
-        window.deleteStruktur = function(id) {
-            const item = strukturCache.find(s => s.id === id);
-            const nama = item ? (item.nama || 'pengurus ini') : 'pengurus ini';
-            showConfirm('Hapus pengurus "' + nama + '"?', async () => {
-                const result = await apiCall('deleteStruktur', 'POST', { id });
-                if (result && result.success) {
-                    strukturCache = strukturCache.filter(s => s.id !== id);
-                    applyFilterStruktur();
-                    updateStrukturStats();
-                    await logActivity('DELETE', 'struktur_organisasi', id, 'Hapus: ' + nama);
-                    showToast('Pengurus berhasil dihapus!', 'success');
-                } else {
-                    showToast((result && result.message) || 'Gagal menghapus', 'error');
+                        refreshDataOnly();
+                    } else {
+                        safeToast((res && res.message) || 'Gagal menghapus', 'error');
+                    }
+                } catch (e) {
+                    console.error('[profil_admin] Delete error:', e);
+                    safeToast('Error: ' + e.message, 'error');
                 }
             });
-        };
+        }
 
-        function openStrukturModal() {
-            if (!strukturModal) return;
-            strukturModal.classList.remove('hidden');
-            strukturModal.classList.add('flex');
+        // ================================================================
+        // 14. MODAL PENGURUS
+        // ================================================================
+        function openPengurusModal(isEdit, data) {
+            data = data || {};
+            pendingFotoFile = null;
+
+            if (!pengurusModal) return;
+
+            if (isEdit) {
+                pengurusModalTitle.textContent = 'Edit Anggota Tim';
+                pengurusId.value = data.id || '';
+                pengurusNama.value = data.nama || '';
+                pengurusJabatan.value = data.jabatan || '';
+                pengurusDeskripsi.value = data.deskripsi || '';
+                pengurusWhatsapp.value = data.whatsapp || '';
+                pengurusEmail.value = data.email || '';
+                currentFotoUrl = data.foto_url || '';
+
+                if (currentFotoUrl) showFotoPreview(currentFotoUrl);
+                else hideFotoPreview();
+            } else {
+                pengurusModalTitle.textContent = 'Tambah Anggota Tim';
+                pengurusForm.reset();
+                pengurusId.value = '';
+                currentFotoUrl = '';
+                hideFotoPreview();
+            }
+
+            pengurusModal.classList.remove('hidden');
+            pengurusModal.classList.add('flex');
             requestAnimationFrame(() => {
-                if (strukturModalContent) {
-                    strukturModalContent.classList.remove('scale-95', 'opacity-0');
-                    strukturModalContent.classList.add('scale-100', 'opacity-100');
+                if (pengurusModalContent) {
+                    pengurusModalContent.classList.remove('scale-95', 'opacity-0');
+                    pengurusModalContent.classList.add('scale-100', 'opacity-100');
                 }
             });
             document.body.style.overflow = 'hidden';
-            setTimeout(() => { if (strukturJabatan) strukturJabatan.focus(); }, 150);
+            setTimeout(() => { if (pengurusNama) pengurusNama.focus(); }, 200);
         }
 
-        function closeStrukturModal() {
-            if (!strukturModal) return;
-            if (strukturModalContent) {
-                strukturModalContent.classList.remove('scale-100', 'opacity-100');
-                strukturModalContent.classList.add('scale-95', 'opacity-0');
+        function closePengurusModal() {
+            if (!pengurusModal) return;
+            if (pengurusModalContent) {
+                pengurusModalContent.classList.remove('scale-100', 'opacity-100');
+                pengurusModalContent.classList.add('scale-95', 'opacity-0');
             }
             setTimeout(() => {
-                strukturModal.classList.add('hidden');
-                strukturModal.classList.remove('flex');
+                pengurusModal.classList.add('hidden');
+                pengurusModal.classList.remove('flex');
             }, 150);
             document.body.style.overflow = '';
-            if (strukturForm) strukturForm.reset();
-            if (strukturId) strukturId.value = '';
+            if (pengurusForm) pengurusForm.reset();
+            if (pengurusId) pengurusId.value = '';
+            currentFotoUrl = '';
+            pendingFotoFile = null;
+            hideFotoPreview();
         }
 
-        if (strukturCloseBtn) {
-            const fresh = strukturCloseBtn.cloneNode(true);
-            strukturCloseBtn.parentNode.replaceChild(fresh, strukturCloseBtn);
-            fresh.addEventListener('click', closeStrukturModal);
+        // ================================================================
+        // 15. FOTO PREVIEW
+        // ================================================================
+        function showFotoPreview(src) {
+            const preview = document.getElementById('pengurus_foto_preview');
+            const placeholder = document.getElementById('pengurus_foto_placeholder');
+            const hapusBtn = document.getElementById('pengurus_hapus_foto');
+
+            if (preview) {
+                preview.src = src;
+                preview.style.display = 'block';
+                preview.style.width = '100%';
+                preview.style.height = '100%';
+                preview.style.objectFit = 'cover';
+                preview.style.position = 'absolute';
+                preview.style.top = '0';
+                preview.style.left = '0';
+            }
+            if (placeholder) placeholder.style.display = 'none';
+            if (hapusBtn) {
+                hapusBtn.style.display = 'inline-flex';
+                hapusBtn.style.alignItems = 'center';
+                hapusBtn.style.gap = '4px';
+            }
         }
-        if (strukturModal) {
-            strukturModal.addEventListener('click', (e) => {
-                if (e.target === strukturModal) closeStrukturModal();
-            });
+
+        function hideFotoPreview() {
+            const preview = document.getElementById('pengurus_foto_preview');
+            const placeholder = document.getElementById('pengurus_foto_placeholder');
+            const hapusBtn = document.getElementById('pengurus_hapus_foto');
+
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+            if (placeholder) placeholder.style.display = 'block';
+            if (hapusBtn) hapusBtn.style.display = 'none';
         }
 
-        if (addStrukturBtn) {
-            const fresh = addStrukturBtn.cloneNode(true);
-            addStrukturBtn.parentNode.replaceChild(fresh, addStrukturBtn);
-            fresh.addEventListener('click', () => {
-                if (strukturModalTitle) strukturModalTitle.textContent = 'Tambah Pengurus';
-                if (strukturForm) strukturForm.reset();
-                if (strukturId) strukturId.value = '';
-                if (strukturUrutan) strukturUrutan.value = 0;
-                openStrukturModal();
-            });
+        // ================================================================
+        // 16. EVENT LISTENERS MODAL
+        // ================================================================
+        if (addPengurusBtn) {
+            const fresh = addPengurusBtn.cloneNode(true);
+            addPengurusBtn.parentNode.replaceChild(fresh, addPengurusBtn);
+            fresh.addEventListener('click', () => openPengurusModal(false));
         }
 
-        if (strukturForm) {
-            strukturForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (isSubmitting) return;
-
-                const jabatan = (strukturJabatan.value || '').trim();
-                const nama = (strukturNama.value || '').trim();
-                const foto_url = (strukturFoto.value || '').trim();
-                const urutan = parseInt(strukturUrutan.value) || 0;
-
-                if (!jabatan) {
-                    showToast('Jabatan wajib diisi!', 'warning');
-                    strukturJabatan.focus();
-                    return;
-                }
-                if (!nama) {
-                    showToast('Nama wajib diisi!', 'warning');
-                    strukturNama.focus();
-                    return;
-                }
-
-                isSubmitting = true;
-                const submitBtn = strukturForm.querySelector('button[type="submit"]');
-                startLoading(submitBtn, 'Menyimpan...');
-
-                try {
-                    const data = { jabatan, nama, foto_url, urutan };
-                    const id = strukturId.value;
-                    const action = id ? 'updateStruktur' : 'createStruktur';
-                    const payload = id ? Object.assign({ id: id }, data) : data;
-
-                    const result = await apiCall(action, 'POST', payload);
-
-                    if (result && result.success) {
-                        if (id) {
-                            const idx = strukturCache.findIndex(s => s.id === id);
-                            if (idx !== -1) strukturCache[idx] = Object.assign({}, strukturCache[idx], data, { id: id });
-                        } else {
-                            strukturCache.push(Object.assign({}, data, { id: result.id }));
-                        }
-
-                        applyFilterStruktur();
-                        updateStrukturStats();
-                        closeStrukturModal();
-
-                        await logActivity(id ? 'UPDATE' : 'CREATE', 'struktur_organisasi', result.id || id, 'Jabatan: ' + jabatan);
-                        showToast('✅ Data pengurus berhasil disimpan!', 'success');
-                    } else {
-                        showToast((result && result.message) || 'Gagal menyimpan', 'error');
-                    }
-                } catch (error) {
-                    console.error('[profil_admin] Submit struktur error:', error);
-                    showToast('Error: ' + error.message, 'error');
-                } finally {
-                    stopLoading(submitBtn);
-                    isSubmitting = false;
-                }
+        if (pengurusModalClose) {
+            const fresh = pengurusModalClose.cloneNode(true);
+            pengurusModalClose.parentNode.replaceChild(fresh, pengurusModalClose);
+            fresh.addEventListener('click', closePengurusModal);
+        }
+        if (pengurusModalClose2) {
+            const fresh = pengurusModalClose2.cloneNode(true);
+            pengurusModalClose2.parentNode.replaceChild(fresh, pengurusModalClose2);
+            fresh.addEventListener('click', closePengurusModal);
+        }
+        if (pengurusModal) {
+            pengurusModal.addEventListener('click', (e) => {
+                if (e.target === pengurusModal) closePengurusModal();
             });
         }
 
         // ================================================================
-        // 13. FOTO POSISI CRUD
+        // 17. SUBMIT PENGURUS FORM (Offline-aware)
         // ================================================================
-        async function loadFotoPositions() {
-            try {
-                const res = await apiCall('getPhotoPositions', 'POST', {});
-                if (res && res.success && Array.isArray(res.data)) {
-                    fotoPositions = res.data;
-                    updatePosisiUI();
-                    updateFotoKeySelect();
-                } else {
-                    fotoPositions = [];
-                    updatePosisiUI();
-                    updateFotoKeySelect();
-                }
-            } catch (e) {
-                console.error('[profil_admin] Load foto positions error:', e);
-                fotoPositions = [];
-                updatePosisiUI();
-                updateFotoKeySelect();
-            }
-        }
-
-        function updatePosisiUI() {
-            if (!posisiListContainer) return;
-
-            if (fotoPositions.length === 0) {
-                posisiListContainer.innerHTML = '<span class="text-[var(--text-muted)] text-sm italic">Belum ada posisi. Tambahkan posisi baru di atas.</span>';
-                return;
-            }
-
-            posisiListContainer.innerHTML = fotoPositions.map((pos, idx) => `
-                <div class="flex items-center gap-2 bg-[var(--bg-stats)] px-3 py-2 rounded-lg border border-[var(--card-border)] shadow-sm hover:shadow-md transition">
-                    <span class="text-sm font-medium text-[var(--text-main)]">${escapeHtml(pos)}</span>
-                    <button type="button" onclick="editPosisi(${idx})"
-                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-xs px-1.5 py-1 transition" title="Edit">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button type="button" onclick="deletePosisi(${idx})"
-                        class="text-red-600 hover:text-red-800 dark:text-red-400 text-xs px-1.5 py-1 transition" title="Hapus">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function updateFotoKeySelect() {
-            if (!fotoKeySelect) return;
-            fotoKeySelect.innerHTML = '';
-            if (fotoPositions.length === 0) {
-                fotoKeySelect.innerHTML = '<option value="">-- Tidak ada posisi --</option>';
-                return;
-            }
-            fotoPositions.forEach(pos => {
-                const opt = document.createElement('option');
-                opt.value = 'foto_' + String(pos).toLowerCase().replace(/\s+/g, '_');
-                opt.textContent = pos;
-                fotoKeySelect.appendChild(opt);
-            });
-        }
-
-        window.editPosisi = function(idx) {
-            if (!newPosisiInput) return;
-            const oldName = fotoPositions[idx];
-            newPosisiInput.value = oldName;
-            newPosisiInput.focus();
-            newPosisiInput.dataset.editingIdx = idx;
-
-            if (addPosisiBtn) {
-                addPosisiBtn.innerHTML = '<i class="fas fa-save"></i> Update';
-            }
-        };
-
-        window.deletePosisi = function(idx) {
-            const name = fotoPositions[idx];
-            showConfirm('Hapus posisi "' + name + '"?', async () => {
-                fotoPositions.splice(idx, 1);
-                await savePosisi();
-            });
-        };
-
-        function resetPosisiButton() {
-            if (addPosisiBtn) {
-                addPosisiBtn.innerHTML = '<i class="fas fa-plus"></i> Tambah Posisi';
-            }
-            if (newPosisiInput) {
-                newPosisiInput.value = '';
-                delete newPosisiInput.dataset.editingIdx;
-            }
-        }
-
-        async function savePosisi() {
-            try {
-                const res = await apiCall('updatePhotoPositions', 'POST', {
-                    positions: fotoPositions
-                });
-                if (res && res.success) {
-                    showToast('✅ Posisi foto berhasil diperbarui!', 'success');
-                    updatePosisiUI();
-                    updateFotoKeySelect();
-                    resetPosisiButton();
-                } else {
-                    showToast((res && res.message) || 'Gagal memperbarui posisi.', 'error');
-                }
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        if (addPosisiBtn) {
-            const fresh = addPosisiBtn.cloneNode(true);
-            addPosisiBtn.parentNode.replaceChild(fresh, addPosisiBtn);
-
-            fresh.addEventListener('click', async function() {
-                const val = (newPosisiInput.value || '').trim();
-                if (!val) {
-                    showToast('Nama posisi tidak boleh kosong!', 'warning');
-                    newPosisiInput.focus();
-                    return;
-                }
-
-                const editingIdx = newPosisiInput.dataset.editingIdx;
-
-                if (editingIdx !== undefined && editingIdx !== '') {
-                    // Mode edit
-                    const idx = parseInt(editingIdx);
-                    if (fotoPositions[idx] === val) {
-                        showToast('Nama tidak ada perubahan.', 'info');
-                        resetPosisiButton();
-                        return;
-                    }
-                    if (fotoPositions.includes(val)) {
-                        showToast('Nama posisi sudah ada!', 'warning');
-                        return;
-                    }
-                    fotoPositions[idx] = val;
-                    await savePosisi();
-                } else {
-                    // Mode tambah
-                    if (fotoPositions.includes(val)) {
-                        showToast('Posisi sudah ada!', 'warning');
-                        return;
-                    }
-                    fotoPositions.push(val);
-                    await savePosisi();
-                }
-            });
-        }
-
-        // ================================================================
-        // 14. UPLOAD FOTO PENGURUS
-        // ================================================================
-        if (fotoForm) {
-            const fresh = fotoForm.cloneNode(true);
-            fotoForm.parentNode.replaceChild(fresh, fotoForm);
-
-            // Preview handler
-            const freshFileInput = fresh.querySelector('#foto-file');
-            const freshPreview = fresh.querySelector('#foto-preview');
-            const freshPreviewContainer = fresh.querySelector('#foto-preview-container');
-
-            if (freshFileInput) {
-                freshFileInput.addEventListener('change', function() {
-                    const file = this.files && this.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            if (freshPreview) freshPreview.src = e.target.result;
-                            if (freshPreviewContainer) freshPreviewContainer.classList.remove('hidden');
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        if (freshPreviewContainer) freshPreviewContainer.classList.add('hidden');
-                    }
-                });
-            }
+        if (pengurusForm) {
+            const fresh = pengurusForm.cloneNode(true);
+            pengurusForm.parentNode.replaceChild(fresh, pengurusForm);
 
             fresh.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-
                 if (isSubmitting) return;
 
-                const key = fotoKeySelect ? fotoKeySelect.value : '';
-                const file = freshFileInput && freshFileInput.files ? freshFileInput.files[0] : null;
+                const idEl = document.getElementById('pengurus-id');
+                const namaEl = document.getElementById('pengurus_nama');
+                const jabatanEl = document.getElementById('pengurus_jabatan');
+                const deskripsiEl = document.getElementById('pengurus_deskripsi');
+                const waEl = document.getElementById('pengurus_whatsapp');
+                const emailEl = document.getElementById('pengurus_email');
+                const fileEl = document.getElementById('pengurus_foto');
 
-                if (!key) {
-                    showToast('Pilih posisi terlebih dahulu.', 'warning');
+                const id = idEl ? idEl.value : '';
+                const nama = namaEl ? (namaEl.value || '').trim() : '';
+                const jabatan = jabatanEl ? (jabatanEl.value || '').trim() : '';
+                const deskripsi = deskripsiEl ? (deskripsiEl.value || '').trim() : '';
+                const whatsapp = waEl ? (waEl.value || '').trim() : '';
+                const email = emailEl ? (emailEl.value || '').trim() : '';
+
+                let file = pendingFotoFile;
+                if (!file && fileEl && fileEl.files && fileEl.files[0]) {
+                    file = fileEl.files[0];
+                }
+
+                if (!nama) {
+                    safeToast('Nama wajib diisi', 'warning');
+                    if (namaEl) namaEl.focus();
                     return;
                 }
-                if (!file) {
-                    showToast('Pilih file foto terlebih dahulu.', 'warning');
+                if (!jabatan) {
+                    safeToast('Jabatan wajib diisi', 'warning');
+                    if (jabatanEl) jabatanEl.focus();
                     return;
                 }
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast('File terlalu besar (maks 5 MB).', 'warning');
-                    return;
+
+                let urutan = 0;
+                if (id) {
+                    const existing = strukturCache.find(s => String(s.id) === String(id));
+                    urutan = existing ? (Number(existing.urutan) || 0) : 0;
+                } else {
+                    const maxUrutan = strukturCache.reduce((max, s) => {
+                        const u = Number(s.urutan) || 0;
+                        return u > max ? u : max;
+                    }, 0);
+                    urutan = maxUrutan + 1;
                 }
 
                 isSubmitting = true;
                 const submitBtn = fresh.querySelector('button[type="submit"]');
-                startLoading(submitBtn, 'Mengunggah...');
+                const orig = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
                 try {
-                    const uploadResult = await uploadFileToDrive(file);
+                    let foto_url = currentFotoUrl || '';
+                    if (file) {
+                        if (!navigator.onLine) {
+                            safeToast('📴 Upload foto memerlukan koneksi internet. Menyimpan tanpa foto.', 'warning', 4500);
+                        } else {
+                            safeToast('🗜️ Kompres foto...', 'info', 2000);
+                            const compressed = await compressImage(file, 800, 0.75);
 
-                    if (!uploadResult || !uploadResult.success) {
-                        throw new Error((uploadResult && uploadResult.message) || 'Gagal upload');
+                            safeToast('📤 Upload ke Drive...', 'info', 2000);
+                            const b64 = await fileToBase64(compressed);
+
+                            const upRes = await apiCall('uploadFile', 'POST', {
+                                fileName: compressed.name,
+                                mimeType: compressed.type,
+                                base64Data: b64
+                            });
+
+                            if (!upRes || !upRes.success) {
+                                throw new Error((upRes && upRes.message) || 'Upload foto gagal');
+                            }
+
+                            foto_url = upRes.url
+                                    || (upRes.data && upRes.data.url)
+                                    || upRes.alt_url
+                                    || (upRes.data && upRes.data.alt_url)
+                                    || '';
+
+                            if (!foto_url) throw new Error('URL foto kosong');
+                            console.log('[profil_admin] ✅ Foto URL:', foto_url);
+                        }
                     }
 
-                    const saveResult = await apiCall('updateProfil', 'POST', {
-                        key: key,
-                        content: uploadResult.url
-                    });
+                    const data = {
+                        jabatan, nama, urutan, deskripsi, whatsapp, email,
+                        foto_url: foto_url
+                    };
 
-                    if (saveResult && saveResult.success) {
-                        await logActivity('UPLOAD', 'profil_foto', null, 'Foto posisi: ' + key);
-                        showToast('✅ Foto berhasil disimpan!', 'success');
-
-                        fresh.reset();
-                        if (freshPreviewContainer) freshPreviewContainer.classList.add('hidden');
-                        if (freshPreview) freshPreview.src = '';
-
-                        loadProfil(true);
+                    let res;
+                    if (id) {
+                        res = await apiCall('updateStruktur', 'POST', Object.assign({ id: id }, data));
                     } else {
-                        showToast((saveResult && saveResult.message) || 'Gagal menyimpan foto', 'error');
+                        res = await apiCall('createStruktur', 'POST', data);
                     }
-                } catch (error) {
-                    console.error('[profil_admin] Upload foto error:', error);
-                    showToast('Error: ' + error.message, 'error');
+
+                    if (res && res.success) {
+                        await logActivity(id ? 'UPDATE' : 'CREATE', 'struktur_organisasi', res.id || id, 'Jabatan: ' + jabatan);
+
+                        if (res._offline) {
+                            safeToast('📴 Data tersimpan lokal, akan disinkronkan saat online', 'warning', 4500);
+                        } else {
+                            safeToast('✅ Data berhasil disimpan!', 'success');
+                        }
+
+                        closePengurusModal();
+                        refreshDataOnly();
+                    } else {
+                        safeToast((res && res.message) || 'Gagal simpan', 'error');
+                    }
+                } catch (err) {
+                    console.error('[profil_admin] Save error:', err);
+                    safeToast('Error: ' + err.message, 'error', 5000);
                 } finally {
-                    stopLoading(submitBtn);
                     isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = orig;
                 }
             });
         }
 
         // ================================================================
-        // 15. DIAGRAM (jsPlumb + interact)
+        // 18. DIAGRAM — Init jsPlumb
         // ================================================================
-        const hasJsPlumb = typeof jsPlumb !== 'undefined';
-        const hasInteract = typeof interact !== 'undefined';
-
         async function initJsPlumb() {
-            if (instance) {
-                try { instance.reset(); } catch (e) {}
-            }
-
-            // Ensure libs
+            if (instance) { try { instance.reset(); } catch (e) {} }
             await ensureLib('jsplumb');
             await ensureLib('interact');
 
@@ -1302,173 +894,421 @@ App.register('profil_admin', function() {
                     Container: diagramContainer
                 });
                 instance.setContainer(diagramContainer);
-                console.log('[profil_admin] jsPlumb initialized');
-
-                // Load diagram yang tersimpan
-                setTimeout(loadDiagram, 200);
+                setTimeout(() => loadOrAutoFillDiagram(), 200);
             } catch (e) {
                 console.error('[profil_admin] Init jsPlumb error:', e);
             }
         }
 
-        function createNode(x, y, label, id, color) {
-            if (!diagramContainer) return null;
+        async function loadOrAutoFillDiagram() {
+            if (!instance || !diagramContainer) return;
+            try {
+                const result = await apiCall('getProfil', 'POST', {});
+                if (result && result.success) {
+                    const item = (result.data || []).find(p => p.key === 'struktur_diagram');
+                    if (item && item.content) {
+                        let data;
+                        try { data = JSON.parse(item.content); } catch (e) { data = null; }
+                        if (data && data.nodes && data.nodes.length > 0) {
+                            renderDiagram(data);
+                            return;
+                        }
+                    }
+                }
+            } catch (e) {}
+            autoFillDiagramFromStruktur();
+        }
 
-            if (!id) id = generateNodeId();
-            color = color || '#0f2922';
+        // ================================================================
+        // 19. AUTO-LAYOUT ENGINE
+        // ================================================================
+        function autoFillDiagramFromStruktur() {
+            if (!instance || !diagramContainer) return;
+
+            const existingNodes = diagramContainer.querySelectorAll('.node-box');
+            if (existingNodes.length > 0) return;
+
+            if (strukturCache.length === 0) {
+                diagramContainer.innerHTML = `
+                    <div class="text-center py-12 text-[var(--text-muted)] pointer-events-none">
+                        <i class="fas fa-info-circle text-4xl mb-3 opacity-40"></i>
+                        <p class="font-medium">Belum ada struktur pengurus</p>
+                        <p class="text-sm mt-1">Isi data di tab "Struktur Pengurus" dulu.</p>
+                    </div>`;
+                return;
+            }
+
+            diagramContainer.innerHTML = '';
+
+            const sorted = strukturCache.slice().sort((a, b) =>
+                (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
+
+            const nodes = {
+                dewanPenasehat: [], ketua: null, wakilKetua: [],
+                sekretaris: null, wasek: [], bendahara: null,
+                wabend: [], koordinator: [], anggota: [], lainnya: []
+            };
+
+            sorted.forEach(item => {
+                const jab = String(item.jabatan || '').toLowerCase().trim();
+
+                if (jab.indexOf('penasehat') !== -1) nodes.dewanPenasehat.push(item);
+                else if (jab === 'ketua' || (jab.indexOf('ketua') !== -1 && jab.indexOf('wakil') === -1 && jab.indexOf('penasehat') === -1)) nodes.ketua = item;
+                else if (jab.indexOf('wakil ketua') !== -1) nodes.wakilKetua.push(item);
+                else if (jab === 'sekretaris' || (jab.indexOf('sekretaris') !== -1 && jab.indexOf('wakil') === -1)) nodes.sekretaris = item;
+                else if (jab.indexOf('wakil sekretaris') !== -1) nodes.wasek.push(item);
+                else if (jab === 'bendahara' || (jab.indexOf('bendahara') !== -1 && jab.indexOf('wakil') === -1)) nodes.bendahara = item;
+                else if (jab.indexOf('wakil bendahara') !== -1) nodes.wabend.push(item);
+                else if (jab.indexOf('koordinator') !== -1) nodes.koordinator.push(item);
+                else if (jab.indexOf('anggota') !== -1) nodes.anggota.push(item);
+                else nodes.lainnya.push(item);
+            });
+
+            const cr = diagramContainer.getBoundingClientRect();
+            const cw = Math.max(cr.width, 1200);
+            const nodeW = 180, nodeH = 240;
+            const gapX = 30, gapY = 80;
+            const startY = 40;
+            let currentY = startY;
+            const positions = {};
+
+            function layoutRow(items, yPos, customGapX) {
+                if (!items || items.length === 0) return yPos + nodeH;
+                const gX = customGapX !== undefined ? customGapX : gapX;
+                const totalWidth = items.length * nodeW + (items.length - 1) * gX;
+                const startX = Math.max((cw - totalWidth) / 2, 20);
+                items.forEach((item, idx) => {
+                    positions[item.id] = { x: startX + idx * (nodeW + gX), y: yPos };
+                });
+                return yPos + nodeH;
+            }
+
+            if (nodes.dewanPenasehat.length > 0) {
+                const perRow = Math.min(5, nodes.dewanPenasehat.length);
+                const rows = Math.ceil(nodes.dewanPenasehat.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.dewanPenasehat.slice(startIdx, startIdx + perRow);
+                    currentY = layoutRow(rowItems, currentY);
+                    if (r < rows - 1) currentY += 20;
+                }
+                currentY += gapY;
+            }
+
+            if (nodes.ketua) {
+                positions[nodes.ketua.id] = { x: (cw - nodeW) / 2, y: currentY };
+                currentY += nodeH + gapY;
+            }
+
+            if (nodes.wakilKetua.length > 0) {
+                const perRow = Math.min(3, nodes.wakilKetua.length);
+                const rows = Math.ceil(nodes.wakilKetua.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.wakilKetua.slice(startIdx, startIdx + perRow);
+                    currentY = layoutRow(rowItems, currentY);
+                    if (r < rows - 1) currentY += 20;
+                }
+                currentY += gapY;
+            }
+
+            let sekretarisPos = null, bendaharaPos = null;
+
+            if (nodes.sekretaris && nodes.bendahara) {
+                const totalW = 2 * nodeW + gapX * 4;
+                const startX = (cw - totalW) / 2;
+                positions[nodes.sekretaris.id] = { x: startX + nodeW + gapX * 2, y: currentY };
+                positions[nodes.bendahara.id] = { x: startX + nodeW * 2 + gapX * 3, y: currentY };
+                sekretarisPos = positions[nodes.sekretaris.id];
+                bendaharaPos = positions[nodes.bendahara.id];
+                currentY += nodeH + gapY;
+            } else if (nodes.sekretaris) {
+                positions[nodes.sekretaris.id] = { x: (cw - nodeW) / 2, y: currentY };
+                sekretarisPos = positions[nodes.sekretaris.id];
+                currentY += nodeH + gapY;
+            } else if (nodes.bendahara) {
+                positions[nodes.bendahara.id] = { x: (cw - nodeW) / 2, y: currentY };
+                bendaharaPos = positions[nodes.bendahara.id];
+                currentY += nodeH + gapY;
+            }
+
+            let wasekBottomY = currentY, wabendBottomY = currentY;
+
+            if (nodes.wasek.length > 0 && sekretarisPos) {
+                const perRow = Math.min(3, nodes.wasek.length);
+                const rows = Math.ceil(nodes.wasek.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.wasek.slice(startIdx, startIdx + perRow);
+                    const rowWidth = rowItems.length * nodeW + (rowItems.length - 1) * gapX;
+                    const rowStartX = sekretarisPos.x - (rowWidth - nodeW) / 2;
+                    rowItems.forEach((item, idx) => {
+                        positions[item.id] = {
+                            x: Math.max(rowStartX + idx * (nodeW + gapX), 20),
+                            y: currentY + r * (nodeH + 20)
+                        };
+                    });
+                    wasekBottomY = Math.max(wasekBottomY, currentY + r * (nodeH + 20));
+                }
+            }
+
+            if (nodes.wabend.length > 0 && bendaharaPos) {
+                const perRow = Math.min(3, nodes.wabend.length);
+                const rows = Math.ceil(nodes.wabend.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.wabend.slice(startIdx, startIdx + perRow);
+                    const rowWidth = rowItems.length * nodeW + (rowItems.length - 1) * gapX;
+                    const rowStartX = bendaharaPos.x - (rowWidth - nodeW) / 2;
+                    rowItems.forEach((item, idx) => {
+                        positions[item.id] = {
+                            x: Math.max(rowStartX + idx * (nodeW + gapX), 20),
+                            y: currentY + r * (nodeH + 20)
+                        };
+                    });
+                    wabendBottomY = Math.max(wabendBottomY, currentY + r * (nodeH + 20));
+                }
+            }
+
+            currentY = Math.max(wasekBottomY, wabendBottomY) + nodeH + gapY;
+
+            if (nodes.koordinator.length > 0) {
+                const perRow = Math.min(5, nodes.koordinator.length);
+                const rows = Math.ceil(nodes.koordinator.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.koordinator.slice(startIdx, startIdx + perRow);
+                    currentY = layoutRow(rowItems, currentY);
+                    if (r < rows - 1) currentY += 20;
+                }
+                currentY += gapY;
+            }
+
+            if (nodes.anggota.length > 0) {
+                const perRow = Math.min(5, nodes.anggota.length);
+                const rows = Math.ceil(nodes.anggota.length / perRow);
+                for (let r = 0; r < rows; r++) {
+                    const startIdx = r * perRow;
+                    const rowItems = nodes.anggota.slice(startIdx, startIdx + perRow);
+                    currentY = layoutRow(rowItems, currentY);
+                    if (r < rows - 1) currentY += 20;
+                }
+            }
+
+            if (nodes.lainnya.length > 0) {
+                layoutRow(nodes.lainnya, currentY);
+            }
+
+            const totalHeight = currentY + 60;
+            if (totalHeight > cr.height) diagramContainer.style.minHeight = totalHeight + 'px';
+
+            sorted.forEach(item => {
+                const pos = positions[item.id];
+                if (!pos) {
+                    positions[item.id] = { x: 40 + Math.random() * 400, y: currentY };
+                    currentY += nodeH + 20;
+                }
+                createNode(positions[item.id].x, positions[item.id].y, item, 'auto-' + item.id);
+            });
+
+            const connect = (fromId, toId, anchorFrom, anchorTo, style) => {
+                anchorFrom = anchorFrom || 'bottom';
+                anchorTo = anchorTo || 'top';
+                try {
+                    instance.connect({
+                        uuids: ['auto-' + fromId + '-' + anchorFrom, 'auto-' + toId + '-' + anchorTo],
+                        paintStyle: style || { strokeWidth: 2, stroke: '#0f2922' }
+                    });
+                } catch (e) {}
+            };
+
+            if (nodes.ketua) {
+                nodes.wakilKetua.forEach(wk => connect(nodes.ketua.id, wk.id, 'bottom', 'top'));
+                if (nodes.sekretaris) connect(nodes.ketua.id, nodes.sekretaris.id, 'bottom', 'top');
+                if (nodes.bendahara) connect(nodes.ketua.id, nodes.bendahara.id, 'bottom', 'top');
+            }
+            if (nodes.sekretaris) nodes.wasek.forEach(w => connect(nodes.sekretaris.id, w.id, 'bottom', 'top'));
+            if (nodes.bendahara) nodes.wabend.forEach(w => connect(nodes.bendahara.id, w.id, 'bottom', 'top'));
+
+            if (nodes.dewanPenasehat.length > 0 && nodes.ketua) {
+                nodes.dewanPenasehat.forEach(dp => {
+                    try {
+                        instance.connect({
+                            uuids: ['auto-' + dp.id + '-bottom', 'auto-' + nodes.ketua.id + '-top'],
+                            paintStyle: { strokeWidth: 1.5, stroke: '#94a3b8', dashstyle: '4 4' }
+                        });
+                    } catch (e) {}
+                });
+            }
+
+            safeToast('🎨 Diagram tersusun otomatis berdasarkan jabatan', 'success', 3000);
+
+            setTimeout(() => {
+                try {
+                    const allNodes = diagramContainer.querySelectorAll('.node-box');
+                    allNodes.forEach(n => instance.repaint(n));
+                    instance.repaintEverything();
+                } catch (e) {}
+            }, 200);
+
+            // Auto-save layout
+            setTimeout(async () => {
+                try {
+                    const payload = serializeDiagram();
+                    const saveRes = await apiCall('updateProfil', 'POST', {
+                        key: 'struktur_diagram',
+                        content: JSON.stringify(payload)
+                    });
+                    if (saveRes && saveRes._offline) {
+                        console.log('[profil_admin] 📴 Layout auto-save queued');
+                    } else {
+                        console.log('[profil_admin] ✅ Layout auto-saved');
+                    }
+                } catch (e) {
+                    console.warn('[profil_admin] Auto-save failed:', e);
+                }
+            }, 1200);
+        }
+
+        // ================================================================
+        // 20. CREATE NODE
+        // ================================================================
+        function createNode(x, y, item, id) {
+            if (!diagramContainer) return null;
+            id = id || generateNodeId();
+
+            const nama = item.nama || '';
+            const jabatan = item.jabatan || '';
+            const foto = item.foto_url || '';
+            const fileId = extractFileId(foto);
 
             const node = document.createElement('div');
             node.id = id;
             node.className = 'node-box';
             node.style.left = x + 'px';
             node.style.top = y + 'px';
-            node.style.width = '140px';
-            node.style.height = '60px';
-            node.style.borderColor = color;
             node.dataset.x = x;
             node.dataset.y = y;
-            node.dataset.color = color;
 
-            const textSpan = document.createElement('span');
-            textSpan.className = 'node-text';
-            textSpan.textContent = label || 'Kotak Baru';
-            textSpan.style.cursor = 'text';
-            textSpan.addEventListener('dblclick', (e) => {
-                e.stopPropagation();
-                openEditNode(id);
-            });
+            let fotoHtml;
+            if (foto) {
+                fotoHtml = `
+                    <img src="${escAttr(foto)}"
+                         alt="${escAttr(nama || jabatan)}"
+                         class="node-foto"
+                         loading="lazy"
+                         draggable="false"
+                         onerror="if(this.dataset.triedAlt==='1'){this.outerHTML='<div class=&quot;node-foto-fallback&quot;>${esc(getInitials(nama || jabatan))}</div>'}else{this.dataset.triedAlt='1';this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w400';}">`;
+            } else {
+                fotoHtml = `<div class="node-foto-fallback">${esc(getInitials(nama || jabatan))}</div>`;
+            }
+
+            const overlayHtml = `
+                <div class="node-overlay">
+                    <div class="node-nama">${esc(nama || '(belum diisi)')}</div>
+                    <div class="node-jabatan">${esc(jabatan || '-')}</div>
+                </div>
+            `;
+
+            node.innerHTML = `
+                ${fotoHtml}
+                ${overlayHtml}
+                <span class="node-badge" title="Aktif"></span>
+            `;
 
             const actions = document.createElement('div');
             actions.className = 'node-actions';
 
             const editBtn = document.createElement('button');
             editBtn.type = 'button';
-            editBtn.className = 'edit-btn';
+            editBtn.title = 'Edit kotak';
             editBtn.innerHTML = '<i class="fas fa-pen"></i>';
             editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditNode(id); });
 
-            const colorBtn = document.createElement('button');
-            colorBtn.type = 'button';
-            colorBtn.className = 'color-btn';
-            colorBtn.innerHTML = '<i class="fas fa-palette"></i>';
-            colorBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                cycleNodeColor(id);
-            });
-
             const deleteBtn = document.createElement('button');
             deleteBtn.type = 'button';
-            deleteBtn.className = 'delete-btn';
+            deleteBtn.title = 'Hapus kotak';
             deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
             deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNode(id); });
 
             actions.appendChild(editBtn);
-            actions.appendChild(colorBtn);
             actions.appendChild(deleteBtn);
 
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
-            resizeHandle.dataset.nodeId = id;
+            resizeHandle.title = 'Resize';
 
-            node.appendChild(resizeHandle);
-            node.appendChild(textSpan);
             node.appendChild(actions);
+            node.appendChild(resizeHandle);
             diagramContainer.appendChild(node);
 
             if (instance) {
-                instance.addEndpoint(id, { anchor: 'Right', uuid: id + '-right' });
-                instance.addEndpoint(id, { anchor: 'Left', uuid: id + '-left' });
-                instance.addEndpoint(id, { anchor: 'Top', uuid: id + '-top' });
-                instance.addEndpoint(id, { anchor: 'Bottom', uuid: id + '-bottom' });
+                try {
+                    instance.addEndpoint(id, { anchor: 'Right', uuid: id + '-right' });
+                    instance.addEndpoint(id, { anchor: 'Left', uuid: id + '-left' });
+                    instance.addEndpoint(id, { anchor: 'Top', uuid: id + '-top' });
+                    instance.addEndpoint(id, { anchor: 'Bottom', uuid: id + '-bottom' });
+                } catch (e) {}
             }
-
-            // Drag & resize
             attachNodeInteractions(node, resizeHandle);
-
-            diagramHasChanges = true;
             return node;
         }
 
         function attachNodeInteractions(node, resizeHandle) {
             if (typeof interact === 'undefined') return;
-
             try {
                 interact(node).draggable({
                     listeners: {
                         move: function(event) {
-                            const target = event.target;
-                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                            target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-                            target.setAttribute('data-x', x);
-                            target.setAttribute('data-y', y);
-                            if (instance) instance.repaint(target);
-                        },
-                        end: function() { diagramHasChanges = true; }
+                            const t = event.target;
+                            const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+                            const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+                            t.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+                            t.setAttribute('data-x', x);
+                            t.setAttribute('data-y', y);
+                            if (instance) instance.repaint(t);
+                        }
                     },
-                    modifiers: [
-                        interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })
-                    ],
+                    modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })],
                     inertia: false
                 });
-
                 interact(resizeHandle).draggable({
                     listeners: {
                         move: function(event) {
-                            const target = event.target.closest('.node-box');
-                            if (!target) return;
-                            const newWidth = Math.max(100, target.offsetWidth + event.dx);
-                            const newHeight = Math.max(45, target.offsetHeight + event.dy);
-                            target.style.width = newWidth + 'px';
-                            target.style.height = newHeight + 'px';
-                            if (instance) instance.repaint(target);
-                        },
-                        end: function() { diagramHasChanges = true; }
+                            const t = event.target.closest('.node-box');
+                            if (!t) return;
+                            const newWidth = Math.max(140, t.offsetWidth + event.dx);
+                            const newHeight = Math.max(180, t.offsetHeight + event.dy);
+                            t.style.width = newWidth + 'px';
+                            t.style.height = newHeight + 'px';
+                            if (instance) instance.repaint(t);
+                        }
                     },
-                    modifiers: [
-                        interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })
-                    ],
+                    modifiers: [interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true })],
                     inertia: false
                 });
-            } catch (e) {
-                console.warn('[profil_admin] interact attach error:', e);
-            }
-        }
-
-        const NODE_COLORS = ['#0f2922', '#2563eb', '#16a34a', '#dc2626', '#d97706', '#7c3aed', '#0891b2', '#be185d'];
-
-        function cycleNodeColor(id) {
-            const node = document.getElementById(id);
-            if (!node) return;
-            const current = node.dataset.color || '#0f2922';
-            const idx = NODE_COLORS.indexOf(current);
-            const next = NODE_COLORS[(idx + 1) % NODE_COLORS.length];
-            node.style.borderColor = next;
-            node.dataset.color = next;
-            diagramHasChanges = true;
-            showToast('Warna: ' + next, 'info', 1500);
+            } catch (e) {}
         }
 
         function deleteNode(id) {
             showConfirm('Hapus kotak ini?', () => {
                 const node = document.getElementById(id);
                 if (node) {
-                    if (instance) {
-                        try { instance.deleteConnectionsForElement(id); } catch (e) {}
-                    }
+                    if (instance) { try { instance.deleteConnectionsForElement(id); } catch (e) {} }
                     node.remove();
-                    diagramHasChanges = true;
                 }
             });
         }
 
+        // ================================================================
+        // 21. NODE EDIT MODAL
+        // ================================================================
         function openEditNode(id) {
             const node = document.getElementById(id);
             if (!node) return;
-            const textSpan = node.querySelector('.node-text');
+            const namaEl = node.querySelector('.node-nama');
             if (nodeEditId) nodeEditId.value = id;
-            if (nodeEditText) nodeEditText.value = textSpan ? textSpan.textContent : '';
-            editingNodeId = id;
+            if (nodeEditText) nodeEditText.value = namaEl ? namaEl.textContent : '';
 
             if (!nodeEditModal) return;
             nodeEditModal.classList.remove('hidden');
@@ -1492,7 +1332,6 @@ App.register('profil_admin', function() {
                 nodeEditModal.classList.add('hidden');
                 nodeEditModal.classList.remove('flex');
             }, 150);
-            editingNodeId = null;
         }
 
         if (nodeEditClose) {
@@ -1500,72 +1339,63 @@ App.register('profil_admin', function() {
             nodeEditClose.parentNode.replaceChild(fresh, nodeEditClose);
             fresh.addEventListener('click', closeNodeEditModal);
         }
-        if (nodeEditModal) {
-            nodeEditModal.addEventListener('click', (e) => {
-                if (e.target === nodeEditModal) closeNodeEditModal();
-            });
+        if (nodeEditCancel) {
+            const fresh = nodeEditCancel.cloneNode(true);
+            nodeEditCancel.parentNode.replaceChild(fresh, nodeEditCancel);
+            fresh.addEventListener('click', closeNodeEditModal);
         }
-
+        if (nodeEditModal) {
+            nodeEditModal.addEventListener('click', (e) => { if (e.target === nodeEditModal) closeNodeEditModal(); });
+        }
         if (nodeEditForm) {
             const fresh = nodeEditForm.cloneNode(true);
             nodeEditForm.parentNode.replaceChild(fresh, nodeEditForm);
-
             fresh.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
+                e.preventDefault(); e.stopPropagation();
                 const id = nodeEditId ? nodeEditId.value : '';
                 const text = nodeEditText ? (nodeEditText.value || '').trim() : '';
-
-                if (!text) {
-                    showToast('Teks tidak boleh kosong!', 'warning');
-                    return;
-                }
-
+                if (!text) { safeToast('Teks tidak boleh kosong', 'warning'); return; }
                 if (id) {
                     const node = document.getElementById(id);
                     if (node) {
-                        const textSpan = node.querySelector('.node-text');
-                        if (textSpan) textSpan.textContent = text;
+                        const namaEl = node.querySelector('.node-nama');
+                        if (namaEl) namaEl.textContent = text;
                     }
                 }
-                diagramHasChanges = true;
                 closeNodeEditModal();
             });
         }
 
-        // Add Node
-        if (addNodeBtn) {
-            const fresh = addNodeBtn.cloneNode(true);
-            addNodeBtn.parentNode.replaceChild(fresh, addNodeBtn);
+        // ================================================================
+        // 22. DIAGRAM BUTTONS
+        // ================================================================
+        if (resetDiagramBtn) {
+            const fresh = resetDiagramBtn.cloneNode(true);
+            resetDiagramBtn.parentNode.replaceChild(fresh, resetDiagramBtn);
             fresh.addEventListener('click', function() {
-                if (!diagramContainer) return;
-                if (!instance) initJsPlumb();
-
-                const containerRect = diagramContainer.getBoundingClientRect();
-                const x = 50 + Math.random() * Math.max(100, containerRect.width - 200);
-                const y = 50 + Math.random() * Math.max(100, containerRect.height - 150);
-
-                createNode(Math.round(x), Math.round(y), 'Kotak ' + (nodeCounter + 1));
-                nodeCounter++;
-                pushDiagramHistory();
+                if (!instance || !diagramContainer) return;
+                diagramContainer.querySelectorAll('.node-box').forEach(node => {
+                    if (instance) { try { instance.deleteConnectionsForElement(node.id); } catch (e) {} }
+                    node.remove();
+                });
+                diagramContainer.style.minHeight = '';
+                autoFillDiagramFromStruktur();
             });
         }
 
-        // Add Connection mode
         if (addConnectionBtn) {
             const fresh = addConnectionBtn.cloneNode(true);
             addConnectionBtn.parentNode.replaceChild(fresh, addConnectionBtn);
             fresh.addEventListener('click', function() {
                 connectionMode = !connectionMode;
                 this.classList.toggle('bg-purple-800');
-                this.textContent = connectionMode ? 'Batal Sambung' : 'Sambung';
+                this.innerHTML = connectionMode
+                    ? '<i class="fas fa-times mr-1"></i> Batal Sambung'
+                    : '<i class="fas fa-link mr-1"></i> Sambung';
                 if (diagramContainer) diagramContainer.style.cursor = connectionMode ? 'crosshair' : 'default';
                 if (!connectionMode) {
                     sourceNodeId = null;
-                    diagramContainer.querySelectorAll('.node-box').forEach(n => {
-                        n.style.outline = 'none';
-                    });
+                    diagramContainer.querySelectorAll('.node-box').forEach(n => { n.style.outline = 'none'; });
                 }
             });
         }
@@ -1576,7 +1406,6 @@ App.register('profil_admin', function() {
                 const node = e.target.closest('.node-box');
                 if (!node) return;
                 const id = node.id;
-
                 if (!sourceNodeId) {
                     sourceNodeId = id;
                     node.style.outline = '2px solid #fbbf24';
@@ -1584,425 +1413,170 @@ App.register('profil_admin', function() {
                     const sourceId = sourceNodeId;
                     const prevNode = document.getElementById(sourceId);
                     if (prevNode) prevNode.style.outline = 'none';
-
                     if (sourceId !== id) {
-                        try {
-                            instance.connect({
-                                uuids: [sourceId + '-bottom', id + '-top']
-                            });
-                            diagramHasChanges = true;
-                        } catch (err) {
-                            console.warn('[profil_admin] Connect error:', err);
-                        }
+                        try { instance.connect({ uuids: [sourceId + '-bottom', id + '-top'] }); } catch (err) {}
                     }
-
                     sourceNodeId = null;
                     connectionMode = false;
                     const connBtn = document.getElementById('add-connection-btn');
                     if (connBtn) {
                         connBtn.classList.remove('bg-purple-800');
-                        connBtn.textContent = 'Sambung';
+                        connBtn.innerHTML = '<i class="fas fa-link mr-1"></i> Sambung';
                     }
                     if (diagramContainer) diagramContainer.style.cursor = 'default';
-                    pushDiagramHistory();
                 }
             });
         }
 
-        // Save Diagram
         if (saveDiagramBtn) {
             const fresh = saveDiagramBtn.cloneNode(true);
             saveDiagramBtn.parentNode.replaceChild(fresh, saveDiagramBtn);
             fresh.addEventListener('click', async function() {
-                if (!instance || !diagramContainer) {
-                    showToast('Diagram belum siap.', 'warning');
-                    return;
-                }
-
-                const original = this.innerHTML;
+                if (!instance || !diagramContainer) { safeToast('Diagram belum siap', 'warning'); return; }
+                const orig = this.innerHTML;
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Menyimpan...';
-
                 try {
                     const payload = serializeDiagram();
                     const result = await apiCall('updateProfil', 'POST', {
                         key: 'struktur_diagram',
                         content: JSON.stringify(payload)
                     });
-
                     if (result && result.success) {
-                        diagramHasChanges = false;
                         await logActivity('UPDATE', 'profil_diagram', null, 'Simpan diagram');
-                        showToast('✅ Diagram berhasil disimpan!', 'success');
+                        if (result._offline) {
+                            safeToast('📴 Diagram tersimpan lokal, akan disinkronkan', 'warning', 4000);
+                        } else {
+                            safeToast('✅ Diagram disimpan', 'success');
+                        }
                     } else {
-                        showToast((result && result.message) || 'Gagal menyimpan diagram', 'error');
+                        safeToast((result && result.message) || 'Gagal', 'error');
                     }
-                } catch (err) {
-                    console.error('[profil_admin] Save diagram error:', err);
-                    showToast('Error: ' + err.message, 'error');
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = original;
-                }
+                } catch (err) { safeToast('Error: ' + err.message, 'error'); }
+                finally { this.disabled = false; this.innerHTML = orig; }
             });
         }
 
-        // Clear Diagram
         if (clearDiagramBtn) {
             const fresh = clearDiagramBtn.cloneNode(true);
             clearDiagramBtn.parentNode.replaceChild(fresh, clearDiagramBtn);
             fresh.addEventListener('click', function() {
-                showConfirm('Hapus semua kotak dan koneksi?', () => {
+                showConfirm('Hapus semua kotak?', () => {
                     if (!diagramContainer) return;
-                    const nodes = diagramContainer.querySelectorAll('.node-box');
-                    nodes.forEach(node => {
-                        if (instance) {
-                            try { instance.deleteConnectionsForElement(node.id); } catch (e) {}
-                        }
+                    diagramContainer.querySelectorAll('.node-box').forEach(node => {
+                        if (instance) { try { instance.deleteConnectionsForElement(node.id); } catch (e) {} }
                         node.remove();
                     });
-                    nodeCounter = 0;
-                    diagramHasChanges = true;
-                    pushDiagramHistory();
                 });
             });
         }
 
         function serializeDiagram() {
             if (!diagramContainer) return { nodes: [], connections: [] };
-
             const nodes = diagramContainer.querySelectorAll('.node-box');
-            const containerRect = diagramContainer.getBoundingClientRect();
-            const diagramData = [];
-
+            const cr = diagramContainer.getBoundingClientRect();
+            const data = [];
             nodes.forEach(node => {
                 const rect = node.getBoundingClientRect();
-                diagramData.push({
+                data.push({
                     id: node.id,
-                    x: Math.round(rect.left - containerRect.left),
-                    y: Math.round(rect.top - containerRect.top),
+                    x: Math.round(rect.left - cr.left),
+                    y: Math.round(rect.top - cr.top),
                     width: node.offsetWidth,
                     height: node.offsetHeight,
-                    label: node.querySelector('.node-text') ? node.querySelector('.node-text').textContent : '',
-                    color: node.dataset.color || '#0f2922'
+                    label: node.querySelector('.node-nama') ? node.querySelector('.node-nama').textContent : '',
+                    color: '#0f2922'
                 });
             });
-
             const connections = instance
-                ? instance.getConnections().map(conn => ({
-                    source: conn.sourceId,
-                    target: conn.targetId
-                }))
+                ? instance.getConnections().map(c => ({ source: c.sourceId, target: c.targetId }))
                 : [];
-
-            return { nodes: diagramData, connections: connections };
+            return { nodes: data, connections: connections };
         }
 
-        function pushDiagramHistory() {
-            try {
-                const snapshot = JSON.stringify(serializeDiagram());
-                if (diagramHistory[historyIndex] === snapshot) return;
-
-                // Truncate future
-                diagramHistory = diagramHistory.slice(0, historyIndex + 1);
-                diagramHistory.push(snapshot);
-                if (diagramHistory.length > 20) diagramHistory.shift();
-                historyIndex = diagramHistory.length - 1;
-            } catch (e) {
-                console.warn('[profil_admin] Push history error:', e);
-            }
-        }
-
-        function undoDiagram() {
-            if (historyIndex <= 0) {
-                showToast('Tidak ada lagi yang bisa di-undo.', 'info', 2000);
-                return;
-            }
-            historyIndex--;
-            restoreFromHistory(diagramHistory[historyIndex]);
-        }
-
-        function redoDiagram() {
-            if (historyIndex >= diagramHistory.length - 1) {
-                showToast('Tidak ada lagi yang bisa di-redo.', 'info', 2000);
-                return;
-            }
-            historyIndex++;
-            restoreFromHistory(diagramHistory[historyIndex]);
-        }
-
-        function restoreFromHistory(snapshot) {
-            try {
-                const data = JSON.parse(snapshot);
-                clearDiagramSilent();
-                (data.nodes || []).forEach(nodeData => {
-                    createNode(nodeData.x, nodeData.y, nodeData.label, nodeData.id, nodeData.color);
-                    const node = document.getElementById(nodeData.id);
-                    if (node) {
-                        node.style.width = (nodeData.width || 140) + 'px';
-                        node.style.height = (nodeData.height || 60) + 'px';
-                    }
-                });
-                (data.connections || []).forEach(conn => {
-                    if (!instance) return;
-                    try {
-                        instance.connect({ uuids: [conn.source + '-bottom', conn.target + '-top'] });
-                    } catch (e) {}
-                });
-            } catch (e) {
-                console.error('[profil_admin] Restore from history error:', e);
-            }
-        }
-
-        function clearDiagramSilent() {
-            if (!diagramContainer) return;
-            diagramContainer.querySelectorAll('.node-box').forEach(n => {
-                if (instance) {
-                    try { instance.deleteConnectionsForElement(n.id); } catch (e) {}
-                }
-                n.remove();
-            });
-        }
-
-        async function loadDiagram() {
+        function renderDiagram(data) {
             if (!instance || !diagramContainer) return;
-
-            try {
-                const result = await apiCall('getProfil', 'POST', {});
-                if (!result || !result.success) return;
-
-                const item = (result.data || []).find(p => p.key === 'struktur_diagram');
-                if (!item || !item.content) return;
-
-                let data;
-                try {
-                    data = JSON.parse(item.content);
-                } catch (e) {
-                    console.warn('[profil_admin] Diagram parse error:', e);
-                    return;
-                }
-
-                // Clear existing
-                clearDiagramSilent();
-
-                // Add nodes
-                (data.nodes || []).forEach(nodeData => {
-                    createNode(nodeData.x, nodeData.y, nodeData.label, nodeData.id, nodeData.color);
-                    const node = document.getElementById(nodeData.id);
-                    if (node) {
-                        node.style.width = (nodeData.width || 140) + 'px';
-                        node.style.height = (nodeData.height || 60) + 'px';
-                    }
-                });
-
-                // Add connections
-                (data.connections || []).forEach(conn => {
-                    try {
-                        instance.connect({
-                            uuids: [conn.source + '-bottom', conn.target + '-top']
-                        });
-                    } catch (e) {
-                        console.warn('[profil_admin] Load connection error:', e);
-                    }
-                });
-
-                // Init history
-                diagramHistory = [JSON.stringify(serializeDiagram())];
-                historyIndex = 0;
-                diagramHasChanges = false;
-
-                console.log('[profil_admin] Diagram loaded:', (data.nodes || []).length, 'nodes');
-            } catch (error) {
-                console.error('[profil_admin] Load diagram error:', error);
-            }
-        }
-
-        // Export JSON
-        function exportDiagramJSON() {
-            if (!instance || !diagramContainer) {
-                showToast('Diagram belum siap.', 'warning');
-                return;
-            }
-
-            const payload = serializeDiagram();
-            if (!payload.nodes || payload.nodes.length === 0) {
-                showToast('Diagram kosong, tidak ada yang di-export.', 'warning');
-                return;
-            }
-
-            const json = JSON.stringify(payload, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'struktur_diagram_' + new Date().toISOString().slice(0, 10) + '.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-            showToast('✅ Diagram JSON diexport!', 'success');
-        }
-
-        // Copy JSON
-        function copyDiagramJSON() {
-            if (!instance || !diagramContainer) {
-                showToast('Diagram belum siap.', 'warning');
-                return;
-            }
-
-            const payload = serializeDiagram();
-            const json = JSON.stringify(payload);
-            copyToClipboard(json)
-                .then(() => showToast('📋 JSON diagram dicopy ke clipboard!', 'success'))
-                .catch(() => showToast('Gagal copy JSON', 'error'));
-        }
-
-        // Import JSON
-        function importDiagramJSON() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json,application/json';
-
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    try {
-                        const data = JSON.parse(evt.target.result);
-
-                        if (!data.nodes || !Array.isArray(data.nodes)) {
-                            throw new Error('Format JSON tidak valid');
-                        }
-
-                        showConfirm('Import diagram ini? Diagram saat ini akan diganti.', () => {
-                            clearDiagramSilent();
-                            (data.nodes || []).forEach(nodeData => {
-                                createNode(nodeData.x || 50, nodeData.y || 50, nodeData.label || 'Kotak', nodeData.id, nodeData.color);
-                                const node = document.getElementById(nodeData.id);
-                                if (node) {
-                                    node.style.width = (nodeData.width || 140) + 'px';
-                                    node.style.height = (nodeData.height || 60) + 'px';
-                                }
-                            });
-                            (data.connections || []).forEach(conn => {
-                                if (!instance) return;
-                                try {
-                                    instance.connect({ uuids: [conn.source + '-bottom', conn.target + '-top'] });
-                                } catch (e) {}
-                            });
-                            diagramHasChanges = true;
-                            pushDiagramHistory();
-                            showToast('✅ Diagram berhasil di-import!', 'success');
-                        });
-                    } catch (err) {
-                        showToast('Gagal parse JSON: ' + err.message, 'error');
-                    }
+            diagramContainer.innerHTML = '';
+            (data.nodes || []).forEach(nd => {
+                const item = strukturCache.find(s => s.id === (nd.id || '').replace('auto-', '')) || {
+                    nama: nd.label, jabatan: '', foto_url: ''
                 };
-                reader.readAsText(file);
-            };
-
-            input.click();
+                createNode(nd.x, nd.y, item, nd.id);
+                const n = document.getElementById(nd.id);
+                if (n) {
+                    n.style.width = (nd.width || 180) + 'px';
+                    n.style.height = (nd.height || 240) + 'px';
+                }
+            });
+            (data.connections || []).forEach(c => {
+                try { instance.connect({ uuids: [c.source, c.target] }); } catch (e) {}
+            });
         }
 
         // ================================================================
-        // 16. REFRESH BUTTON
+        // 23. REFRESH BUTTON
         // ================================================================
         if (refreshBtn) {
             const fresh = refreshBtn.cloneNode(true);
             refreshBtn.parentNode.replaceChild(fresh, refreshBtn);
             fresh.addEventListener('click', async function() {
-                if (diagramHasChanges) {
-                    const ok = await new Promise(resolve => {
-                        showConfirm('Ada perubahan diagram yang belum disimpan. Lanjut refresh?',
-                            () => resolve(true));
-                    });
-                    // Can't reliably await here without refactor, so just continue
-                }
-
-                const original = this.innerHTML;
+                const orig = this.innerHTML;
                 this.disabled = true;
-                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Memuat...';
-
+                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
                 try {
-                    profilCache = [];
-                    strukturCache = [];
-
-                    await Promise.allSettled([
-                        loadProfil(true),
-                        loadProfilText(),
-                        loadStruktur(true),
-                        loadFotoPositions()
-                    ]);
-
-                    // Reload diagram jika instance ada
-                    if (instance) {
-                        await loadDiagram();
-                    }
-
-                    showToast('Data profil diperbarui!', 'success');
+                    safeToast('🔄 Reloading data...', 'info', 1500);
+                    await refreshDataOnly();
+                    safeToast('✅ Data diperbarui', 'success');
                 } finally {
                     this.disabled = false;
-                    this.innerHTML = original;
+                    this.innerHTML = orig;
                 }
             });
         }
 
         // ================================================================
-        // 17. ESC KEY
+        // 24. ESC HANDLER
         // ================================================================
         document.addEventListener('keydown', function(e) {
             if (e.key !== 'Escape') return;
+            if (nodeEditModal && !nodeEditModal.classList.contains('hidden')) closeNodeEditModal();
+            else if (pengurusModal && !pengurusModal.classList.contains('hidden')) closePengurusModal();
+        });
 
-            if (nodeEditModal && !nodeEditModal.classList.contains('hidden')) {
-                closeNodeEditModal();
-            } else if (strukturModal && !strukturModal.classList.contains('hidden')) {
-                closeStrukturModal();
-            } else if (profilModal && !profilModal.classList.contains('hidden')) {
-                closeProfilModal();
+        // ================================================================
+        // 25. LISTEN SYNC EVENT
+        // ================================================================
+        window.addEventListener('sync:complete', function(e) {
+            const detail = e.detail || {};
+            if (detail.processed > 0) {
+                console.log('[profil_admin] Sync complete, refreshing...');
+                refreshDataOnly();
             }
         });
 
         // ================================================================
-        // 18. INIT
+        // 26. CLEANUP
         // ================================================================
-        console.log('[profil_admin] Init dimulai');
-
-        // Ensure libraries
-        ensureLib('jsplumb');
-        ensureLib('interact');
-
-        // Setup extras
-        ensureExtraUI();
-
-        // Set default tab
-        switchTab('sejarah');
-
-        // Live preview initialization
-        updateLivePreview();
-
-        // Load semua data secara parallel
-        await Promise.allSettled([
-            loadProfil(),
-            loadProfilText(),
-            loadStruktur(),
-            loadFotoPositions()
-        ]);
-
-        // Lazy init diagram jika tab aktif
-        if (diagramContainer) {
-            setTimeout(() => {
-                if (!instance) initJsPlumb();
-            }, 300);
+        function cleanup() {
+            window.__profilAdminLoaded = false;
+            if (instance) { try { instance.reset(); } catch (e) {} instance = null; }
+            moduleInitialized = false;
+            console.log('[profil_admin] Cleanup');
         }
+        window.__profilAdminCleanup = cleanup;
 
-        console.log('[profil_admin] Init selesai');
+        // ================================================================
+        // 27. INIT SEQUENCE
+        // ================================================================
+        console.log('[profil_admin] Loading data...');
+        await loadProfilText();
+        await loadStruktur();
+
+        setTimeout(() => {
+            switchTab('sejarah');
+            console.log('[profil_admin] ✅ Init selesai v17.0.0');
+        }, 150);
     }
 
-    // ================================================================
-    // 19. RUN INIT
-    // ================================================================
     init();
 });

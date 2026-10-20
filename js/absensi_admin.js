@@ -1,30 +1,27 @@
 /**
  * js/absensi_admin.js
- * Modul Admin Absensi - FULL FIX v11.0.0 (FINAL)
- * ---------------------------------------------------------
- * FIX:
- *  - Guard anti-duplikasi + cleanup via router
- *  - XSS protection di semua output
- *  - Clone-replace listener (anti memory leak)
- *  - isSubmitting anti double-submit
- *  - Real-time QR sync (force refresh)
- *  - Confirm dialog untuk regenerate/toggle (bukan confirm())
- *
- * FEATURES:
- *  - Stats 4 kartu (total, hari ini, bulan ini, QR status)
- *  - QR toggle + regenerate dengan confirm dialog
- *  - Preview QR + Download PNG dengan logo overlay
- *  - Set password akses langsung dengan show/hide
- *  - Tabel absensi (nama, alamat, waktu, TTD)
- *  - Search real-time (nama, alamat)
- *  - Filter tanggal (dari - sampai)
- *  - Bulk delete multiple records
- *  - Preview tanda tangan (lightbox fullscreen)
- *  - Copy detail kehadiran
- *  - Export CSV (dengan filter)
- *  - Pagination "Load More"
- *  - Dark mode aware
- *  - Mobile responsive
+ * Modul Admin Absensi - v13.0.0 OFFLINE-FIRST FULL FIX
+ * ============================================================
+ * CHANGELOG v13.0.0:
+ *   ✅ NEW: Handle response _offline dari apiCall
+ *   ✅ NEW: Badge pending sync di tabel absensi
+ *   ✅ NEW: Auto-refresh saat sync:complete
+ *   ✅ NEW: Safe toast fallback (console log)
+ *   ✅ NEW: QR toggle/regenerate warning saat offline
+ *   ✅ NEW: Save password handle offline (queued)
+ *   ✅ FIX: Semua handler idempotent (no double bind)
+ *   ✅ FIX: Null-safe seluruh DOM elements
+ *   ✅ FIX: Refresh data tanpa reload halaman
+ *   ✅ FIX: Guard anti-duplikasi
+ *   ✅ FIX: QR library fallback + logo overlay robust
+ *   ✅ FIX: Download QR dengan logo (3 fallback)
+ *   ✅ FIX: Load More pagination
+ *   ✅ FIX: Search + filter tanggal
+ *   ✅ FIX: Bulk delete dengan handling offline
+ *   ✅ FIX: Copy detail + preview TTD lightbox
+ *   ✅ FIX: Export CSV dengan filter aktif
+ *   ✅ PRESERVED: Semua fitur v12.0.0
+ * ============================================================
  */
 
 App.register('absensi_admin', function() {
@@ -48,8 +45,10 @@ App.register('absensi_admin', function() {
     }
     window.__absensiAdminLoaded = true;
 
+    console.log('[absensi_admin] 🚀 Init v13.0.0 (Offline-First Full Fix)');
+
     // ================================================================
-    // 3. HELPER: TUNGGU ELEMEN DOM SIAP
+    // 3. HELPER: WAIT FOR DOM
     // ================================================================
     function waitForElements(ids, maxRetries, interval) {
         maxRetries = maxRetries || 30;
@@ -75,7 +74,7 @@ App.register('absensi_admin', function() {
     }
 
     // ================================================================
-    // 4. HELPER FUNCTIONS
+    // 4. HELPERS
     // ================================================================
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
@@ -135,14 +134,55 @@ App.register('absensi_admin', function() {
         });
     }
 
+    function extractQrData(res) {
+        if (!res || !res.success) return { status: 'inactive', token: '' };
+        if (res.data) {
+            return {
+                status: res.data.status || 'inactive',
+                token: res.data.token || ''
+            };
+        }
+        return {
+            status: res.status || 'inactive',
+            token: res.token || ''
+        };
+    }
+
+    function safeToast(msg, type, dur) {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type || 'info', dur || 3000);
+        } else {
+            console.log('[absensi_admin:' + (type || 'info') + ']', msg);
+        }
+    }
+
+    /**
+     * ✅ NEW: Deteksi pending sync per id
+     */
+    function isPendingSync(id) {
+        try {
+            if (!window.SyncManager) return false;
+            const queue = window.SyncManager.getQueue() || [];
+            const idStr = String(id);
+            return queue.some(item => {
+                const d = item.data || {};
+                return String(d.id) === idStr;
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
     // ================================================================
     // 5. INIT UTAMA
     // ================================================================
     async function init() {
         const requiredIds = [
             'absensi-table-body',
-            'qr-toggle-btn', 'qr-regenerate-btn', 'qr-status-text-admin', 'qr-token-text-admin',
-            'qr-code-display', 'download-qr-btn', 'password-input-admin', 'save-password-btn',
+            'qr-toggle-btn', 'qr-regenerate-btn',
+            'qr-status-text-admin', 'qr-token-text-admin',
+            'qr-code-display', 'download-qr-btn',
+            'password-input-admin', 'save-password-btn',
             'password-msg', 'filter-date', 'refresh-btn', 'export-btn'
         ];
 
@@ -162,7 +202,7 @@ App.register('absensi_admin', function() {
         const refreshBtn        = els['refresh-btn'];
         const exportBtn         = els['export-btn'];
 
-        if (!tableBody || !qrToggleBtn || !qrRegenerateBtn || !savePasswordBtn || !qrCodeDisplay || !downloadQrBtn) {
+        if (!tableBody || !qrToggleBtn || !qrRegenerateBtn || !savePasswordBtn || !qrCodeDisplay) {
             console.error('[absensi_admin] Elemen utama tidak ditemukan.');
             return;
         }
@@ -181,10 +221,34 @@ App.register('absensi_admin', function() {
         };
         let isSubmitting = false;
         let selectedIds = new Set();
-        let visibleCount = 20; // load more per 20
+        let visibleCount = 20;
 
         // ================================================================
-        // 7. ENSURE EXTRA UI (Stats + Search + Bulk + Load More)
+        // 7. REFRESH TANPA RELOAD
+        // ================================================================
+        function refreshDataOnly() {
+            console.log('[absensi_admin] 🔄 Refresh data without reload');
+
+            try {
+                const cKeyQr = 'cache_getQrConfig_' + user.id + '_' + JSON.stringify({});
+                const cKeyAbsensi = 'cache_getAbsensi_' + user.id + '_' + JSON.stringify({});
+                SafeSessionStorage.removeItem(cKeyQr);
+                SafeSessionStorage.removeItem(cKeyAbsensi);
+            } catch (e) {}
+
+            dataCache = [];
+            selectedIds.clear();
+
+            return Promise.allSettled([
+                loadQrStatus(),
+                loadAbsensi(true)
+            ]).then(() => {
+                console.log('[absensi_admin] ✅ Data refreshed');
+            });
+        }
+
+        // ================================================================
+        // 8. ENSURE EXTRA UI
         // ================================================================
         function ensureExtraUI() {
             const mainContent = document.getElementById('main-content');
@@ -316,9 +380,16 @@ App.register('absensi_admin', function() {
                     <p id="absensi-load-more-info" class="text-xs text-[var(--text-muted)] mt-2"></p>
                 `;
 
-                const tableWrapper = tableBody.closest('.bg-\\[var\\(--card-bg\\)\\]');
+                const tableWrapper = tableBody.closest('.table-wrapper')
+                                   || tableBody.closest('.bg-\\[var\\(--card-bg\\)\\]')
+                                   || tableBody.closest('table');
                 if (tableWrapper && tableWrapper.parentNode) {
-                    tableWrapper.parentNode.insertBefore(loadMoreWrap, tableWrapper.nextSibling);
+                    const realWrapper = tableWrapper.tagName === 'TABLE'
+                        ? tableWrapper.parentNode
+                        : tableWrapper;
+                    if (realWrapper && realWrapper.parentNode) {
+                        realWrapper.parentNode.insertBefore(loadMoreWrap, realWrapper.nextSibling);
+                    }
                 }
 
                 const loadMoreBtn = document.getElementById('absensi-load-more-btn');
@@ -332,7 +403,7 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 8. ATTACH FILTER LISTENERS
+        // 9. ATTACH FILTER LISTENERS
         // ================================================================
         function attachFilterListeners() {
             const searchInput = document.getElementById('absensi-search');
@@ -378,11 +449,11 @@ App.register('absensi_admin', function() {
                     if (filterDate) filterDate.value = '';
                     visibleCount = 20;
                     applyFilter();
-                    showToast('Filter direset.', 'info', 2000);
+                    safeToast('Filter direset.', 'info', 2000);
                 });
             }
 
-            // Sync legacy filter-date (jika ada)
+            // Sync legacy filter-date
             if (filterDate && !filterDate.dataset.attached) {
                 filterDate.dataset.attached = 'true';
                 filterDate.addEventListener('change', () => {
@@ -394,6 +465,8 @@ App.register('absensi_admin', function() {
                     } else {
                         currentFilter.dateFrom = '';
                         currentFilter.dateTo = '';
+                        if (dateFrom) dateFrom.value = '';
+                        if (dateTo) dateTo.value = '';
                     }
                     visibleCount = 20;
                     applyFilter();
@@ -402,11 +475,10 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 9. APPLY FILTER
+        // 10. APPLY FILTER
         // ================================================================
         function applyFilter() {
             filteredCache = dataCache.filter(item => {
-                // Filter tanggal
                 if (currentFilter.dateFrom || currentFilter.dateTo) {
                     const d = new Date(item.created_at);
                     if (isNaN(d.getTime())) return false;
@@ -422,7 +494,6 @@ App.register('absensi_admin', function() {
                     }
                 }
 
-                // Filter search
                 if (currentFilter.search) {
                     const q = currentFilter.search;
                     const haystack = [item.nama, item.alamat]
@@ -433,7 +504,6 @@ App.register('absensi_admin', function() {
                 return true;
             });
 
-            // Sort desc by created_at
             filteredCache.sort((a, b) =>
                 new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
@@ -442,11 +512,10 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 10. UPDATE STATS
+        // 11. UPDATE STATS
         // ================================================================
         function updateStats() {
             const total = dataCache.length;
-
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -488,7 +557,7 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 11. LOAD QR STATUS (FORCE REFRESH — realtime)
+        // 12. LOAD QR STATUS
         // ================================================================
         async function loadQrStatus() {
             try {
@@ -506,22 +575,8 @@ App.register('absensi_admin', function() {
             }
         }
 
-        function extractQrData(res) {
-            if (!res || !res.success) return { status: 'inactive', token: '' };
-            if (res.data) {
-                return {
-                    status: res.data.status || 'inactive',
-                    token: res.data.token || ''
-                };
-            }
-            return {
-                status: res.status || 'inactive',
-                token: res.token || ''
-            };
-        }
-
         // ================================================================
-        // 12. UPDATE UI QR
+        // 13. UPDATE UI QR
         // ================================================================
         function updateQrUI(status, token) {
             currentQrStatus = status;
@@ -572,7 +627,7 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 13. GENERATE QR PREVIEW
+        // 14. GENERATE QR PREVIEW
         // ================================================================
         function generateQrPreview() {
             if (!qrCodeDisplay) return;
@@ -582,6 +637,12 @@ App.register('absensi_admin', function() {
                 qrCodeDisplay.innerHTML =
                     '<p class="text-red-500 text-xs">QR library tidak tersedia</p>' +
                     '<p class="text-xs mt-2 break-all">Token: ' + escapeHtml(currentQrToken) + '</p>';
+                return;
+            }
+
+            if (!currentQrToken) {
+                qrCodeDisplay.innerHTML =
+                    '<p class="text-yellow-600 text-xs">Token belum tersedia</p>';
                 return;
             }
 
@@ -610,17 +671,16 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 14. DOWNLOAD QR (dengan logo overlay)
+        // 15. DOWNLOAD QR (dengan logo overlay)
         // ================================================================
         function downloadQR() {
             const canvas = qrCodeDisplay ? qrCodeDisplay.querySelector('canvas') : null;
             if (!canvas) {
-                showToast('QR belum tersedia', 'warning');
+                safeToast('QR belum tersedia', 'warning');
                 return;
             }
 
             try {
-                // Buat canvas baru dengan padding + logo
                 const size = canvas.width;
                 const padding = 40;
                 const finalSize = size + padding * 2;
@@ -630,14 +690,24 @@ App.register('absensi_admin', function() {
                 finalCanvas.height = finalSize;
                 const ctx = finalCanvas.getContext('2d');
 
-                // Background putih
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, finalSize, finalSize);
-
-                // Gambar QR
                 ctx.drawImage(canvas, padding, padding);
 
-                // Coba load logo
+                const triggerDownload = function() {
+                    try {
+                        const link = document.createElement('a');
+                        link.download = 'QR_Absensi_Ansor.png';
+                        link.href = finalCanvas.toDataURL('image/png');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        safeToast('✅ QR berhasil diunduh!', 'success');
+                    } catch (e) {
+                        safeToast('Gagal download: ' + e.message, 'error');
+                    }
+                };
+
                 const logo = new Image();
                 logo.crossOrigin = 'anonymous';
                 logo.onload = function() {
@@ -645,211 +715,26 @@ App.register('absensi_admin', function() {
                     const logoX = (finalSize - logoSize) / 2;
                     const logoY = (finalSize - logoSize) / 2;
 
-                    // White circle behind logo
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.arc(finalSize / 2, finalSize / 2, logoSize / 2 + 4, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Draw logo
                     ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-
-                    triggerDownload(finalCanvas, 'QR_Absensi_Ansor.png');
+                    triggerDownload();
                 };
                 logo.onerror = function() {
-                    // Tetap download tanpa logo
-                    triggerDownload(finalCanvas, 'QR_Absensi_Ansor.png');
+                    triggerDownload();
                 };
                 logo.src = 'logo-ansor.webp';
             } catch (e) {
                 console.error('[absensi_admin] Download QR error:', e);
-                showToast('Gagal download QR: ' + e.message, 'error');
-            }
-        }
-
-        function triggerDownload(canvas, filename) {
-            try {
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast('✅ QR berhasil diunduh!', 'success');
-            } catch (e) {
-                showToast('Gagal download: ' + e.message, 'error');
+                safeToast('Gagal download QR: ' + e.message, 'error');
             }
         }
 
         // ================================================================
-        // 15. TOGGLE QR STATUS
-        // ================================================================
-        if (qrToggleBtn) {
-            const fresh = qrToggleBtn.cloneNode(true);
-            qrToggleBtn.parentNode.replaceChild(fresh, qrToggleBtn);
-
-            fresh.addEventListener('click', () => {
-                const newStatus = currentQrStatus === 'active' ? 'inactive' : 'active';
-                const confirmMsg = newStatus === 'active'
-                    ? 'Aktifkan QR absensi? Token baru akan dibuat dan QR lama otomatis tidak berlaku.'
-                    : 'Tutup QR absensi? User tidak bisa scan QR sampai diaktifkan kembali.';
-
-                showConfirm(confirmMsg, async () => {
-                    if (isSubmitting) return;
-                    isSubmitting = true;
-
-                    const originalText = fresh.textContent;
-                    fresh.disabled = true;
-                    fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Memproses...';
-
-                    try {
-                        const res = await forceRefreshData('updateQrStatus', { status: newStatus });
-                        const { status, token } = extractQrData(res);
-                        currentQrStatus = status;
-                        currentQrToken = token;
-                        updateQrUI(currentQrStatus, currentQrToken);
-                        updateStats();
-
-                        await logActivity('UPDATE', 'settings', 'qr_absensi', 'QR ' + status);
-                        showToast(
-                            'Status QR: ' + (status === 'active' ? 'Aktif' : 'Nonaktif'),
-                            'success'
-                        );
-                    } catch (error) {
-                        showToast('Error: ' + error.message, 'error');
-                    } finally {
-                        fresh.disabled = false;
-                        isSubmitting = false;
-                    }
-                });
-            });
-        }
-
-        // ================================================================
-        // 16. REGENERATE QR TOKEN
-        // ================================================================
-        if (qrRegenerateBtn) {
-            const fresh = qrRegenerateBtn.cloneNode(true);
-            qrRegenerateBtn.parentNode.replaceChild(fresh, qrRegenerateBtn);
-
-            fresh.addEventListener('click', () => {
-                if (currentQrStatus !== 'active') {
-                    showToast('Aktifkan QR terlebih dahulu.', 'warning');
-                    return;
-                }
-
-                showConfirm(
-                    'Buat token QR baru? QR lama akan langsung tidak berlaku dan user harus scan ulang.',
-                    async () => {
-                        if (isSubmitting) return;
-                        isSubmitting = true;
-
-                        const originalText = fresh.innerHTML;
-                        fresh.disabled = true;
-                        fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Memproses...';
-
-                        try {
-                            const res = await forceRefreshData('updateQrStatus', { status: 'active' });
-                            const { status, token } = extractQrData(res);
-                            currentQrStatus = status;
-                            currentQrToken = token;
-                            updateQrUI(currentQrStatus, currentQrToken);
-                            updateStats();
-
-                            await logActivity('UPDATE', 'settings', 'qr_absensi', 'Regenerate token');
-                            showToast('✅ QR baru berhasil dibuat!', 'success');
-                        } catch (error) {
-                            showToast('Error: ' + error.message, 'error');
-                        } finally {
-                            fresh.disabled = false;
-                            fresh.innerHTML = originalText;
-                            isSubmitting = false;
-                        }
-                    }
-                );
-            });
-        }
-
-        // ================================================================
-        // 17. DOWNLOAD QR
-        // ================================================================
-        if (downloadQrBtn) {
-            const fresh = downloadQrBtn.cloneNode(true);
-            downloadQrBtn.parentNode.replaceChild(fresh, downloadQrBtn);
-            fresh.addEventListener('click', downloadQR);
-        }
-
-        // ================================================================
-        // 18. SAVE PASSWORD
-        // ================================================================
-        if (savePasswordBtn) {
-            const fresh = savePasswordBtn.cloneNode(true);
-            savePasswordBtn.parentNode.replaceChild(fresh, savePasswordBtn);
-
-            fresh.addEventListener('click', async () => {
-                if (isSubmitting) return;
-
-                const newPassword = passwordInput ? passwordInput.value.trim() : '';
-                if (!newPassword) {
-                    if (passwordMsg) {
-                        passwordMsg.textContent = 'Password tidak boleh kosong!';
-                        passwordMsg.className = 'text-sm text-red-500 mt-2';
-                    }
-                    return;
-                }
-                if (newPassword.length < 6) {
-                    if (passwordMsg) {
-                        passwordMsg.textContent = 'Password minimal 6 karakter!';
-                        passwordMsg.className = 'text-sm text-red-500 mt-2';
-                    }
-                    return;
-                }
-
-                isSubmitting = true;
-                const original = fresh.innerHTML;
-                fresh.disabled = true;
-                fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Menyimpan...';
-
-                try {
-                    const res = await apiCall('setAbsensiPassword', 'POST', { password: newPassword });
-                    if (res && res.success) {
-                        if (passwordMsg) {
-                            passwordMsg.textContent = '✅ Password berhasil disimpan!';
-                            passwordMsg.className = 'text-sm text-green-600 mt-2';
-                        }
-                        if (passwordInput) passwordInput.value = '';
-
-                        // Clear password message setelah 3s
-                        setTimeout(() => {
-                            if (passwordMsg) {
-                                passwordMsg.textContent = '';
-                                passwordMsg.className = 'text-sm text-[var(--text-muted)] mt-2';
-                            }
-                        }, 3000);
-
-                        await logActivity('UPDATE', 'settings', 'absensi_password', 'Password updated');
-                        showToast('Password absensi diperbarui!', 'success');
-                    } else {
-                        if (passwordMsg) {
-                            passwordMsg.textContent = res.message || 'Gagal menyimpan password.';
-                            passwordMsg.className = 'text-sm text-red-500 mt-2';
-                        }
-                    }
-                } catch (error) {
-                    if (passwordMsg) {
-                        passwordMsg.textContent = 'Error: ' + error.message;
-                        passwordMsg.className = 'text-sm text-red-500 mt-2';
-                    }
-                } finally {
-                    fresh.disabled = false;
-                    fresh.innerHTML = original;
-                    isSubmitting = false;
-                }
-            });
-        }
-
-        // ================================================================
-        // 19. LOAD ABSENSI DATA
+        // 16. LOAD ABSENSI DATA
         // ================================================================
         async function loadAbsensi(force) {
             force = force || false;
@@ -873,9 +758,7 @@ App.register('absensi_admin', function() {
                 } else if (res && res.success) {
                     dataCache = [];
                     filteredCache = [];
-                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-[var(--text-muted)]">' +
-                        '<i class="fas fa-clipboard-check text-3xl mb-2 opacity-40"></i>' +
-                        '<p>Belum ada data absensi</p></td></tr>';
+                    renderTable([]);
                     updateStats();
                 } else {
                     tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">' +
@@ -902,25 +785,23 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 20. RENDER TABLE
+        // 17. RENDER TABLE — WITH PENDING SYNC BADGE
         // ================================================================
         function renderTable(data) {
             if (!data || data.length === 0) {
                 const isFiltered = currentFilter.search ||
-                                  currentFilter.dateFrom ||
-                                  currentFilter.dateTo;
+                                   currentFilter.dateFrom ||
+                                   currentFilter.dateTo;
                 tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-[var(--text-muted)]">' +
                     (isFiltered
                         ? '<i class="fas fa-search text-3xl mb-2 opacity-40"></i><p>Tidak ada hasil yang cocok</p>'
                         : '<i class="fas fa-clipboard-check text-3xl mb-2 opacity-40"></i><p>Belum ada data absensi</p>') +
                     '</td></tr>';
-                if (document.getElementById('absensi-load-more-wrap')) {
-                    document.getElementById('absensi-load-more-wrap').classList.add('hidden');
-                }
+                const loadMoreWrap = document.getElementById('absensi-load-more-wrap');
+                if (loadMoreWrap) loadMoreWrap.classList.add('hidden');
                 return;
             }
 
-            // Update thead checkbox
             updateThead();
 
             const toShow = data.slice(0, visibleCount);
@@ -928,29 +809,32 @@ App.register('absensi_admin', function() {
 
             let html = '';
             toShow.forEach((item, idx) => {
-                const date = new Date(item.created_at);
-                const dateStr = isNaN(date.getTime()) ? '-' : formatDateTime(item.created_at);
+                const dateStr = formatDateTime(item.created_at);
                 const isSelected = selectedIds.has(item.id);
+                const pending = isPendingSync(item.id);
 
-                // TTD image
                 const ttdHtml = item.ttd
                     ? `<img src="${escapeAttr(item.ttd)}" alt="TTD"
                             class="ttd-img w-20 h-10 object-contain bg-white rounded border border-[var(--card-border)] cursor-pointer hover:scale-105 transition"
-                            onclick="previewTtd('${item.id}')"
+                            onclick="previewTtd('${escapeAttr(item.id)}')"
                             loading="lazy"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
                        <span class="hidden text-xs text-[var(--text-muted)]">No image</span>`
                     : '<span class="text-xs text-[var(--text-muted)]">-</span>';
 
+                const pendingBadge = pending
+                    ? ' <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" title="Menunggu sinkronisasi">⟳ SYNC</span>'
+                    : '';
+
                 html += `
-                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''}">
+                    <tr class="hover:bg-[var(--bg-stats)] transition-colors ${isSelected ? 'bg-red-50 dark:bg-red-900/10' : ''} ${pending ? 'border-l-2 border-amber-500' : ''}">
                         <td class="px-3 py-3 text-center">
                             <input type="checkbox" class="absensi-checkbox w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer"
-                                data-id="${item.id}" ${isSelected ? 'checked' : ''}>
+                                data-id="${escapeAttr(item.id)}" ${isSelected ? 'checked' : ''}>
                         </td>
-                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${idx + 1}</td>
+                        <td class="px-3 py-3 text-sm text-[var(--text-muted)]">${idx + 1}${pendingBadge}</td>
                         <td class="px-3 py-3 text-sm font-medium text-[var(--text-main)]">
-                            <button onclick="copyAbsensiDetail('${item.id}')"
+                            <button onclick="copyAbsensiDetail('${escapeAttr(item.id)}')"
                                 class="hover:text-blue-600 dark:hover:text-blue-400 text-left"
                                 title="Klik untuk copy detail">
                                 ${escapeHtml(item.nama || '-')}
@@ -960,12 +844,12 @@ App.register('absensi_admin', function() {
                         <td class="px-3 py-3 text-sm text-[var(--text-muted)] whitespace-nowrap">${escapeHtml(dateStr)}</td>
                         <td class="px-3 py-3 text-sm">${ttdHtml}</td>
                         <td class="px-3 py-3 text-sm whitespace-nowrap">
-                            <button onclick="copyAbsensiDetail('${item.id}')"
+                            <button onclick="copyAbsensiDetail('${escapeAttr(item.id)}')"
                                 class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-2"
                                 title="Copy detail">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button onclick="deleteAbsensi('${item.id}')"
+                            <button onclick="deleteAbsensi('${escapeAttr(item.id)}')"
                                 class="text-red-600 hover:text-red-800 dark:text-red-400"
                                 title="Hapus">
                                 <i class="fas fa-trash"></i>
@@ -979,7 +863,6 @@ App.register('absensi_admin', function() {
             attachCheckboxListeners();
             updateBulkBar();
 
-            // Update load more
             const loadMoreWrap = document.getElementById('absensi-load-more-wrap');
             const loadMoreInfo = document.getElementById('absensi-load-more-info');
             if (loadMoreWrap) {
@@ -1046,7 +929,7 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 21. BULK DELETE
+        // 18. BULK DELETE
         // ================================================================
         function attachBulkListeners() {
             const delBtn = document.getElementById('bulk-delete-absensi-btn');
@@ -1059,13 +942,14 @@ App.register('absensi_admin', function() {
                     if (ids.length === 0) return;
 
                     showConfirm(`Hapus ${ids.length} data absensi? Tindakan ini tidak bisa dibatalkan.`, async () => {
-                        let ok = 0, fail = 0;
+                        let ok = 0, fail = 0, offline = 0;
                         for (const id of ids) {
                             try {
                                 const r = await apiCall('deleteAbsensi', 'POST', { id });
                                 if (r && r.success) {
                                     ok++;
-                                    dataCache = dataCache.filter(a => a.id !== id);
+                                    if (r._offline) offline++;
+                                    dataCache = dataCache.filter(a => String(a.id) !== String(id));
                                 } else fail++;
                             } catch (e) { fail++; }
                         }
@@ -1078,9 +962,11 @@ App.register('absensi_admin', function() {
                         applyFilter();
 
                         if (fail === 0) {
-                            showToast(`✅ ${ok} data berhasil dihapus!`, 'success');
+                            safeToast(`✅ ${ok} data berhasil dihapus!` +
+                                (offline > 0 ? ' (' + offline + ' pending sync)' : ''),
+                                'success');
                         } else {
-                            showToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
+                            safeToast(`${ok} berhasil, ${fail} gagal.`, 'warning');
                         }
                     });
                 });
@@ -1102,10 +988,10 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 22. COPY DETAIL ABSENSI
+        // 19. COPY DETAIL ABSENSI
         // ================================================================
         window.copyAbsensiDetail = function(id) {
-            const item = dataCache.find(a => a.id === id);
+            const item = dataCache.find(a => String(a.id) === String(id));
             if (!item) return;
 
             const text = 'NAMA: ' + (item.nama || '-') + '\n' +
@@ -1113,17 +999,17 @@ App.register('absensi_admin', function() {
                          'WAKTU: ' + formatDateTime(item.created_at);
 
             copyToClipboard(text)
-                .then(() => showToast('✅ Detail absensi dicopy!', 'success', 2500))
-                .catch(() => showToast('Gagal copy detail', 'error'));
+                .then(() => safeToast('✅ Detail absensi dicopy!', 'success', 2500))
+                .catch(() => safeToast('Gagal copy detail', 'error'));
         };
 
         // ================================================================
-        // 23. PREVIEW TTD (lightbox)
+        // 20. PREVIEW TTD (LIGHTBOX)
         // ================================================================
         window.previewTtd = function(id) {
-            const item = dataCache.find(a => a.id === id);
+            const item = dataCache.find(a => String(a.id) === String(id));
             if (!item || !item.ttd) {
-                showToast('Tanda tangan tidak tersedia.', 'warning');
+                safeToast('Tanda tangan tidak tersedia.', 'warning');
                 return;
             }
 
@@ -1171,31 +1057,41 @@ App.register('absensi_admin', function() {
         };
 
         // ================================================================
-        // 24. DELETE ABSENSI (single)
+        // 21. DELETE ABSENSI (SINGLE)
         // ================================================================
         window.deleteAbsensi = function(id) {
-            const item = dataCache.find(a => a.id === id);
+            const item = dataCache.find(a => String(a.id) === String(id));
             const nama = item ? (item.nama || 'data ini') : 'data ini';
 
             showConfirm('Hapus data absensi "' + nama + '"?', async () => {
-                const res = await apiCall('deleteAbsensi', 'POST', { id });
-                if (res && res.success) {
-                    dataCache = dataCache.filter(a => a.id !== id);
-                    applyFilter();
-                    await logActivity('DELETE', 'absensi', id, 'Hapus: ' + nama);
-                    showToast('Data absensi dihapus!', 'success');
-                } else {
-                    showToast((res && res.message) || 'Gagal menghapus.', 'error');
+                try {
+                    const res = await apiCall('deleteAbsensi', 'POST', { id });
+                    if (res && res.success) {
+                        dataCache = dataCache.filter(a => String(a.id) !== String(id));
+                        applyFilter();
+                        await logActivity('DELETE', 'absensi', id, 'Hapus: ' + nama);
+
+                        if (res._offline) {
+                            safeToast('📴 Data dihapus lokal, akan disinkronkan saat online', 'warning', 4000);
+                        } else {
+                            safeToast('✅ Data absensi dihapus!', 'success');
+                        }
+                    } else {
+                        safeToast((res && res.message) || 'Gagal menghapus.', 'error');
+                    }
+                } catch (e) {
+                    console.error('[absensi_admin] deleteAbsensi error:', e);
+                    safeToast('Error: ' + e.message, 'error');
                 }
             });
         };
 
         // ================================================================
-        // 25. EXPORT CSV
+        // 22. EXPORT CSV
         // ================================================================
         function exportCSV() {
             if (filteredCache.length === 0) {
-                showToast('Tidak ada data untuk diekspor.', 'warning');
+                safeToast('Tidak ada data untuk diekspor.', 'warning');
                 return;
             }
 
@@ -1222,11 +1118,193 @@ App.register('absensi_admin', function() {
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-            showToast('✅ CSV berhasil diunduh!', 'success');
+            safeToast('✅ CSV berhasil diunduh!', 'success');
         }
 
         // ================================================================
-        // 26. REFRESH BUTTON
+        // 23. TOGGLE QR STATUS — OFFLINE WARNING
+        // ================================================================
+        if (qrToggleBtn) {
+            const fresh = qrToggleBtn.cloneNode(true);
+            qrToggleBtn.parentNode.replaceChild(fresh, qrToggleBtn);
+
+            fresh.addEventListener('click', () => {
+                if (!navigator.onLine) {
+                    safeToast('📴 Toggle QR memerlukan koneksi internet (server-side token).', 'warning', 4000);
+                    return;
+                }
+
+                const newStatus = currentQrStatus === 'active' ? 'inactive' : 'active';
+                const confirmMsg = newStatus === 'active'
+                    ? 'Aktifkan QR absensi? Token baru akan dibuat dan QR lama otomatis tidak berlaku.'
+                    : 'Tutup QR absensi? User tidak bisa scan QR sampai diaktifkan kembali.';
+
+                showConfirm(confirmMsg, async () => {
+                    if (isSubmitting) return;
+                    isSubmitting = true;
+
+                    fresh.disabled = true;
+                    fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Memproses...';
+
+                    try {
+                        const res = await forceRefreshData('updateQrStatus', { status: newStatus });
+                        const { status, token } = extractQrData(res);
+                        currentQrStatus = status;
+                        currentQrToken = token;
+                        updateQrUI(currentQrStatus, currentQrToken);
+                        updateStats();
+
+                        await logActivity('UPDATE', 'settings', 'qr_absensi', 'QR ' + status);
+                        safeToast(
+                            'Status QR: ' + (status === 'active' ? 'Aktif' : 'Nonaktif'),
+                            'success'
+                        );
+                    } catch (error) {
+                        safeToast('Error: ' + error.message, 'error');
+                    } finally {
+                        fresh.disabled = false;
+                        isSubmitting = false;
+                    }
+                });
+            });
+        }
+
+        // ================================================================
+        // 24. REGENERATE QR TOKEN — OFFLINE WARNING
+        // ================================================================
+        if (qrRegenerateBtn) {
+            const fresh = qrRegenerateBtn.cloneNode(true);
+            qrRegenerateBtn.parentNode.replaceChild(fresh, qrRegenerateBtn);
+
+            fresh.addEventListener('click', () => {
+                if (!navigator.onLine) {
+                    safeToast('📴 Regenerate QR memerlukan koneksi internet.', 'warning', 4000);
+                    return;
+                }
+                if (currentQrStatus !== 'active') {
+                    safeToast('Aktifkan QR terlebih dahulu.', 'warning');
+                    return;
+                }
+
+                showConfirm(
+                    'Buat token QR baru? QR lama akan langsung tidak berlaku dan user harus scan ulang.',
+                    async () => {
+                        if (isSubmitting) return;
+                        isSubmitting = true;
+
+                        fresh.disabled = true;
+                        const original = fresh.innerHTML;
+                        fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Memproses...';
+
+                        try {
+                            const res = await forceRefreshData('updateQrStatus', { status: 'active' });
+                            const { status, token } = extractQrData(res);
+                            currentQrStatus = status;
+                            currentQrToken = token;
+                            updateQrUI(currentQrStatus, currentQrToken);
+                            updateStats();
+
+                            await logActivity('UPDATE', 'settings', 'qr_absensi', 'Regenerate token');
+                            safeToast('✅ QR baru berhasil dibuat!', 'success');
+                        } catch (error) {
+                            safeToast('Error: ' + error.message, 'error');
+                        } finally {
+                            fresh.disabled = false;
+                            fresh.innerHTML = original;
+                            isSubmitting = false;
+                        }
+                    }
+                );
+            });
+        }
+
+        // ================================================================
+        // 25. DOWNLOAD QR
+        // ================================================================
+        if (downloadQrBtn) {
+            const fresh = downloadQrBtn.cloneNode(true);
+            downloadQrBtn.parentNode.replaceChild(fresh, downloadQrBtn);
+            fresh.addEventListener('click', downloadQR);
+        }
+
+        // ================================================================
+        // 26. SAVE PASSWORD — HANDLE OFFLINE
+        // ================================================================
+        if (savePasswordBtn) {
+            const fresh = savePasswordBtn.cloneNode(true);
+            savePasswordBtn.parentNode.replaceChild(fresh, savePasswordBtn);
+
+            fresh.addEventListener('click', async () => {
+                if (isSubmitting) return;
+
+                const newPassword = passwordInput ? passwordInput.value.trim() : '';
+                if (!newPassword) {
+                    if (passwordMsg) {
+                        passwordMsg.textContent = 'Password tidak boleh kosong!';
+                        passwordMsg.className = 'text-sm text-red-500 mt-2';
+                    }
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    if (passwordMsg) {
+                        passwordMsg.textContent = 'Password minimal 6 karakter!';
+                        passwordMsg.className = 'text-sm text-red-500 mt-2';
+                    }
+                    return;
+                }
+
+                isSubmitting = true;
+                const original = fresh.innerHTML;
+                fresh.disabled = true;
+                fresh.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Menyimpan...';
+
+                try {
+                    const res = await apiCall('setAbsensiPassword', 'POST', { password: newPassword });
+                    if (res && res.success) {
+                        if (passwordMsg) {
+                            if (res._offline) {
+                                passwordMsg.textContent = '📴 Password tersimpan lokal, akan disinkronkan saat online.';
+                                passwordMsg.className = 'text-sm text-amber-600 mt-2';
+                            } else {
+                                passwordMsg.textContent = '✅ Password berhasil disimpan!';
+                                passwordMsg.className = 'text-sm text-green-600 mt-2';
+                            }
+                        }
+                        if (passwordInput) passwordInput.value = '';
+
+                        setTimeout(() => {
+                            if (passwordMsg) {
+                                passwordMsg.textContent = '';
+                                passwordMsg.className = 'text-sm text-[var(--text-muted)] mt-2';
+                            }
+                        }, 4000);
+
+                        await logActivity('UPDATE', 'settings', 'absensi_password', 'Password updated');
+                        safeToast(
+                            res._offline ? 'Password tersimpan lokal' : 'Password absensi diperbarui!',
+                            res._offline ? 'warning' : 'success'
+                        );
+                    } else {
+                        if (passwordMsg) {
+                            passwordMsg.textContent = (res && res.message) || 'Gagal menyimpan password.';
+                            passwordMsg.className = 'text-sm text-red-500 mt-2';
+                        }
+                    }
+                } catch (error) {
+                    if (passwordMsg) {
+                        passwordMsg.textContent = 'Error: ' + error.message;
+                        passwordMsg.className = 'text-sm text-red-500 mt-2';
+                    }
+                } finally {
+                    fresh.disabled = false;
+                    fresh.innerHTML = original;
+                    isSubmitting = false;
+                }
+            });
+        }
+
+        // ================================================================
+        // 27. REFRESH BUTTON
         // ================================================================
         if (refreshBtn) {
             const fresh = refreshBtn.cloneNode(true);
@@ -1235,17 +1313,11 @@ App.register('absensi_admin', function() {
             fresh.addEventListener('click', async function() {
                 const original = this.innerHTML;
                 this.disabled = true;
-                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Memuat...';
-
-                dataCache = [];
-                selectedIds.clear();
+                this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> <span class="hidden sm:inline">Memuat...</span>';
 
                 try {
-                    await Promise.all([
-                        loadQrStatus(),
-                        loadAbsensi(true)
-                    ]);
-                    showToast('Data diperbarui!', 'success');
+                    await refreshDataOnly();
+                    safeToast('✅ Data absensi diperbarui!', 'success');
                 } finally {
                     this.disabled = false;
                     this.innerHTML = original;
@@ -1254,7 +1326,7 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 27. EXPORT BUTTON
+        // 28. EXPORT BUTTON
         // ================================================================
         if (exportBtn) {
             const fresh = exportBtn.cloneNode(true);
@@ -1263,25 +1335,64 @@ App.register('absensi_admin', function() {
         }
 
         // ================================================================
-        // 28. INIT
+        // 29. ESC HANDLER
         // ================================================================
-        console.log('[absensi_admin] Init dimulai');
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+            const lightbox = document.getElementById('ttd-lightbox');
+            if (lightbox && !lightbox.classList.contains('hidden')) {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // ================================================================
+        // 30. LISTEN SYNC EVENT
+        // ================================================================
+        window.addEventListener('sync:complete', function(e) {
+            const detail = e.detail || {};
+            if (detail.processed > 0) {
+                console.log('[absensi_admin] Sync complete, refreshing...');
+                refreshDataOnly();
+            }
+        });
+
+        // ================================================================
+        // 31. CLEANUP
+        // ================================================================
+        function cleanup() {
+            window.__absensiAdminLoaded = false;
+            isSubmitting = false;
+            selectedIds.clear();
+            document.body.style.overflow = '';
+            console.log('[absensi_admin] Cleanup');
+        }
+        window.__absensiAdminCleanup = cleanup;
+
+        // ================================================================
+        // 32. INIT SEQUENCE
+        // ================================================================
+        console.log('[absensi_admin] Loading initial data...');
 
         ensureExtraUI();
         attachFilterListeners();
         attachBulkListeners();
 
-        // Load data parallel
-        await Promise.all([
+        if (filterDate && !filterDate.value) {
+            filterDate.value = '';
+        }
+
+        await Promise.allSettled([
             loadQrStatus(),
             loadAbsensi()
         ]);
 
-        console.log('[absensi_admin] Init selesai');
+        console.log('[absensi_admin] ✅ Init selesai v13.0.0');
     }
 
     // ================================================================
-    // 29. RUN INIT
+    // 33. RUN INIT
     // ================================================================
     init();
 });
