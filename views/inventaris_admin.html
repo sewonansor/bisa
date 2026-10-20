@@ -1,7 +1,7 @@
 <!-- views/inventaris_admin.html -->
 <!-- Halaman Admin: Manajemen Inventaris & Peminjaman -->
 <!-- Logic: js/inventaris_admin.js | Route: /inventaris_admin | Libs: jsbarcode -->
-<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
+<!-- Versi: 3.0.0 — FULL FIX + Foto Upload Support -->
 
 <div id="main-content">
     <!-- ============================================================ -->
@@ -14,21 +14,25 @@
         </h1>
         <div class="flex flex-wrap gap-2">
             <button id="refresh-inventaris-btn"
+                    type="button"
                     class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-sync-alt"></i>
                 <span class="hidden sm:inline">Refresh</span>
             </button>
             <button id="add-barang-btn"
+                    type="button"
                     class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-plus"></i>
                 <span>Tambah Barang</span>
             </button>
             <button id="add-pinjam-btn"
+                    type="button"
                     class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-hand-holding"></i>
                 <span>Catat Pinjam</span>
             </button>
             <button id="mobile-menu-btn"
+                    type="button"
                     class="md:hidden text-2xl text-[var(--text-muted)]"
                     aria-label="Buka Menu">
                 <i class="fas fa-bars"></i>
@@ -92,6 +96,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>Foto</th>
                             <th>Nama Barang</th>
                             <th>Jumlah</th>
                             <th>Kondisi</th>
@@ -101,7 +106,7 @@
                     </thead>
                     <tbody id="barang-table-body" class="divide-y divide-[var(--card-border)]">
                         <tr>
-                            <td colspan="6" class="text-center py-6">
+                            <td colspan="7" class="text-center py-6">
                                 <i class="fas fa-spinner fa-spin text-xl text-[var(--text-muted)]"></i>
                                 <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data barang...</p>
                             </td>
@@ -145,7 +150,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- MODAL: BARANG (Tambah/Edit)                                   -->
+<!-- MODAL: BARANG (Tambah/Edit) — dengan Foto Upload             -->
 <!-- ============================================================ -->
 <div id="barang-modal"
      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
@@ -159,7 +164,9 @@
 
         <form id="barang-form" class="space-y-4">
             <input type="hidden" id="barang-id">
+            <input type="hidden" id="barang_foto_url" value="">
 
+            <!-- NAMA BARANG -->
             <div>
                 <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
                     Nama Barang <span class="text-red-500">*</span>
@@ -167,9 +174,11 @@
                 <input type="text" id="barang_nama"
                        class="form-input"
                        placeholder="Contoh: Sound System"
+                       autocomplete="off"
                        required>
             </div>
 
+            <!-- JUMLAH -->
             <div>
                 <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
                     Jumlah <span class="text-red-500">*</span>
@@ -178,9 +187,11 @@
                        class="form-input"
                        placeholder="0"
                        min="0"
+                       inputmode="numeric"
                        required>
             </div>
 
+            <!-- KONDISI -->
             <div>
                 <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
                     Kondisi
@@ -192,15 +203,67 @@
                 </select>
             </div>
 
+            <!-- LOKASI -->
             <div>
                 <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
                     Lokasi
                 </label>
                 <input type="text" id="barang_lokasi"
                        class="form-input"
-                       placeholder="Contoh: Gudang Utama">
+                       placeholder="Contoh: Gudang Utama"
+                       autocomplete="off">
             </div>
 
+            <!-- ═══════════════════════════════════════════════════ -->
+            <!-- FOTO BARANG (OPSIONAL)                              -->
+            <!-- ═══════════════════════════════════════════════════ -->
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    <i class="fas fa-camera mr-1 text-[var(--accent-500)]"></i>
+                    Foto Barang
+                    <span class="text-xs font-normal text-[var(--text-muted)]">(opsional)</span>
+                </label>
+
+                <!-- Preview area -->
+                <div id="barang-foto-preview-wrap"
+                     class="mb-3"
+                     style="display:none;">
+                    <div class="relative inline-block">
+                        <img id="barang-foto-preview"
+                             src=""
+                             alt="Preview Foto"
+                             class="w-32 h-32 object-cover rounded-lg border-2 border-[var(--card-border)] bg-[var(--bg-stats)]">
+                        <button type="button"
+                                id="barang-foto-remove"
+                                class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs shadow-md transition"
+                                style="display:none;"
+                                title="Hapus foto">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- File input -->
+                <input type="file"
+                       id="barang_foto"
+                       accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                       class="block w-full text-sm text-[var(--text-muted)]
+                              file:mr-4 file:py-2 file:px-4
+                              file:rounded-lg file:border-0
+                              file:text-sm file:font-semibold
+                              file:bg-[var(--brand-700)] file:text-white
+                              hover:file:bg-[var(--brand-600)]
+                              file:cursor-pointer file:transition
+                              bg-[var(--bg-body)] border border-[var(--card-border)]
+                              rounded-lg cursor-pointer">
+
+                <p class="text-xs text-[var(--text-muted)] mt-1.5">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Max 5 MB. Format: JPG, PNG, WEBP, GIF.
+                </p>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" id="barang-modal-close"
                         class="btn-secondary px-4 py-2 rounded-lg">
@@ -245,6 +308,7 @@
                 <input type="text" id="pinjam_peminjam"
                        class="form-input"
                        placeholder="Nama lengkap peminjam"
+                       autocomplete="off"
                        required>
             </div>
 
@@ -281,21 +345,19 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- SCRIPT INLINE — Konfirmasi saja                               -->
 <!-- ============================================================ -->
 <script>
     (function() {
-        console.log('[View] inventaris_admin.html loaded — logic handled by js/inventaris_admin.js');
+        console.log('[View] inventaris_admin.html v3.0.0 loaded — FULL FIX + Foto Upload');
     })();
 </script>
 
 <!-- ============================================================ -->
-<!-- STYLE INLINE — Khusus view inventaris_admin saja              -->
-<!-- Common styles (stat-card, btn-*, form-input, table-wrapper)   -->
-<!-- sudah di-load dari css/style.css                              -->
+<!-- STYLE INLINE — Khusus view inventaris_admin                   -->
 <!-- ============================================================ -->
 <style>
-    /* ────────────── TAB BUTTONS ────────────── */
+    /* TAB BUTTONS */
     .tab-btn {
         cursor: pointer;
         border: none;
@@ -320,7 +382,15 @@
         color: var(--accent-400);
     }
 
-    /* ────────────── RESPONSIVE ────────────── */
+    /* FILE INPUT — Safari fix */
+    input[type="file"] {
+        line-height: 1.5;
+    }
+    input[type="file"]::-webkit-file-upload-button {
+        font-family: inherit;
+    }
+
+    /* RESPONSIVE */
     @media (max-width: 640px) {
         .tab-btn {
             font-size: 0.8rem;

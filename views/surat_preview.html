@@ -1,7 +1,7 @@
 <!-- views/surat_preview.html -->
 <!-- Halaman Preview & Cetak Surat Resmi -->
 <!-- Logic: js/surat_preview.js | Route: /surat_preview?id=xxx -->
-<!-- Versi: 2.0.0 — CSS print-specific dipertahankan, common styles di css/style.css -->
+<!-- Versi: 3.3.0 — FULL FIX (Kop kanan + TTD 2 kolom + Header tengah + Export Gambar) -->
 
 <div id="main-content">
     <!-- ============================================================ -->
@@ -13,12 +13,18 @@
             Preview Surat
         </h1>
         <div class="flex flex-wrap gap-2">
-            <button id="back-btn"
+            <button id="back-btn" type="button"
                     class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Kembali</span>
             </button>
-            <button id="print-btn"
+            <button id="export-image-btn" type="button"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2"
+                    title="Export surat sebagai gambar PNG">
+                <i class="fas fa-image"></i>
+                <span>Export Gambar</span>
+            </button>
+            <button id="print-btn" type="button"
                     class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-print"></i>
                 <span>Cetak / Simpan PDF</span>
@@ -30,8 +36,8 @@
     <!-- AREA PREVIEW SURAT                                            -->
     <!-- ============================================================ -->
     <div id="surat-preview-container">
-        <!-- Loading State -->
-        <div id="preview-loading" class="text-center py-20">
+        <!-- Loading State (di-replace oleh JS saat error/loading) -->
+        <div id="preview-loading" class="text-center py-16">
             <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
             <p class="text-gray-500 mt-4">Memuat surat...</p>
         </div>
@@ -39,10 +45,10 @@
         <!-- KOP SURAT -->
         <div id="kop-surat" class="hidden mb-6">
             <div class="kop-surat-inner">
-                <!-- Logo Organisasi -->
+                <!-- Logo di KIRI -->
                 <img src="logo-ansor.webp" alt="Logo Ansor" class="kop-logo" />
 
-                <!-- Nama Organisasi & Alamat -->
+                <!-- Tulisan di KANAN -->
                 <div class="kop-text">
                     <h1 class="kop-title">Pimpinan Anak Cabang</h1>
                     <h1 class="kop-title">Gerakan Pemuda Ansor</h1>
@@ -91,29 +97,56 @@
                 <p>Wassalamu'alaikum wr. wb.</p>
             </div>
 
-            <!-- Tanda Tangan -->
-            <div class="surat-signature text-sm">
-                <p>Pimpinan Anak Cabang</p>
-                <p>Gerakan Pemuda Ansor Kapanewon Sewon</p>
-                <div class="surat-signature-space"></div>
-                <p class="font-bold underline" id="surat-pengirim"></p>
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- TANDA TANGAN — Header tengah + 2 Kolom (Ketua + Sekretaris) -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <div class="surat-signature-wrapper text-sm">
+
+                <!-- ✅ HEADER TENGAH — mencakup kedua kolom -->
+                <div class="surat-signature-header">
+                    <p class="surat-signature-title">Pimpinan Anak Cabang</p>
+                    <p class="surat-signature-subtitle">Gerakan Pemuda Ansor Kapanewon Sewon</p>
+                </div>
+
+                <!-- GRID 2 KOLOM — Nama + Jabatan -->
+                <div class="surat-signature-grid">
+
+                    <!-- KETUA -->
+                    <div class="surat-signature-col">
+                        <div class="surat-signature-space"></div>
+                        <p class="surat-signature-name" id="surat-ketua-nama">(Nama Ketua)</p>
+                        <p class="surat-signature-jabatan" id="surat-ketua-jabatan">Ketua PAC GP Ansor Kapanewon Sewon</p>
+                    </div>
+
+                    <!-- SEKRETARIS -->
+                    <div class="surat-signature-col">
+                        <div class="surat-signature-space"></div>
+                        <p class="surat-signature-name" id="surat-sekretaris-nama">(Nama Sekretaris)</p>
+                        <p class="surat-signature-jabatan" id="surat-sekretaris-jabatan">Sekretaris PAC GP Ansor Kapanewon Sewon</p>
+                    </div>
+
+                </div>
             </div>
+            <!-- END TANDA TANGAN -->
         </div>
+        <!-- END ISI SURAT -->
+
+        <!-- Legacy element (hidden) — untuk backward compat dengan JS lama -->
+        <span id="surat-pengirim" style="display: none;"></span>
     </div>
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- SCRIPT INLINE — Konfirmasi saja                               -->
 <!-- ============================================================ -->
 <script>
     (function() {
-        console.log('[View] surat_preview.html loaded — logic handled by js/surat_preview.js');
+        console.log('[View] surat_preview.html loaded v3.3.0 — logic handled by js/surat_preview.js');
     })();
 </script>
 
 <!-- ============================================================ -->
 <!-- STYLE INLINE — Khusus view surat_preview saja                 -->
-<!-- CSS ini adalah print-specific, harus tetap ada                -->
 <!-- Common styles (btn-primary, btn-secondary) sudah di style.css -->
 <!-- ============================================================ -->
 <style>
@@ -137,35 +170,42 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 4px solid #000000;
+        /* ✅ Garis hitam DIHAPUS */
         padding-bottom: 1rem;
+        gap: 1rem;
     }
 
     .kop-logo {
         height: 6rem;
         width: auto;
         object-fit: contain;
+        flex-shrink: 0;
     }
 
     .kop-text {
-        text-align: center;
+        /* ✅ Tulisan di pojok kanan */
+        text-align: right;
         flex: 1;
-        margin: 0 1rem;
+        margin: 0;
+        padding-right: 0.25rem;
+        min-width: 0;
     }
 
     .kop-title {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         font-weight: 700;
         text-transform: uppercase;
         line-height: 1.2;
         margin: 0;
         color: #000000;
+        letter-spacing: 0.01em;
     }
 
     .kop-address {
         font-size: 0.75rem;
         margin-top: 0.5rem;
         color: #000000;
+        line-height: 1.4;
     }
     .kop-address p { margin: 0; }
 
@@ -175,37 +215,126 @@
         width: 6rem;
     }
 
-    /* ────────────── TANDA TANGAN ────────────── */
-    .surat-signature {
-        text-align: right;
-        margin-top: 2.5rem;
-    }
-    .surat-signature-space {
-        height: 2rem;
-        margin-top: 2.5rem;
+    /* ═══════════════════════════════════════════════════════════
+       TANDA TANGAN — Header tengah + 2 Kolom
+       ═══════════════════════════════════════════════════════════ */
+    .surat-signature-wrapper {
+        margin-top: 3rem;
+        page-break-inside: avoid;
     }
 
-    /* ────────────── RESPONSIVE ────────────── */
+    /* ✅ HEADER TENGAH — mencakup kedua kolom */
+    .surat-signature-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .surat-signature-header .surat-signature-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        line-height: 1.3;
+        color: #000;
+        margin: 0;
+    }
+
+    .surat-signature-header .surat-signature-subtitle {
+        font-size: 0.875rem;
+        line-height: 1.3;
+        color: #000;
+        margin: 0;
+    }
+
+    /* GRID 2 KOLOM — simetris */
+    .surat-signature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .surat-signature-col {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .surat-signature-space {
+        height: 4rem;
+        width: 100%;
+    }
+
+    .surat-signature-name {
+        font-weight: 700;
+        text-decoration: underline;
+        font-size: 0.95rem;
+        color: #000;
+        margin: 0;
+        line-height: 1.35;
+        word-break: break-word;
+        padding: 0 4px;
+        max-width: 100%;
+    }
+
+    .surat-signature-jabatan {
+        font-size: 0.8rem;
+        color: #333;
+        margin: 4px 0 0;
+        line-height: 1.35;
+        word-break: break-word;
+        padding: 0 4px;
+        max-width: 100%;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
     @media (max-width: 640px) {
         #surat-preview-container {
             padding: 1rem;
             border-radius: 0.5rem;
         }
+        .kop-surat-inner {
+            gap: 0.75rem;
+        }
         .kop-logo {
             height: 4rem;
         }
         .kop-title {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         .kop-address {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
         }
         .surat-label {
             width: 4.5rem;
         }
+
+        /* Header TTD mobile */
+        .surat-signature-header {
+            margin-bottom: 1rem;
+        }
+        .surat-signature-header .surat-signature-title {
+            font-size: 0.85rem;
+        }
+        .surat-signature-header .surat-signature-subtitle {
+            font-size: 0.78rem;
+        }
+
+        /* Grid TTD mobile */
+        .surat-signature-grid {
+            gap: 1rem;
+        }
         .surat-signature-space {
-            height: 1.5rem;
-            margin-top: 1.5rem;
+            height: 3rem;
+        }
+        .surat-signature-name {
+            font-size: 0.85rem;
+        }
+        .surat-signature-jabatan {
+            font-size: 0.72rem;
         }
     }
 
@@ -213,9 +342,11 @@
        PRINT STYLES — Untuk Cetak / Export PDF
        ═══════════════════════════════════════════════════════════ */
     @media print {
+        /* ✅ Sembunyikan toolbar + tombol export */
         .no-print,
         #back-btn,
-        #print-btn {
+        #print-btn,
+        #export-image-btn {
             display: none !important;
         }
 
@@ -241,6 +372,37 @@
         #kop-surat,
         #isi-surat {
             display: block !important;
+        }
+
+        /* TTD print */
+        .surat-signature-wrapper {
+            margin-top: 2.5rem;
+            page-break-inside: avoid;
+        }
+        .surat-signature-header {
+            margin-bottom: 1.25rem;
+        }
+        .surat-signature-space {
+            height: 3.5rem;
+        }
+        .surat-signature-name {
+            color: black !important;
+        }
+        .surat-signature-jabatan {
+            color: #333 !important;
+        }
+
+        /* Print margin untuk kop */
+        .kop-text {
+            padding-right: 0.5cm;
+        }
+        .kop-logo {
+            margin-left: 0.5cm;
+        }
+
+        /* Page break untuk isi surat */
+        #isi-surat {
+            page-break-inside: avoid;
         }
     }
 </style>

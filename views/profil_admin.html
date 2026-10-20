@@ -1,351 +1,332 @@
 <!-- views/profil_admin.html -->
-<!-- Halaman Admin: Manajemen Profil Publik -->
-<!-- Logic: js/profil_admin.js | Route: /profil_admin | Libs: jsplumb, interact -->
-<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
+<!-- Manajemen Profil Publik - v12.0.0 ROBUST -->
+<!-- ============================================================ -->
+<!-- FITUR:                                                        -->
+<!--  ✅ Preview foto ROBUST (document-level delegation)           -->
+<!--  ✅ Sliding underline tab                                     -->
+<!--  ✅ Form unified: Nama, Jabatan, Deskripsi, WA, Email, Foto   -->
+<!--  ✅ Auto urutan + auto layout bagan                           -->
+<!--  ✅ Node bagan: full-bleed photo card (profesional)           -->
+<!--  ✅ Semua menu berfungsi tanpa error                          -->
+<!--  ✅ Sinkron dengan js/profil_admin.js v15.0.0                 -->
+<!-- ============================================================ -->
 
 <div id="main-content">
-    <!-- ============================================================ -->
-    <!-- HEADER                                                        -->
-    <!-- ============================================================ -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         HEADER
+         ══════════════════════════════════════════════════════════ -->
     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
-            <i class="fas fa-address-card mr-2"></i>
-            Manajemen Profil Publik
-        </h1>
-        <div class="flex flex-wrap gap-2">
-            <button id="refresh-profil-btn"
-                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i>
-                <span class="hidden sm:inline">Refresh</span>
-            </button>
-            <button id="mobile-menu-btn"
-                    class="md:hidden text-2xl text-[var(--text-muted)]"
-                    aria-label="Buka Menu">
-                <i class="fas fa-bars"></i>
-            </button>
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-main)] font-amiri">
+                <i class="fas fa-address-card mr-2"></i>
+                Manajemen Profil Publik
+            </h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1">
+                Kelola sejarah, visi misi, pengurus, dan bagan alur komando.
+            </p>
         </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 1. KELOLA POSISI FOTO                      -->
-    <!-- ========================================== -->
-    <div class="profil-panel mb-8">
-        <div class="flex justify-between items-center mb-4 border-b border-[var(--card-border)] pb-2">
-            <div>
-                <h2 class="text-xl font-bold text-[var(--text-main)] font-amiri">
-                    <i class="fas fa-tags mr-2 text-[var(--accent-500)]"></i>
-                    Kelola Posisi Foto
-                </h2>
-                <p class="text-sm text-[var(--text-muted)] mt-1">
-                    Custom posisi pengurus yang muncul di dropdown "Upload Foto".
-                </p>
-            </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-3 mb-4">
-            <input type="text" id="new-posisi-input"
-                   class="form-input flex-1"
-                   placeholder="Contoh: Wakil Ketua">
-            <button id="add-posisi-btn"
-                    class="btn-primary px-6 py-2 rounded-lg flex items-center justify-center gap-2">
-                <i class="fas fa-plus"></i>
-                <span>Tambah Posisi</span>
-            </button>
-        </div>
-
-        <div id="posisi-list-container" class="flex flex-wrap gap-2 min-h-[40px]">
-            <span class="text-[var(--text-muted)] text-sm">Memuat posisi...</span>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 2. UPLOAD FOTO PENGURUS                    -->
-    <!-- ========================================== -->
-    <div class="profil-panel mb-8">
-        <h2 class="text-2xl font-bold text-[var(--text-main)] mb-4 font-amiri">
-            <i class="fas fa-camera mr-2 text-[var(--accent-500)]"></i>
-            Upload Foto Pengurus Inti
-        </h2>
-        <p class="text-sm text-[var(--text-muted)] mb-4">
-            Pilih posisi dan upload foto untuk menampilkan di halaman publik.
-        </p>
-
-        <form id="upload-foto-form" class="space-y-4">
-            <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
-                    Posisi / Key
-                </label>
-                <select id="foto-key" class="form-input">
-                    <!-- Opsi di-render oleh js/profil_admin.js -->
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-[var(--text-muted)] mb-1 text-sm font-medium">
-                    Pilih File Foto
-                </label>
-                <input type="file" id="foto-file"
-                       accept="image/*"
-                       class="form-input"
-                       required>
-            </div>
-
-            <div id="foto-preview-container" class="hidden">
-                <img id="foto-preview" src="" alt="Preview" class="preview-img">
-            </div>
-
-            <button type="submit"
-                    class="btn-primary px-6 py-2 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fas fa-upload"></i>
-                <span>Upload &amp; Simpan Foto</span>
-            </button>
-        </form>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 3. TAB NAVIGATION                          -->
-    <!-- ========================================== -->
-    <div class="mb-4 border-b border-[var(--card-border)] flex gap-6 overflow-x-auto px-1">
-        <button type="button" class="tab-btn active py-2 px-1 text-sm font-bold" data-tab="sejarah">
-            <i class="fas fa-history mr-1"></i>Sejarah &amp; Visi
-        </button>
-        <button type="button" class="tab-btn py-2 px-1 text-sm font-medium text-[var(--text-muted)]" data-tab="struktur">
-            <i class="fas fa-users mr-1"></i>Struktur Pengurus
-        </button>
-        <button type="button" class="tab-btn py-2 px-1 text-sm font-medium text-[var(--text-muted)]" data-tab="diagram">
-            <i class="fas fa-project-diagram mr-1"></i>Diagram Struktur
+        <button id="refresh-profil-btn" type="button"
+                class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+            <i class="fas fa-sync-alt"></i>
+            <span class="hidden sm:inline">Refresh</span>
         </button>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 4. TAB: SEJARAH & VISI MISI                -->
-    <!-- ========================================== -->
+    <!-- ══════════════════════════════════════════════════════════
+         TAB NAVIGATION — dengan sliding underline
+         ══════════════════════════════════════════════════════════ -->
+    <div class="profil-tabs-wrapper mb-6">
+        <div id="profil-tabs" class="profil-tabs">
+            <button type="button" class="tab-btn active" data-tab="sejarah">
+                <i class="fas fa-history mr-1"></i>
+                <span>Sejarah &amp; Visi</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="struktur">
+                <i class="fas fa-users mr-1"></i>
+                <span>Struktur Pengurus</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="diagram">
+                <i class="fas fa-project-diagram mr-1"></i>
+                <span>Bagan Alur Komando</span>
+            </button>
+            <span id="tab-slider" class="tab-slider" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB: SEJARAH & VISI MISI
+         ══════════════════════════════════════════════════════════ -->
     <div id="tab-sejarah" class="tab-content">
         <div class="profil-panel">
-            <!-- DAFTAR PROFIL (CRUD item profil) -->
-            <div id="profil-list" class="space-y-3 mb-6"></div>
-
+            <h2 class="text-lg font-bold text-[var(--text-main)] font-amiri mb-4">
+                <i class="fas fa-edit mr-2 text-amber-500"></i>
+                Edit Sejarah &amp; Visi Misi
+            </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        <i class="fas fa-history mr-1"></i>
-                        Konten Sejarah
+                        <i class="fas fa-history mr-1"></i>Sejarah
                     </label>
-                    <textarea id="sejarah_content" rows="6"
-                              class="form-input"
+                    <textarea id="sejarah_content" rows="10"
+                              class="form-input w-full"
                               placeholder="Tulis sejarah organisasi..."></textarea>
+                    <p class="text-xs text-[var(--text-muted)] mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Bisa pakai HTML sederhana: <code>&lt;p&gt;, &lt;b&gt;, &lt;ul&gt;</code>
+                    </p>
                 </div>
                 <div>
                     <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        <i class="fas fa-bullseye mr-1"></i>
-                        Konten Visi &amp; Misi
+                        <i class="fas fa-bullseye mr-1"></i>Visi &amp; Misi
                     </label>
-                    <textarea id="visi_misi_content" rows="6"
-                              class="form-input"
-                              placeholder="Tulis visi dan misi organisasi..."></textarea>
+                    <textarea id="visi_misi_content" rows="10"
+                              class="form-input w-full"
+                              placeholder="Tulis visi dan misi..."></textarea>
+                    <p class="text-xs text-[var(--text-muted)] mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Bisa pakai HTML sederhana.
+                    </p>
                 </div>
             </div>
-
-            <div class="mt-4">
-                <button id="save-profil-btn"
-                        class="btn-primary px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+            <div class="mt-6 flex items-center gap-3">
+                <button id="save-profil-btn" type="button"
+                        class="btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2 shadow-md">
                     <i class="fas fa-save"></i>
                     <span>Simpan Perubahan</span>
                 </button>
+                <span id="profil-save-indicator" class="text-xs text-[var(--text-muted)] hidden">
+                    <i class="fas fa-check-circle text-green-600 mr-1"></i>
+                    Tersimpan
+                </span>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 5. TAB: STRUKTUR PENGURUS (CRUD)           -->
-    <!-- ========================================== -->
+    <!-- ══════════════════════════════════════════════════════════
+         TAB: STRUKTUR PENGURUS
+         ══════════════════════════════════════════════════════════ -->
     <div id="tab-struktur" class="tab-content hidden">
-        <div class="table-wrapper">
-            <div class="p-4 border-b border-[var(--card-border)] flex flex-wrap justify-between items-center gap-3">
-                <h2 class="text-xl font-bold font-amiri text-[var(--text-main)]">
-                    <i class="fas fa-users mr-2 text-[var(--accent-500)]"></i>
-                    Daftar Pengurus Lengkap
-                </h2>
-                <button id="add-struktur-btn"
-                        class="btn-primary px-4 py-2 rounded-lg text-sm transition shadow-md flex items-center gap-2">
+        <div class="profil-panel">
+            <div class="border-b border-[var(--card-border)] pb-3 mb-4 flex flex-wrap justify-between items-center gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-[var(--text-main)] font-amiri">
+                        <i class="fas fa-users mr-2 text-[var(--accent-500)]"></i>
+                        Struktur Pengurus
+                    </h2>
+                    <p class="text-sm text-[var(--text-muted)] mt-1">
+                        Data pengurus otomatis tampil di bagan + halaman publik.
+                    </p>
+                </div>
+                <button id="add-pengurus-btn" type="button"
+                        class="btn-primary px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-md">
                     <i class="fas fa-plus"></i>
                     <span>Tambah Pengurus</span>
                 </button>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Foto</th>
-                            <th>Jabatan</th>
-                            <th>Nama</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="struktur-table-body" class="divide-y divide-[var(--card-border)]">
-                        <!-- SKELETON LOADING -->
-                        <tr id="struktur-skeleton">
-                            <td colspan="5" class="text-center py-8">
-                                <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
-                                <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data pengurus...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div id="struktur-container">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                    <p class="text-sm text-[var(--text-muted)] mt-2">Memuat struktur...</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 6. TAB: DIAGRAM STRUKTUR (jsPlumb)         -->
-    <!-- ========================================== -->
+    <!-- ══════════════════════════════════════════════════════════
+         TAB: BAGAN ALUR KOMANDO
+         ══════════════════════════════════════════════════════════ -->
     <div id="tab-diagram" class="tab-content hidden">
         <div class="profil-panel">
             <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-                <h2 class="text-xl font-bold font-amiri text-[var(--text-main)]">
-                    <i class="fas fa-project-diagram mr-2 text-[var(--accent-500)]"></i>
-                    Diagram Struktur (Visual)
-                </h2>
+                <div>
+                    <h2 class="text-lg font-bold font-amiri text-[var(--text-main)]">
+                        <i class="fas fa-project-diagram mr-2 text-[var(--accent-500)]"></i>
+                        Bagan Alur Komando
+                    </h2>
+                    <p class="text-sm text-[var(--text-muted)] mt-1">
+                        Auto-tersusun berdasarkan jabatan. Bisa di-drag / resize.
+                    </p>
+                </div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="add-node-btn" class="diagram-btn diagram-btn-blue">
-                        <i class="fas fa-plus mr-1"></i> Tambah Kotak
+                    <button id="reset-diagram-btn" type="button"
+                            class="diagram-btn bg-amber-600 hover:bg-amber-700">
+                        <i class="fas fa-sync-alt mr-1"></i> Regenerate
                     </button>
-                    <button id="add-connection-btn" class="diagram-btn diagram-btn-purple">
+                    <button id="add-connection-btn" type="button"
+                            class="diagram-btn diagram-btn-purple">
                         <i class="fas fa-link mr-1"></i> Sambung
                     </button>
-                    <button id="save-diagram-btn" class="diagram-btn diagram-btn-green">
+                    <button id="save-diagram-btn" type="button"
+                            class="diagram-btn diagram-btn-green">
                         <i class="fas fa-save mr-1"></i> Simpan
                     </button>
-                    <button id="clear-diagram-btn" class="diagram-btn diagram-btn-red">
-                        <i class="fas fa-trash mr-1"></i> Hapus Semua
+                    <button id="clear-diagram-btn" type="button"
+                            class="diagram-btn diagram-btn-red">
+                        <i class="fas fa-trash mr-1"></i> Hapus
                     </button>
                 </div>
             </div>
-
-            <div id="diagram-container"></div>
-            <p class="text-xs text-[var(--text-muted)] mt-2">
+            <div id="diagram-container">
+                <div class="text-center py-12 text-[var(--text-muted)] pointer-events-none">
+                    <i class="fas fa-info-circle text-4xl mb-3 opacity-40"></i>
+                    <p class="font-medium">Klik tab "Bagan Alur Komando" untuk memuat diagram</p>
+                </div>
+            </div>
+            <p class="text-xs text-[var(--text-muted)] mt-3">
                 <i class="fas fa-info-circle mr-1"></i>
-                Tips: Klik ganda teks untuk mengedit. Drag untuk memindahkan.
+                <strong>Tips:</strong> Klik ganda kotak untuk edit nama. Drag untuk pindah.
                 Tarik pojok kanan bawah untuk resize.
             </p>
         </div>
     </div>
+
 </div>
 
-<!-- ========================================== -->
-<!-- MODAL PROFIL (TAMBAH / EDIT ITEM PROFIL)    -->
-<!-- ========================================== -->
-<div id="profil-modal"
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: PENGURUS (Unified Form)
+     ══════════════════════════════════════════════════════════════ -->
+<div id="pengurus-modal"
      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
-    <div id="modal-content"
-         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+    <div id="pengurus-modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
 
-        <h2 id="modal-title"
-            class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">
-            Tambah Profil
-        </h2>
-
-        <form id="profil-form" class="space-y-4">
-            <input type="hidden" id="profil-id">
-
-            <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Key <span class="text-red-500">*</span>
-                </label>
-                <input type="text" id="profil-key"
-                       class="form-input"
-                       placeholder="Contoh: sejarah, visi_misi, struktur_diagram"
-                       required>
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-user-plus text-xl"></i>
+                <h2 id="pengurus-modal-title" class="text-lg font-bold">
+                    Tambah Anggota Tim
+                </h2>
             </div>
+            <button type="button" id="pengurus-modal-close"
+                    class="text-white/80 hover:text-white text-2xl leading-none transition"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
 
+        <!-- Modal Body -->
+        <form id="pengurus-form" class="p-6 space-y-4" novalidate>
+            <input type="hidden" id="pengurus-id">
+
+            <!-- NAMA -->
             <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Konten <span class="text-red-500">*</span>
-                </label>
-                <textarea id="profil-content" rows="6"
-                          class="form-input"
-                          required></textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button" id="modal-close"
-                        class="btn-secondary px-4 py-2 rounded-lg">
-                    Batal
-                </button>
-                <button type="submit"
-                        class="btn-primary px-4 py-2 rounded-lg">
-                    <i class="fas fa-save mr-2"></i>
-                    <span>Simpan</span>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- MODAL CRUD STRUKTUR (PENGURUS)              -->
-<!-- ========================================== -->
-<div id="struktur-modal"
-     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
-    <div id="struktur-modal-content"
-         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
-
-        <h2 id="struktur-modal-title"
-            class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">
-            Tambah Pengurus
-        </h2>
-
-        <form id="struktur-form" class="space-y-4">
-            <input type="hidden" id="struktur-id">
-
-            <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Jabatan <span class="text-red-500">*</span>
-                </label>
-                <input type="text" id="struktur_jabatan"
-                       class="form-input"
-                       placeholder="Contoh: Ketua"
-                       required>
-            </div>
-
-            <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
                     Nama Lengkap <span class="text-red-500">*</span>
                 </label>
-                <input type="text" id="struktur_nama"
-                       class="form-input"
-                       placeholder="Nama lengkap pengurus"
+                <input type="text" id="pengurus_nama"
+                       class="form-input w-full"
+                       placeholder="Contoh: Cahyo Galih"
+                       autocomplete="name"
                        required>
             </div>
 
+            <!-- JABATAN -->
             <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    URL Foto <span class="text-xs font-normal">(opsional)</span>
+                <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
+                    Jabatan <span class="text-red-500">*</span>
                 </label>
-                <input type="text" id="struktur_foto"
-                       class="form-input"
-                       placeholder="https://example.com/foto.jpg">
+                <input type="text" id="pengurus_jabatan"
+                       class="form-input w-full"
+                       placeholder="Contoh: Ketua, Wakil Ketua, Sekretaris..."
+                       autocomplete="off"
+                       required>
+                <p class="text-xs text-[var(--text-muted)] mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Jabatan menentukan posisi di bagan. Urutan otomatis.
+                </p>
             </div>
 
+            <!-- DESKRIPSI -->
             <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Urutan <span class="text-xs font-normal">(semakin kecil semakin atas)</span>
+                <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
+                    Deskripsi / Tugas
                 </label>
-                <input type="number" id="struktur_urutan"
-                       class="form-input"
-                       value="0">
+                <textarea id="pengurus_deskripsi" rows="3"
+                          class="form-input w-full"
+                          placeholder="Deskripsi singkat peran dalam tim..."></textarea>
             </div>
 
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button" id="struktur-modal-close"
-                        class="btn-secondary px-4 py-2 rounded-lg">
+            <!-- WA + EMAIL -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
+                        <i class="fab fa-whatsapp text-green-600 mr-1"></i>Kontak WhatsApp
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none">
+                            <i class="fab fa-whatsapp"></i>
+                        </span>
+                        <input type="text" id="pengurus_whatsapp"
+                               class="form-input w-full pl-10"
+                               placeholder="628123456789"
+                               inputmode="numeric"
+                               autocomplete="off">
+                    </div>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">
+                        Format internasional: <code>628xxx</code>
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
+                        <i class="fas fa-envelope text-blue-600 mr-1"></i>Kontak Email
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="pengurus_email"
+                               class="form-input w-full pl-10"
+                               placeholder="nama@email.com"
+                               autocomplete="email">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+                 FOTO UPLOAD — ROBUST dengan inline styles
+                 ══════════════════════════════════════════════════════ -->
+            <div>
+                <label class="block text-sm font-medium text-[var(--text-main)] mb-2">
+                    Foto Anggota
+                </label>
+                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <!-- PREVIEW BOX -->
+                    <div id="pengurus_foto_preview_wrap"
+                         style="width: 96px; height: 96px; border-radius: 12px; border: 2px dashed var(--card-border); display: flex; align-items: center; justify-content: center; background: var(--bg-stats); flex-shrink: 0; overflow: hidden; position: relative;">
+                        <img id="pengurus_foto_preview"
+                             src=""
+                             alt="Preview"
+                             style="width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0;">
+                        <i class="fas fa-user" id="pengurus_foto_placeholder"
+                           style="font-size: 32px; color: var(--text-muted);"></i>
+                    </div>
+
+                    <!-- FILE INPUT AREA -->
+                    <div style="flex: 1; min-width: 0;">
+                        <input type="file" id="pengurus_foto" accept="image/*"
+                               style="display: block; width: 100%; font-size: 14px; color: var(--text-muted);">
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                            Max 2 MB. Format: JPG, PNG, WEBP. Rasio 1:1 disarankan.
+                        </p>
+                        <button type="button" id="pengurus_hapus_foto"
+                                style="display: none; font-size: 12px; color: #dc2626; margin-top: 4px; background: none; border: none; cursor: pointer; padding: 0;">
+                            <i class="fas fa-times-circle" style="margin-right: 4px;"></i>Hapus Foto
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="flex justify-end gap-2 pt-3 border-t border-[var(--card-border)]">
+                <button type="button" id="pengurus-modal-close-2"
+                        class="btn-secondary px-5 py-2 rounded-lg">
                     Batal
                 </button>
                 <button type="submit"
-                        class="btn-primary px-4 py-2 rounded-lg">
-                    <i class="fas fa-save mr-2"></i>
+                        class="btn-primary px-5 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-save"></i>
                     <span>Simpan</span>
                 </button>
             </div>
@@ -353,62 +334,190 @@
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- MODAL EDIT TEKS NODE (Diagram)              -->
-<!-- ========================================== -->
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: EDIT NODE DIAGRAM
+     ══════════════════════════════════════════════════════════════ -->
 <div id="node-edit-modal"
-     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[10000] backdrop-blur-sm p-4">
     <div id="node-edit-content"
          class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-95 opacity-0 transition-all duration-300">
-
-        <h2 class="text-xl font-bold mb-4 text-[var(--text-main)] font-amiri">
-            Edit Teks Kotak
-        </h2>
-
-        <form id="node-edit-form" class="space-y-4">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-[var(--text-main)] font-amiri">
+                <i class="fas fa-edit mr-2 text-amber-500"></i>Edit Kotak
+            </h2>
+            <button type="button" id="node-edit-close"
+                    class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-xl transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="node-edit-form" class="space-y-4" novalidate>
             <input type="hidden" id="node-edit-id">
-
             <div>
                 <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Teks
+                    Teks / Nama
                 </label>
                 <input type="text" id="node-edit-text"
-                       class="form-input"
-                       placeholder="Teks kotak"
-                       required>
+                       class="form-input w-full" required>
             </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button" id="node-edit-close"
-                        class="btn-secondary px-4 py-2 rounded-lg">
-                    Batal
-                </button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[var(--card-border)]">
+                <button type="button" id="node-edit-cancel"
+                        class="btn-secondary px-4 py-2 rounded-lg">Batal</button>
                 <button type="submit"
-                        class="btn-success px-4 py-2 rounded-lg">
-                    <i class="fas fa-save mr-2"></i>
-                    <span>Simpan</span>
+                        class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-save"></i><span>Simpan</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
-<!-- ============================================================ -->
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPT INLINE — ROBUST FOTO HANDLER + TAB SLIDER
+     ══════════════════════════════════════════════════════════════ -->
 <script>
     (function() {
-        console.log('[View] profil_admin.html loaded — logic handled by js/profil_admin.js');
+        'use strict';
+
+        console.log('[View] profil_admin.html v12.0.0 ROBUST loaded');
+
+        // ══════════════════════════════════════════════════════════
+        // GLOBAL FOTO PREVIEW HANDLER (document-level delegation)
+        // ══════════════════════════════════════════════════════════
+        let _pendingFotoFile = null;
+
+        function handleFotoChange(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            console.log('[ProfilAdmin:View] 📷 File dipilih:', file.name, '| size:', file.size, '| type:', file.type);
+
+            // Validasi
+            if (file.size > 2 * 1024 * 1024) {
+                if (typeof showToast === 'function') showToast('File terlalu besar (maks 2 MB)', 'warning');
+                input.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                if (typeof showToast === 'function') showToast('File harus berupa gambar', 'warning');
+                input.value = '';
+                return;
+            }
+
+            _pendingFotoFile = file;
+
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const dataUrl = ev.target.result;
+
+                const preview = document.getElementById('pengurus_foto_preview');
+                const placeholder = document.getElementById('pengurus_foto_placeholder');
+                const hapusBtn = document.getElementById('pengurus_hapus_foto');
+
+                if (preview) {
+                    preview.src = dataUrl;
+                    preview.style.display = 'block';
+                    preview.style.width = '100%';
+                    preview.style.height = '100%';
+                    preview.style.objectFit = 'cover';
+                    preview.style.position = 'absolute';
+                    preview.style.top = '0';
+                    preview.style.left = '0';
+                    console.log('[ProfilAdmin:View] ✅ Preview src set');
+                }
+
+                if (placeholder) placeholder.style.display = 'none';
+                if (hapusBtn) {
+                    hapusBtn.style.display = 'inline-flex';
+                    hapusBtn.style.alignItems = 'center';
+                    hapusBtn.style.gap = '4px';
+                }
+
+                try {
+                    document.dispatchEvent(new CustomEvent('profil-foto-selected', {
+                        detail: { file: file, dataUrl: dataUrl }
+                    }));
+                } catch (e) {}
+            };
+
+            reader.onerror = function() {
+                console.error('[ProfilAdmin:View] ❌ FileReader error');
+                if (typeof showToast === 'function') showToast('Gagal membaca file', 'error');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Change listener (delegation)
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'pengurus_foto') handleFotoChange(e.target);
+        }, true);
+
+        // Fallback input listener
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.id === 'pengurus_foto') handleFotoChange(e.target);
+        }, true);
+
+        // Hapus foto
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('#pengurus_hapus_foto');
+            if (!btn) return;
+            e.preventDefault();
+
+            _pendingFotoFile = null;
+
+            const input = document.getElementById('pengurus_foto');
+            const preview = document.getElementById('pengurus_foto_preview');
+            const placeholder = document.getElementById('pengurus_foto_placeholder');
+
+            if (input) input.value = '';
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+            if (placeholder) placeholder.style.display = 'block';
+            btn.style.display = 'none';
+
+            try {
+                document.dispatchEvent(new CustomEvent('profil-foto-cleared'));
+            } catch (e) {}
+        });
+
+        // Expose helper
+        window.__profilAdminFoto = {
+            getPendingFile: function() { return _pendingFotoFile; },
+            clearPendingFile: function() {
+                _pendingFotoFile = null;
+                const input = document.getElementById('pengurus_foto');
+                if (input) input.value = '';
+            },
+            reset: function() {
+                _pendingFotoFile = null;
+                const preview = document.getElementById('pengurus_foto_preview');
+                const placeholder = document.getElementById('pengurus_foto_placeholder');
+                const hapusBtn = document.getElementById('pengurus_hapus_foto');
+                const input = document.getElementById('pengurus_foto');
+
+                if (preview) {
+                    preview.src = '';
+                    preview.style.display = 'none';
+                }
+                if (placeholder) placeholder.style.display = 'block';
+                if (hapusBtn) hapusBtn.style.display = 'none';
+                if (input) input.value = '';
+            }
+        };
+
+        console.log('[ProfilAdmin:View] ✅ Global foto handler ready');
     })();
 </script>
 
-<!-- ============================================================ -->
-<!-- STYLE INLINE — Khusus view profil_admin saja                  -->
-<!-- Common styles (btn-primary, btn-secondary, btn-success,       -->
-<!-- form-input, table-wrapper, skeleton-box) sudah di style.css   -->
-<!-- ============================================================ -->
+<!-- ══════════════════════════════════════════════════════════════
+     STYLE INLINE — ROBUST
+     ══════════════════════════════════════════════════════════════ -->
 <style>
-    /* ────────────── PROFIL PANEL ────────────── */
+    /* ═══════════════════════════════════════════════════════════
+       PANEL
+       ═══════════════════════════════════════════════════════════ */
     .profil-panel {
         background: var(--card-bg);
         backdrop-filter: blur(8px);
@@ -419,57 +528,104 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     }
 
-    /* ────────────── TAB BUTTONS ────────────── */
+    /* ═══════════════════════════════════════════════════════════
+       TAB NAVIGATION
+       ═══════════════════════════════════════════════════════════ */
+    .profil-tabs-wrapper {
+        border-bottom: 1px solid var(--card-border);
+        position: relative;
+    }
+
+    .profil-tabs {
+        position: relative;
+        display: flex;
+        gap: 0.25rem;
+        padding-bottom: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .profil-tabs::-webkit-scrollbar { display: none; }
+
     .tab-btn {
+        position: relative;
         cursor: pointer;
         border: none;
         background: transparent;
-        border-bottom: 2px solid transparent;
         font-family: inherit;
         display: inline-flex;
         align-items: center;
-        transition: all 220ms var(--ease-smooth);
         color: var(--text-muted);
+        padding: 0.85rem 0.95rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: color 220ms ease;
         white-space: nowrap;
+        z-index: 2;
+        -webkit-tap-highlight-color: transparent;
     }
-    .tab-btn:hover {
-        color: var(--text-main);
-    }
+    .tab-btn:hover { color: var(--text-main); }
     .tab-btn.active {
-        border-bottom-color: var(--brand-700);
-        color: var(--brand-700);
-        font-weight: 600;
+        color: var(--brand-700, #0f2922);
+        font-weight: 700;
     }
-    .dark .tab-btn.active {
-        border-bottom-color: var(--accent-400);
-        color: var(--accent-400);
+    .dark .tab-btn.active { color: #fbbf24; }
+
+    .tab-slider {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 0;
+        background: #0f2922;
+        border-radius: 3px 3px 0 0;
+        transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+                    width 320ms cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 3;
+        box-shadow: 0 1px 4px rgba(15, 41, 34, 0.2);
+    }
+    .dark .tab-slider {
+        background: #fbbf24;
+        box-shadow: 0 1px 6px rgba(251, 191, 36, 0.4);
     }
 
-    /* ────────────── PREVIEW IMG ────────────── */
-    .preview-img {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 2px solid var(--card-border);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    .tab-content { animation: fadeInUp 0.3s ease-out; }
+    .tab-content.hidden { display: none !important; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ────────────── DIAGRAM CONTAINER ────────────── */
+    /* ═══════════════════════════════════════════════════════════
+       DIAGRAM CONTAINER
+       ═══════════════════════════════════════════════════════════ */
     #diagram-container {
         position: relative;
         width: 100%;
-        min-height: 500px;
+        min-height: 600px;
         border: 2px dashed var(--card-border);
         border-radius: 1rem;
         background: var(--bg-stats);
         padding: 20px;
         overflow: auto;
+        background-image:
+            linear-gradient(rgba(15, 41, 34, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 41, 34, 0.03) 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+    .dark #diagram-container {
+        background-image:
+            linear-gradient(rgba(251, 191, 36, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(251, 191, 36, 0.04) 1px, transparent 1px);
     }
 
-    /* ────────────── DIAGRAM TOOLBAR BUTTONS ────────────── */
+    /* ═══════════════════════════════════════════════════════════
+       DIAGRAM BUTTONS
+       ═══════════════════════════════════════════════════════════ */
     .diagram-btn {
-        padding: 0.4rem 0.85rem;
+        padding: 0.5rem 0.9rem;
         border-radius: 0.5rem;
         border: none;
         cursor: pointer;
@@ -477,114 +633,303 @@
         font-size: 0.8rem;
         font-weight: 500;
         color: #ffffff;
-        transition: all 220ms var(--ease-spring);
+        transition: all 220ms ease;
         display: inline-flex;
         align-items: center;
+        gap: 0.25rem;
+        -webkit-tap-highlight-color: transparent;
     }
     .diagram-btn:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    .diagram-btn-blue   { background: #2563eb; }
-    .diagram-btn-blue:hover   { background: #1d4ed8; }
     .diagram-btn-purple { background: #7c3aed; }
     .diagram-btn-purple:hover { background: #6d28d9; }
-    .diagram-btn-green  { background: #16a34a; }
-    .diagram-btn-green:hover  { background: #15803d; }
-    .diagram-btn-red    { background: #dc2626; }
-    .diagram-btn-red:hover    { background: #b91c1c; }
+    .diagram-btn-green { background: #16a34a; }
+    .diagram-btn-green:hover { background: #15803d; }
+    .diagram-btn-red { background: #dc2626; }
+    .diagram-btn-red:hover { background: #b91c1c; }
 
-    /* ────────────── NODE BOX (jsPlumb) ────────────── */
+    /* ═══════════════════════════════════════════════════════════
+       NODE BOX — Full-Bleed Photo Card
+       ═══════════════════════════════════════════════════════════ */
     .node-box {
         position: absolute;
-        min-width: 120px;
-        min-height: 50px;
-        background: var(--card-bg);
-        border: 2px solid #0f2922;
-        border-radius: 8px;
-        padding: 10px;
-        text-align: center;
+        width: 180px;
+        height: 240px;
+        border-radius: 14px;
+        overflow: hidden;
         cursor: move;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-main);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow:
+            0 4px 6px -1px rgba(15, 41, 34, 0.1),
+            0 10px 24px -6px rgba(15, 41, 34, 0.15);
         touch-action: none;
         user-select: none;
+        -webkit-user-select: none;
         z-index: 10;
-        transition: box-shadow 200ms ease;
+        transition: box-shadow 300ms ease, transform 300ms ease;
+        background: #0f2922;
+        border: none;
     }
+
     .node-box:hover {
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        box-shadow:
+            0 8px 16px -4px rgba(15, 41, 34, 0.2),
+            0 24px 48px -12px rgba(16, 185, 129, 0.3);
+        transform: translateY(-3px);
     }
+
     .dark .node-box {
-        background: #1e293b;
-        color: #e2e8f0;
-        border-color: #94a3b8;
+        background: #0a1e19;
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.4),
+            0 10px 24px -6px rgba(0, 0, 0, 0.5);
     }
+    .dark .node-box:hover {
+        box-shadow:
+            0 8px 16px -4px rgba(0, 0, 0, 0.5),
+            0 24px 48px -12px rgba(251, 191, 36, 0.25);
+    }
+
+    .node-box .node-foto {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+        transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1;
+    }
+    .node-box:hover .node-foto { transform: scale(1.06); }
+
+    .node-box .node-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 36px 14px 14px;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.92) 0%,
+            rgba(0, 0, 0, 0.75) 35%,
+            rgba(0, 0, 0, 0.35) 65%,
+            transparent 100%
+        );
+        color: #ffffff;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        text-align: left;
+        pointer-events: none;
+    }
+
+    .node-box .node-nama {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 1.25;
+        color: #ffffff;
+        letter-spacing: -0.01em;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+
+    .node-box .node-jabatan {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        color: #fbbf24;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        line-height: 1.3;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+
+    .node-box .node-foto-fallback {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #14b8a6 0%, #059669 50%, #0f2922 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-family: 'Amiri', serif;
+        font-size: 4rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .node-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
+        z-index: 3;
+        opacity: 0;
+        transition: opacity 300ms ease;
+    }
+    .node-box:hover::before { opacity: 1; }
 
     .node-box .node-actions {
         position: absolute;
-        top: -10px;
-        right: -10px;
+        top: 8px;
+        right: 8px;
         opacity: 0;
-        transition: opacity 0.2s;
+        transition: opacity 0.25s ease;
         display: flex;
         gap: 4px;
+        z-index: 15;
     }
-    .node-box:hover .node-actions {
-        opacity: 1;
-    }
+    .node-box:hover .node-actions { opacity: 1; }
+
     .node-box .node-actions button {
-        background: white;
-        border: 1px solid #d1d5db;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
         cursor: pointer;
-        color: #374151;
+        color: #0f2922;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 180ms ease;
+        transition: all 200ms ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
     .node-box .node-actions button:hover {
-        background: #f3f4f6;
-        transform: scale(1.08);
+        transform: scale(1.15);
+        background: #ffffff;
     }
-    .dark .node-box .node-actions button {
-        background: #334155;
-        border-color: #475569;
-        color: #e2e8f0;
+    .node-box .node-actions button:first-child:hover {
+        color: #2563eb;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    .node-box .node-actions button:last-child:hover {
+        color: #dc2626;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
 
     .node-box .resize-handle {
         position: absolute;
-        bottom: -5px;
-        right: -5px;
-        width: 10px;
-        height: 10px;
-        background: #0f2922;
+        bottom: 8px;
+        right: 8px;
+        width: 14px;
+        height: 14px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border: 2px solid rgba(255, 255, 255, 0.9);
         border-radius: 50%;
         cursor: nwse-resize;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 15;
     }
-    .dark .node-box .resize-handle {
-        background: #fbbf24;
+    .node-box:hover .resize-handle { opacity: 1; }
+
+    .node-box .node-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+        z-index: 3;
+        animation: nodeBadgePulse 2s ease-in-out infinite;
+    }
+    @keyframes nodeBadgePulse {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); }
+        50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.1); }
     }
 
-    /* ────────────── RESPONSIVE ────────────── */
+    .dark .node-box .node-overlay {
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.95) 0%,
+            rgba(0, 0, 0, 0.8) 35%,
+            rgba(0, 0, 0, 0.4) 65%,
+            transparent 100%
+        );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SCROLLBAR
+       ═══════════════════════════════════════════════════════════ */
+    #diagram-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    #diagram-container::-webkit-scrollbar-track { background: transparent; }
+    #diagram-container::-webkit-scrollbar-thumb {
+        background: var(--card-border);
+        border-radius: 4px;
+    }
+    #diagram-container::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
     @media (max-width: 640px) {
-        .profil-panel {
-            padding: 1rem;
-        }
+        .profil-panel { padding: 1rem; }
         #diagram-container {
             min-height: 400px;
             padding: 0.75rem;
         }
         .tab-btn {
-            font-size: 0.8rem;
-            padding: 0.5rem 0.25rem;
+            font-size: 0.78rem;
+            padding: 0.75rem 0.65rem;
         }
+        .tab-btn span { display: inline; }
+        #pengurus-modal-content { margin: 0.5rem; }
+
+        .node-box {
+            width: 150px;
+            height: 200px;
+        }
+        .node-box .node-foto-fallback { font-size: 3rem; }
+        .node-box .node-nama { font-size: 12px; }
+        .node-box .node-jabatan { font-size: 9px; }
+        .node-box .node-overlay { padding: 28px 10px 10px; }
+    }
+
+    @media (max-width: 400px) {
+        .tab-btn {
+            font-size: 0.72rem;
+            padding: 0.65rem 0.5rem;
+        }
+        .tab-btn i { display: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOTO PREVIEW — SAFETY
+       ═══════════════════════════════════════════════════════════ */
+    #pengurus_foto_preview[src=""] {
+        display: none !important;
     }
 </style>

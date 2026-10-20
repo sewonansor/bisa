@@ -1,221 +1,266 @@
-<!-- views/proker_admin.html -->
-<!-- Halaman Admin: Manajemen Program Kerja -->
-<!-- Logic: js/proker_admin.js | Route: /proker_admin -->
-<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
-
-<div id="main-content">
-    <!-- ============================================================ -->
-    <!-- HEADER                                                        -->
-    <!-- ============================================================ -->
-    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-        <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
-            <i class="fas fa-tasks mr-2"></i>
-            Manajemen Program Kerja
-        </h1>
-        <div class="flex flex-wrap gap-2">
-            <button id="refresh-proker-btn"
-                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+<!-- 
+  views/proker_admin.html
+  FULL FIX v14.0.0 — Responsive Table + Grid View
+-->
+<div id="main-content" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-main)] font-amiri flex items-center gap-3">
+                <i class="fas fa-tasks text-amber-500"></i>
+                Manajemen Program Kerja
+            </h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1">
+                Kelola program kerja, target, dan progres organisasi
+            </p>
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+            <button id="refresh-proker-btn" type="button" class="btn-secondary px-4 py-2 rounded-lg flex-1 sm:flex-none flex items-center justify-center gap-2">
                 <i class="fas fa-sync-alt"></i>
                 <span class="hidden sm:inline">Refresh</span>
             </button>
-            <button id="add-btn"
-                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+            <button id="add-btn" type="button" class="btn-primary px-4 py-2 rounded-lg flex-1 sm:flex-none flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i>
                 <span>Tambah Program</span>
             </button>
-            <button id="mobile-menu-btn"
-                    class="md:hidden text-2xl text-[var(--text-muted)]"
-                    aria-label="Buka Menu">
-                <i class="fas fa-bars"></i>
+        </div>
+    </div>
+
+    <!-- Stats 4 Kartu -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Program</p>
+                    <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="total-program">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white">
+                    <i class="fas fa-tasks"></i>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Planning</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1" id="total-planning">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-white">
+                    <i class="fas fa-hourglass-start"></i>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Ongoing</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1" id="total-ongoing">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 flex items-center justify-center text-white">
+                    <i class="fas fa-spinner"></i>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card p-4 rounded-xl shadow-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Selesai</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1" id="total-selesai">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container (List View) -->
+    <div id="table-container" class="bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] shadow-md overflow-hidden">
+        <!-- Filter Bar -->
+        <div class="p-4 border-b border-[var(--card-border)] flex flex-wrap gap-2">
+            <div class="flex-1 min-w-[200px] relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
+                <input type="text" id="proker-search" placeholder="Cari program, PIC..." 
+                    class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)]">
+            </div>
+            <select id="proker-filter-status" class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm">
+                <option value="all">Semua Status</option>
+                <option value="planning">Planning</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="selesai">Selesai</option>
+            </select>
+            <select id="proker-sort" class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm">
+                <option value="terbaru">Terbaru</option>
+                <option value="progress-desc">Progress ↓</option>
+                <option value="deadline-asc">Deadline Terdekat</option>
+            </select>
+            
+            <div class="flex rounded-lg overflow-hidden border border-[var(--card-border)] ml-auto">
+                <button id="proker-view-list" type="button" class="px-3 py-2 text-sm bg-[var(--text-main)] text-[var(--text-inverse)]" title="List view">
+                    <i class="fas fa-list"></i>
+                </button>
+                <button id="proker-view-grid" type="button" class="px-3 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-main)]" title="Grid view">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+            
+            <button id="proker-export-btn" type="button" class="btn-secondary px-3 py-2 rounded-lg text-sm flex items-center gap-1" title="Export CSV">
+                <i class="fas fa-download"></i> <span class="hidden sm:inline">CSV</span>
             </button>
         </div>
-    </div>
 
-    <!-- ============================================================ -->
-    <!-- RINGKASAN STATISTIK                                           -->
-    <!-- ============================================================ -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <div class="stat-card p-4 rounded-xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">
-                Total Program
-            </p>
-            <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="total-program">0</p>
+        <!-- Bulk Actions Bar -->
+        <div id="proker-bulk-bar" class="hidden flex-wrap items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+            <span class="text-sm font-medium text-red-800 dark:text-red-200">
+                <i class="fas fa-check-circle mr-1"></i>
+                <span id="bulk-count-proker">0</span> program dipilih
+            </span>
+            <div class="flex gap-2 ml-auto">
+                <button id="bulk-delete-proker-btn" type="button" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-medium">
+                    <i class="fas fa-trash mr-1"></i>Hapus
+                </button>
+                <button id="bulk-cancel-proker-btn" type="button" class="px-3 py-1.5 rounded-lg bg-gray-300 dark:bg-gray-700 text-[var(--text-main)] text-xs font-medium">
+                    Batal
+                </button>
+            </div>
         </div>
-        <div class="stat-card p-4 rounded-xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">
-                Planning
-            </p>
-            <p class="text-2xl font-bold text-yellow-600 mt-1" id="total-planning">0</p>
-        </div>
-        <div class="stat-card p-4 rounded-xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">
-                Ongoing
-            </p>
-            <p class="text-2xl font-bold text-blue-600 mt-1" id="total-ongoing">0</p>
-        </div>
-        <div class="stat-card p-4 rounded-xl bg-[var(--card-bg)] backdrop-blur-sm border border-[var(--card-border)]">
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium uppercase tracking-wider">
-                Selesai
-            </p>
-            <p class="text-2xl font-bold text-green-600 mt-1" id="total-selesai">0</p>
-        </div>
-    </div>
 
-    <!-- ============================================================ -->
-    <!-- TABEL PROGRAM KERJA                                           -->
-    <!-- ============================================================ -->
-    <div class="table-wrapper">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
+        <!-- TABLE VIEW -->
+        <div id="table-view" class="overflow-x-auto">
+            <table class="w-full text-sm table-wrapper">
+                <thead class="bg-[var(--bg-stats)]">
                     <tr>
-                        <th>No</th>
-                        <th>Nama Program</th>
-                        <th>Deskripsi</th>
-                        <th>Target</th>
-                        <th>Progress</th>
-                        <th>Status</th>
-                        <th>PIC</th>
-                        <th>Aksi</th>
+                        <th class="px-3 py-3 text-center w-12">
+                            <input type="checkbox" id="select-all-proker" class="w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer">
+                        </th>
+                        <th class="px-3 py-3 text-center w-12 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">No</th>
+                        <th class="px-3 py-3 text-center w-16 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Foto</th>
+                        <th class="px-3 py-3 text-left min-w-[200px] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Nama Program</th>
+                        <th class="px-3 py-3 text-left w-32 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Progress</th>
+                        <th class="px-3 py-3 text-center w-28 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
+                        <th class="px-3 py-3 text-left min-w-[120px] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Target</th>
+                        <th class="px-3 py-3 text-left min-w-[100px] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">PIC</th>
+                        <th class="px-3 py-3 text-center w-28 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="table-body" class="divide-y divide-[var(--card-border)]">
-                    <!-- SKELETON LOADING -->
-                    <tr id="proker-skeleton">
-                        <td colspan="8" class="text-center py-8">
+                    <!-- Data diisi oleh JavaScript -->
+                    <tr>
+                        <td colspan="9" class="text-center py-8">
                             <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
-                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data program kerja...</p>
+                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data program...</p>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- GRID VIEW (hidden by default) -->
+        <div id="grid-view" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            <!-- Data diisi oleh JavaScript -->
+        </div>
     </div>
-</div>
 
-<!-- ============================================================ -->
-<!-- MODAL: TAMBAH / EDIT PROGRAM KERJA                            -->
-<!-- ============================================================ -->
-<div id="proker-modal"
-     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[9999] backdrop-blur-sm p-4">
-    <div id="modal-content"
-         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
-
-        <h2 id="modal-title"
-            class="text-2xl font-bold mb-4 text-[var(--text-main)] font-amiri">
-            Tambah Program Kerja
-        </h2>
-
-        <form id="form" class="space-y-4">
-            <input type="hidden" id="edit-id">
-
-            <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Nama Program <span class="text-red-500">*</span>
-                </label>
-                <input type="text" id="proker_nama"
-                       class="form-input"
-                       placeholder="Contoh: Pengajian Rutin"
-                       required>
+    <!-- MODAL TAMBAH/EDIT PROGRAM -->
+    <div id="proker-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div id="modal-content" class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-200">
+            
+            <div class="flex justify-between items-center p-5 border-b border-[var(--card-border)] sticky top-0 bg-[var(--card-bg)] z-10">
+                <h3 id="modal-title" class="text-xl font-bold text-[var(--text-main)] font-amiri">Tambah Program Kerja</h3>
+                <button id="modal-close" type="button" class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl leading-none">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
-            <div>
-                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                    Deskripsi
-                </label>
-                <textarea id="proker_deskripsi" rows="2"
-                          class="form-input"
-                          placeholder="Deskripsi singkat program"></textarea>
-            </div>
+            <form id="form" class="p-5 space-y-4">
+                <input type="hidden" id="edit-id" value="">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Nama Program -->
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        Target Selesai
+                    <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">
+                        Nama Program <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" id="proker_target"
-                           class="form-input">
+                    <input type="text" id="proker_nama" required placeholder="Contoh: Bakti Sosial"
+                        class="form-control w-full">
                 </div>
+
+                <!-- Deskripsi -->
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        Progress (%) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="number" id="proker_progress"
-                           class="form-input"
-                           min="0" max="100"
-                           value="0"
-                           required>
+                    <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">Deskripsi</label>
+                    <textarea id="proker_deskripsi" rows="3" placeholder="Jelaskan detail program..."
+                        class="form-control w-full"></textarea>
                 </div>
+
+                <!-- Grid 2 Kolom -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">Target Selesai</label>
+                        <input type="date" id="proker_target" class="form-control w-full">
+                    </div>
+                    <div>
+                        <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">PIC</label>
+                        <input type="text" id="proker_pic" placeholder="Nama penanggung jawab"
+                            class="form-control w-full">
+                    </div>
+                </div>
+
+                <!-- Progress -->
                 <div>
-                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        Status
+                    <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm flex justify-between">
+                        <span>Progress</span>
+                        <span id="progress-value-display" class="font-bold text-[var(--text-main)]">0%</span>
                     </label>
-                    <select id="proker_status" class="form-input">
-                        <option value="planning">Planning</option>
-                        <option value="ongoing">Ongoing</option>
+                    <input type="range" id="proker_progress" min="0" max="100" value="0" 
+                        class="w-full h-2 bg-[var(--bg-stats)] rounded-lg appearance-none cursor-pointer accent-[var(--text-main)]">
+                    <div class="w-full bg-[var(--bg-stats)] rounded-full h-2 overflow-hidden mt-2">
+                        <div id="progress-bar-display" class="h-full rounded-full transition-all duration-300 bg-red-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">Status</label>
+                    <select id="proker_status" class="form-control w-full form-select">
+                        <option value="planning">Planning (Belum dimulai)</option>
+                        <option value="ongoing">Ongoing (Sedang berjalan)</option>
                         <option value="selesai">Selesai</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
-                        PIC (Penanggung Jawab)
-                    </label>
-                    <input type="text" id="proker_pic"
-                           class="form-input"
-                           placeholder="Nama PIC">
+
+                <!-- Upload Foto (FormPhoto) -->
+                <div class="border-t border-[var(--card-border)] pt-4">
+                    <label class="form-label text-[var(--text-main)] font-medium mb-1 text-sm">Foto (opsional)</label>
+                    <input type="file" id="proker_foto" accept="image/*" class="hidden">
+                    
+                    <div id="proker-foto-preview-wrap" style="display:none;" class="mb-2 relative rounded-lg overflow-hidden border border-[var(--card-border)] bg-[var(--bg-stats)] flex justify-center">
+                        <img id="proker-foto-preview" src="" class="w-full h-40 object-contain">
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button type="button" onclick="document.getElementById('proker_foto').click()" 
+                            class="btn-secondary px-3 py-2 rounded-lg text-sm flex-1 flex justify-center items-center gap-2">
+                            <i class="fas fa-image"></i> Pilih Foto
+                        </button>
+                        <button type="button" id="proker-foto-remove" style="display:none;" 
+                            class="px-3 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 text-sm flex items-center justify-center">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="proker_foto_url" value="">
                 </div>
-            </div>
 
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button" id="modal-close"
-                        class="btn-secondary px-4 py-2 rounded-lg">
-                    Batal
-                </button>
-                <button type="submit"
-                        class="btn-primary px-4 py-2 rounded-lg">
-                    <i class="fas fa-save mr-2"></i>
-                    <span>Simpan</span>
-                </button>
-            </div>
-        </form>
+                <!-- Footer Buttons -->
+                <div class="pt-4 flex justify-end gap-2 border-t border-[var(--card-border)]">
+                    <button type="button" id="modal-cancel-btn" class="btn-secondary px-5 py-2 rounded-lg" onclick="document.getElementById('modal-close').click()">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-primary px-6 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+
 </div>
-
-<!-- ============================================================ -->
-<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
-<!-- ============================================================ -->
-<script>
-    (function() {
-        console.log('[View] proker_admin.html loaded — logic handled by js/proker_admin.js');
-    })();
-</script>
-
-<!-- ============================================================ -->
-<!-- STYLE INLINE — Khusus view proker_admin saja                  -->
-<!-- Common styles (stat-card, btn-*, form-input, table-wrapper,   -->
-<!-- skeleton-box) sudah di css/style.css                          -->
-<!-- ============================================================ -->
-<style>
-    /* ────────────── PROGRESS BAR (dipakai di tabel) ────────────── */
-    .progress-bar {
-        height: 8px;
-        border-radius: 9999px;
-        background: #e5e7eb;
-        overflow: hidden;
-    }
-    .dark .progress-bar {
-        background: #334155;
-    }
-    .progress-bar .progress-fill {
-        height: 100%;
-        border-radius: 9999px;
-        transition: width 0.5s var(--ease-smooth);
-    }
-
-    /* ────────────── RESPONSIVE ────────────── */
-    @media (max-width: 640px) {
-        #modal-content {
-            padding: 1rem;
-        }
-    }
-</style>

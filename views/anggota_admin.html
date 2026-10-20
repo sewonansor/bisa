@@ -1,7 +1,15 @@
 <!-- views/anggota_admin.html -->
 <!-- Halaman Admin: Manajemen Anggota & Verifikasi -->
 <!-- Logic: js/anggota_admin.js | Route: /anggota_admin -->
-<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
+<!-- Versi: 3.0.0 — FULL FIX + Foto Upload Support -->
+<!--
+  CHANGELOG v3.0.0:
+  ✅ NEW: Upload foto anggota (opsional) via window.FormPhoto
+  ✅ NEW: Preview + remove foto di modal
+  ✅ NEW: Hidden input anggota_foto_url
+  ✅ Preserved: Tab daftar + verifikasi
+  ✅ Preserved: Semua struktur form lama
+-->
 
 <div id="main-content">
     <!-- ============================================================ -->
@@ -10,20 +18,23 @@
     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
         <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
             <i class="fas fa-users mr-2"></i>
-            Manajemen Anggota & Verifikasi
+            Manajemen Anggota &amp; Verifikasi
         </h1>
         <div class="flex flex-wrap gap-2">
             <button id="refresh-anggota-btn"
+                    type="button"
                     class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-sync-alt"></i>
                 <span class="hidden sm:inline">Refresh</span>
             </button>
             <button id="add-anggota-btn"
+                    type="button"
                     class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
                 <i class="fas fa-plus"></i>
                 <span>Tambah Anggota</span>
             </button>
             <button id="mobile-menu-btn"
+                    type="button"
                     class="md:hidden text-2xl text-[var(--text-muted)]"
                     aria-label="Buka Menu">
                 <i class="fas fa-bars"></i>
@@ -139,6 +150,7 @@
                 <input type="text" id="anggota_nama"
                        class="form-input"
                        placeholder="Masukkan nama lengkap"
+                       autocomplete="name"
                        required>
             </div>
 
@@ -149,6 +161,10 @@
                 <input type="text" id="anggota_username"
                        class="form-input"
                        placeholder="Username untuk login"
+                       autocomplete="username"
+                       autocapitalize="none"
+                       autocorrect="off"
+                       spellcheck="false"
                        required>
             </div>
 
@@ -178,7 +194,8 @@
                 </label>
                 <input type="text" id="anggota_alamat"
                        class="form-input"
-                       placeholder="Contoh: Panggungharjo">
+                       placeholder="Contoh: Panggungharjo"
+                       autocomplete="off">
             </div>
 
             <div>
@@ -187,7 +204,9 @@
                 </label>
                 <input type="text" id="anggota_angkatan"
                        class="form-input"
-                       placeholder="Contoh: 2024">
+                       placeholder="Contoh: 2024"
+                       inputmode="numeric"
+                       autocomplete="off">
             </div>
 
             <div>
@@ -196,7 +215,60 @@
                 </label>
                 <input type="text" id="anggota_riwayat_jabatan"
                        class="form-input"
-                       placeholder="Contoh: Ketua, Sekretaris, dll">
+                       placeholder="Contoh: Ketua, Sekretaris, dll"
+                       autocomplete="off">
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- FOTO ANGGOTA (OPSIONAL) — v3.0.0                       -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    <i class="fas fa-camera mr-1 text-[var(--accent-500)]"></i>
+                    Foto Anggota
+                    <span class="text-xs font-normal text-[var(--text-muted)]">(opsional)</span>
+                </label>
+
+                <!-- Preview area -->
+                <div id="anggota-foto-preview-wrap"
+                     class="mb-3"
+                     style="display:none;">
+                    <div class="relative inline-block">
+                        <img id="anggota-foto-preview"
+                             src=""
+                             alt="Preview"
+                             class="w-24 h-24 object-cover rounded-full border-2 border-[var(--card-border)] bg-[var(--bg-stats)]">
+                        <button type="button"
+                                id="anggota-foto-remove"
+                                class="absolute top-0 right-0 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs shadow-md transition"
+                                style="display:none;"
+                                title="Hapus foto">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden URL storage -->
+                <input type="hidden" id="anggota_foto_url" value="">
+
+                <!-- File input -->
+                <input type="file"
+                       id="anggota_foto"
+                       accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                       class="block w-full text-sm text-[var(--text-muted)]
+                              file:mr-4 file:py-2 file:px-4
+                              file:rounded-lg file:border-0
+                              file:text-sm file:font-semibold
+                              file:bg-[var(--brand-700)] file:text-white
+                              hover:file:bg-[var(--brand-600)]
+                              file:cursor-pointer file:transition
+                              bg-[var(--bg-body)] border border-[var(--card-border)]
+                              rounded-lg cursor-pointer">
+
+                <p class="text-xs text-[var(--text-muted)] mt-1.5">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Max 5 MB. Rasio 1:1 disarankan untuk foto profil.
+                </p>
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
@@ -219,7 +291,7 @@
 <!-- ============================================================ -->
 <script>
     (function() {
-        console.log('[View] anggota_admin.html loaded — logic handled by js/anggota_admin.js');
+        console.log('[View] anggota_admin.html v3.0.0 loaded — FULL FIX + Foto Upload');
     })();
 </script>
 
@@ -256,6 +328,34 @@
         color: var(--accent-400);
     }
 
+    /* ────────────── AVATAR DI TABLE ────────────── */
+    .anggota-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--card-border);
+        flex-shrink: 0;
+        transition: transform 200ms var(--ease-spring);
+    }
+    .anggota-avatar:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .anggota-avatar-placeholder {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #14b8a6, #059669);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
     /* ────────────── RESPONSIVE ────────────── */
     @media (max-width: 640px) {
         .tab-btn {
@@ -268,6 +368,14 @@
         .tab-btn i {
             font-size: 1rem;
             margin: 0;
+        }
+        #modal-content {
+            padding: 1rem;
+        }
+        .anggota-avatar,
+        .anggota-avatar-placeholder {
+            width: 32px;
+            height: 32px;
         }
     }
 </style>
