@@ -1,7 +1,7 @@
 <!-- views/absensi_admin.html -->
 <!-- Halaman Admin: Manajemen Absensi Digital -->
-<!-- Logic: js/absensi_admin.js | Route: /absensi_admin | Libs: qrcode -->
-<!-- Versi: 2.0.0 — CSS common sudah di css/style.css -->
+<!-- Logic: js/absensi_admin.js | Route: /absensi_admin | Libs: qrcode, html2canvas, jspdf -->
+<!-- Versi: 3.0.0 — Edit + Export PDF/PNG -->
 
 <div id="main-content">
     <!-- ============================================================ -->
@@ -12,22 +12,45 @@
             <i class="fas fa-clipboard-check mr-2"></i>
             Manajemen Absensi
         </h1>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 items-center">
             <input type="date" id="filter-date"
                    class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm"
                    aria-label="Filter tanggal absensi">
-            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2">
+
+            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2"
+                    title="Refresh data">
                 <i class="fas fa-sync-alt"></i>
                 <span class="hidden sm:inline">Refresh</span>
             </button>
-            <button id="export-btn" class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-                <i class="fas fa-download"></i>
-                <span class="hidden sm:inline">Export CSV</span>
-            </button>
-            <button id="mobile-menu-btn" class="md:hidden text-2xl text-[var(--text-muted)]"
-                    aria-label="Buka Menu">
-                <i class="fas fa-bars"></i>
-            </button>
+
+            <!-- ✅ NEW: Export dropdown -->
+            <div class="relative" id="export-dropdown-wrap">
+                <button id="export-btn" type="button"
+                        class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
+                        aria-haspopup="true" aria-expanded="false" title="Export data">
+                    <i class="fas fa-download"></i>
+                    <span class="hidden sm:inline">Export</span>
+                    <i class="fas fa-chevron-down text-xs export-chev"></i>
+                </button>
+                <div id="export-dropdown"
+                     class="hidden absolute right-0 mt-2 w-52 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--card-border)] overflow-hidden z-30">
+                    <button id="export-csv-btn" type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
+                        <i class="fas fa-file-csv text-green-600 w-4"></i>
+                        <span>CSV (.csv)</span>
+                    </button>
+                    <button id="export-pdf-btn" type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
+                        <i class="fas fa-file-pdf text-red-600 w-4"></i>
+                        <span>PDF (.pdf)</span>
+                    </button>
+                    <button id="export-img-btn" type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
+                        <i class="fas fa-image text-purple-600 w-4"></i>
+                        <span>Gambar (.png)</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -35,8 +58,6 @@
     <!-- PANEL KONTROL QR + PREVIEW + DOWNLOAD                         -->
     <!-- ============================================================ -->
     <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow mb-6 border border-[var(--card-border)]">
-
-        <!-- Toggle & Regenerate -->
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <i class="fas fa-qrcode text-2xl text-[var(--text-main)]"></i>
@@ -65,15 +86,13 @@
             </div>
         </div>
 
-        <!-- Preview QR & Download (dengan logo di tengah) -->
         <div id="qr-preview-container" class="mt-5">
             <div id="qr-preview">
                 <div id="qr-code-display">
                     <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
                 </div>
-                <!-- Logo Ansor di tengah (overlay) -->
                 <div id="qr-logo-overlay">
-                    <img src="logo-ansor.webp" alt="Logo Ansor" />
+                    <img src="logo-ansor.webp" alt="Logo Ansor" onerror="this.style.display='none'" />
                 </div>
             </div>
             <button id="download-qr-btn"
@@ -97,7 +116,8 @@
             <h3 class="font-bold text-[var(--text-main)]">Password Akses Langsung</h3>
         </div>
         <p class="text-sm text-[var(--text-muted)] mb-3">
-            Password digunakan jika pengguna membuka <code class="font-mono text-xs bg-[var(--bg-stats)] px-1.5 py-0.5 rounded">/absensi</code>
+            Password digunakan jika pengguna membuka
+            <code class="font-mono text-xs bg-[var(--bg-stats)] px-1.5 py-0.5 rounded">/absensi</code>
             langsung tanpa scan QR.
         </p>
         <div class="flex flex-wrap gap-2">
@@ -122,6 +142,11 @@
             <table class="w-full">
                 <thead>
                     <tr>
+                        <th class="w-12 text-center px-3 py-4">
+                            <input type="checkbox"
+                                   class="bulk-select-all-absensi w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer"
+                                   aria-label="Pilih semua">
+                        </th>
                         <th>No</th>
                         <th>Nama</th>
                         <th>Alamat</th>
@@ -132,7 +157,7 @@
                 </thead>
                 <tbody id="absensi-table-body">
                     <tr>
-                        <td colspan="6" class="text-center py-6">
+                        <td colspan="7" class="text-center py-6">
                             <i class="fas fa-spinner fa-spin text-xl text-[var(--text-muted)]"></i>
                             <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data absensi...</p>
                         </td>
@@ -144,7 +169,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                    -->
+<!-- SCRIPT INLINE — Bootstrap only                                -->
 <!-- ============================================================ -->
 <script>
     (function() {
@@ -154,8 +179,6 @@
 
 <!-- ============================================================ -->
 <!-- STYLE INLINE — Khusus view absensi_admin saja                 -->
-<!-- Common styles (btn-primary, btn-secondary, skeleton, table)   -->
-<!-- sudah di-load dari css/style.css                              -->
 <!-- ============================================================ -->
 <style>
     /* ────────────── TABLE THUMB (TTD preview) ────────────── */
@@ -182,7 +205,7 @@
         border-radius: 4px;
         border: 1px solid var(--card-border);
         cursor: pointer;
-        transition: transform 180ms var(--ease-spring);
+        transition: transform 180ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
     }
     .ttd-img:hover {
         transform: scale(1.08);
@@ -252,35 +275,46 @@
         border-radius: 50%;
     }
 
-    /* ────────────── STATUS BADGE (mengikuti style JS) ────────────── */
-    #qr-status-text-admin.text-green-600 { color: var(--success-600); }
-    #qr-status-text-admin.text-red-600   { color: var(--error-600); }
+    /* ────────────── EXPORT DROPDOWN ────────────── */
+    .export-chev {
+        transition: transform 220ms ease;
+    }
+    #export-dropdown-wrap.open .export-chev {
+        transform: rotate(180deg);
+    }
+    #export-dropdown {
+        animation: exportDropdownIn 160ms ease-out;
+    }
+    @keyframes exportDropdownIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ────────────── STATUS BADGE ────────────── */
+    #qr-status-text-admin.text-green-600 { color: var(--success-600, #059669); }
+    #qr-status-text-admin.text-red-600   { color: var(--error-600, #dc2626); }
 
     /* ────────────── PASSWORD INPUT ────────────── */
     #password-input-admin:focus {
-        border-color: var(--brand-700);
+        border-color: var(--brand-700, #0f2922);
     }
     .dark #password-input-admin:focus {
-        border-color: var(--accent-400);
+        border-color: var(--accent-400, #fbbf24);
     }
 
     /* ────────────── RESPONSIVE ────────────── */
     @media (max-width: 768px) {
-        /* Table jadi scrollable horizontal */
         .table-wrapper {
             border-radius: 1rem;
         }
         .table-wrapper table {
             min-width: 720px;
         }
-
-        /* Panel QR & Password stack full width */
         #qr-preview-container {
             padding-top: 1rem;
             border-top: 1px dashed var(--card-border);
             margin-top: 1rem;
         }
-
         #qr-code-display {
             width: 160px;
             height: 160px;
@@ -296,5 +330,11 @@
             width: 34px;
             height: 34px;
         }
+    }
+
+    @media print {
+        #export-dropdown, #export-btn, #refresh-btn, #filter-date,
+        #qr-preview-container, .bulk-select-all-absensi,
+        .absensi-checkbox { display: none !important; }
     }
 </style>
