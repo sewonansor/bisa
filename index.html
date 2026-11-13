@@ -23,9 +23,7 @@
     <link rel="apple-touch-icon" href="logo-ansor.webp" />
     <link rel="preload" as="image" href="logo-ansor.webp" fetchpriority="high" />
 
-    <!-- ══════════════════════════════════════════════════════════
-         PRECONNECT & DNS-PREFETCH
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ PRECONNECT & DNS-PREFETCH ══ -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -35,9 +33,7 @@
     <link rel="preconnect" href="https://script.google.com" crossorigin>
     <link rel="dns-prefetch" href="https://script.google.com">
 
-    <!-- ══════════════════════════════════════════════════════════
-         CRITICAL CSS — Boot Loader & Base (Anti-FOUC)
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ CRITICAL CSS ══ -->
     <style>
         #app-boot-loader {
             position: fixed; inset: 0; z-index: 99999;
@@ -47,64 +43,25 @@
             font-family: 'Inter', system-ui, sans-serif;
             transition: opacity 300ms ease, visibility 300ms ease;
         }
-        .dark #app-boot-loader {
-            background: linear-gradient(135deg, #0a0f1e 0%, #0f1f1a 100%);
-        }
-        #app-boot-loader.app-boot-done {
-            opacity: 0; visibility: hidden; pointer-events: none;
-        }
-        .app-boot-logo {
-            width: 88px; height: 88px; object-fit: contain;
-            margin-bottom: 20px;
-            animation: appBootLogoPulse 2s ease-in-out infinite;
-        }
-        @keyframes appBootLogoPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.85; }
-        }
-        .app-boot-spinner {
-            width: 42px; height: 42px;
-            border: 3px solid rgba(15, 41, 34, 0.12);
-            border-top-color: #0f2922;
-            border-radius: 50%;
-            animation: appBootSpin 0.9s linear infinite;
-            margin-top: 12px;
-        }
-        .dark .app-boot-spinner {
-            border-color: rgba(251, 191, 36, 0.15);
-            border-top-color: #fbbf24;
-        }
+        .dark #app-boot-loader { background: linear-gradient(135deg, #0a0f1e 0%, #0f1f1a 100%); }
+        #app-boot-loader.app-boot-done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .app-boot-logo { width: 88px; height: 88px; object-fit: contain; margin-bottom: 20px; animation: appBootLogoPulse 2s ease-in-out infinite; }
+        @keyframes appBootLogoPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.85; } }
+        .app-boot-spinner { width: 42px; height: 42px; border: 3px solid rgba(15, 41, 34, 0.12); border-top-color: #0f2922; border-radius: 50%; animation: appBootSpin 0.9s linear infinite; margin-top: 12px; }
+        .dark .app-boot-spinner { border-color: rgba(251, 191, 36, 0.15); border-top-color: #fbbf24; }
         @keyframes appBootSpin { to { transform: rotate(360deg); } }
-        .app-boot-text {
-            font-family: 'Amiri', 'Times New Roman', serif;
-            font-size: 1.1rem; font-weight: 700;
-            color: #0f2922; margin: 12px 0 4px;
-            letter-spacing: -0.01em;
-        }
+        .app-boot-text { font-family: 'Amiri', 'Times New Roman', serif; font-size: 1.1rem; font-weight: 700; color: #0f2922; margin: 12px 0 4px; letter-spacing: -0.01em; }
         .dark .app-boot-text { color: #fbbf24; }
-        .app-boot-sub {
-            font-size: 0.75rem; color: #64748b;
-            margin: 0; letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
+        .app-boot-sub { font-size: 0.75rem; color: #64748b; margin: 0; letter-spacing: 0.06em; text-transform: uppercase; }
         *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
         html, body { margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f8fafc; color: #0f2922;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            min-height: 100vh; min-height: 100dvh;
-        }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8fafc; color: #0f2922; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; min-height: 100vh; min-height: 100dvh; }
         .dark body { background: #0f172a; color: #f1f5f9; }
         .hidden { display: none !important; }
     </style>
 
-    <!-- ══════════════════════════════════════════════════════════
-         PREFETCH CRITICAL VIEWS
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ PREFETCH CRITICAL VIEWS ══ -->
     <link rel="prefetch" href="views/index.html" as="document">
     <link rel="prefetch" href="views/profil.html" as="document">
     <link rel="prefetch" href="views/anggota.html" as="document">
@@ -113,1126 +70,288 @@
     <link rel="prefetch" href="views/semua_kegiatan.html" as="document">
     <link rel="prefetch" href="views/absensi.html" as="document">
 
-    <!-- ══════════════════════════════════════════════════════════
-         FONTS
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ FONTS ══ -->
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- ══════════════════════════════════════════════════════════
-         CSS FRAMEWORKS
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ CSS FRAMEWORKS ══ -->
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
 
-    <!-- ══════════════════════════════════════════════════════════
-         LOCAL CSS — URUTAN PENTING
-         ══════════════════════════════════════════════════════════ -->
-    <link rel="stylesheet" href="css/style.css?v=3821">
-    <link rel="stylesheet" href="css/hero-fix.css?v=3">
-    <link rel="stylesheet" href="css/forms.css?v=3821">
+    <!-- ══ LOCAL CSS ══ -->
+    <link rel="stylesheet" href="css/style.css?v=4821">
+    <link rel="stylesheet" href="css/hero-fix.css?v=371">
+    <link rel="stylesheet" href="css/forms.css?v=1201">
     <link rel="stylesheet" href="css/tailwind-fallback.css?v=3821">
-    <link rel="stylesheet" href="css/telegram-fab.css?v=4">
-    <link rel="stylesheet" href="css/perf-boost.css?v=2">
+    <link rel="stylesheet" href="css/telegram-fab.css?v=411">
+    <link rel="stylesheet" href="css/perf-boost.css?v=211">
 
-    <!-- ══════════════════════════════════════════════════════════
-         EARLY THEME — Avoid Flash of Wrong Theme
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ EARLY THEME + togglePassword ══ -->
     <script>
     (function() {
         try {
             var t = localStorage.getItem('color-theme') || 'light';
             if (t === 'dark') document.documentElement.classList.add('dark');
         } catch (e) {}
+        if (typeof window.togglePassword !== 'function') {
+            window.togglePassword = function(inputId, btn) {
+                try {
+                    var input = document.getElementById(inputId);
+                    if (!input || !btn) return;
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                    btn.innerHTML = input.type === 'password'
+                        ? '<i class="fas fa-eye"></i>'
+                        : '<i class="fas fa-eye-slash"></i>';
+                } catch (e) {}
+            };
+        }
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         SHELL CSS — Telegram Mobile UI
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ SHELL CSS ══ -->
     <style>
         :root {
-            --text-main: #0f2922;
-            --text-muted: #475569;
-            --text-inverse: #ffffff;
-            --card-bg: #ffffff;
-            --card-border: #e2e8f0;
-            --bg-body: #f8fafc;
-            --bg-stats: #f1f5f9;
-            --brand-700: #0f2922;
-            --brand-600: #1a4038;
-            --accent-400: #fbbf24;
-            --accent-500: #f59e0b;
-            --bn-height: 58px;
+            --text-main: #0f2922; --text-muted: #475569; --text-inverse: #ffffff;
+            --card-bg: #ffffff; --card-border: #e2e8f0; --bg-body: #f8fafc;
+            --bg-stats: #f1f5f9; --brand-700: #0f2922; --brand-600: #1a4038;
+            --accent-400: #fbbf24; --accent-500: #f59e0b; --bn-height: 58px;
         }
         .dark {
-            --text-main: #f1f5f9;
-            --text-muted: #cbd5e1;
-            --text-inverse: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --bg-body: #0f172a;
-            --bg-stats: #334155;
+            --text-main: #f1f5f9; --text-muted: #cbd5e1; --text-inverse: #0f172a;
+            --card-bg: #1e293b; --card-border: #334155; --bg-body: #0f172a; --bg-stats: #334155;
         }
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg-body);
-            color: var(--text-main);
-        }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-body); color: var(--text-main); }
 
-        /* ════════════════════ NAVBAR PUBLIC ════════════════════ */
-        #public-navbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 50;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 1px solid rgba(15, 41, 34, 0.06);
-            transition: background 0.28s ease, box-shadow 0.28s ease;
-        }
-        .dark #public-navbar {
-            background: rgba(10, 20, 18, 0.85);
-            border-bottom-color: rgba(251, 191, 36, 0.10);
-        }
-        #public-navbar.navbar-scrolled {
-            background: rgba(255, 255, 255, 0.96);
-            box-shadow: 0 4px 24px rgba(15, 41, 34, 0.08);
-        }
-        .dark #public-navbar.navbar-scrolled {
-            background: rgba(10, 20, 18, 0.98);
-            box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
-        }
-
-        .navbar-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0.65rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            min-height: 62px;
-        }
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-        .navbar-brand-logo {
-            width: 38px;
-            height: 38px;
-            border-radius: 11px;
-            background: linear-gradient(135deg, #fff, #f0fdf4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3px;
-            box-shadow: 0 2px 8px rgba(15, 41, 34, 0.08), inset 0 0 0 1px rgba(15, 41, 34, 0.05);
-            flex-shrink: 0;
-        }
-        .dark .navbar-brand-logo {
-            background: linear-gradient(135deg, #1e293b, #0f1f1a);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(251, 191, 36, 0.15);
-        }
-        .navbar-brand-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-        .navbar-brand-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.15;
-        }
-        .navbar-brand-title {
-            font-family: 'Amiri', serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #0f2922;
-            letter-spacing: -0.01em;
-        }
+        /* NAVBAR */
+        #public-navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(15, 41, 34, 0.06); transition: background 0.28s ease, box-shadow 0.28s ease; }
+        .dark #public-navbar { background: rgba(10, 20, 18, 0.85); border-bottom-color: rgba(251, 191, 36, 0.10); }
+        #public-navbar.navbar-scrolled { background: rgba(255, 255, 255, 0.96); box-shadow: 0 4px 24px rgba(15, 41, 34, 0.08); }
+        .dark #public-navbar.navbar-scrolled { background: rgba(10, 20, 18, 0.98); box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35); }
+        .navbar-inner { max-width: 1400px; margin: 0 auto; padding: 0.65rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 62px; }
+        .navbar-brand { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; flex-shrink: 0; }
+        .navbar-brand-logo { width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, #fff, #f0fdf4); display: flex; align-items: center; justify-content: center; padding: 3px; box-shadow: 0 2px 8px rgba(15, 41, 34, 0.08), inset 0 0 0 1px rgba(15, 41, 34, 0.05); flex-shrink: 0; }
+        .dark .navbar-brand-logo { background: linear-gradient(135deg, #1e293b, #0f1f1a); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(251, 191, 36, 0.15); }
+        .navbar-brand-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .navbar-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+        .navbar-brand-title { font-family: 'Amiri', serif; font-size: 1.05rem; font-weight: 700; color: #0f2922; letter-spacing: -0.01em; }
         .dark .navbar-brand-title { color: #f1f5f9; }
-        .navbar-brand-sub {
-            font-size: 0.6rem;
-            font-weight: 600;
-            color: #059669;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
+        .navbar-brand-sub { font-size: 0.6rem; font-weight: 600; color: #059669; letter-spacing: 0.08em; text-transform: uppercase; }
         .dark .navbar-brand-sub { color: #fbbf24; }
-
-        .navbar-links {
-            display: flex;
-            flex: 1;
-            justify-content: center;
-            align-items: center;
-            gap: 0.15rem;
-            max-width: 820px;
-        }
-        .nav-section-link {
-            position: relative;
-            color: #475569;
-            font-family: inherit;
-            font-weight: 500;
-            font-size: 0.85rem;
-            padding: 0.55rem 0.8rem;
-            text-decoration: none;
-            cursor: pointer;
-            white-space: nowrap;
-            background: transparent;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            border-radius: 10px;
-            transition: color 0.22s ease, background 0.22s ease;
-        }
+        .navbar-links { display: flex; flex: 1; justify-content: center; align-items: center; gap: 0.15rem; max-width: 820px; }
+        .nav-section-link { position: relative; color: #475569; font-family: inherit; font-weight: 500; font-size: 0.85rem; padding: 0.55rem 0.8rem; text-decoration: none; cursor: pointer; white-space: nowrap; background: transparent; border: none; display: inline-flex; align-items: center; border-radius: 10px; transition: color 0.22s ease, background 0.22s ease; }
         .dark .nav-section-link { color: #cbd5e1; }
-        .nav-section-link::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%) scaleX(0);
-            transform-origin: center;
-            width: 55%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #10b981, transparent);
-            border-radius: 9999px;
-            transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .dark .nav-section-link::after {
-            background: linear-gradient(90deg, transparent, #fbbf24, transparent);
-        }
+        .nav-section-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%) scaleX(0); transform-origin: center; width: 55%; height: 2px; background: linear-gradient(90deg, transparent, #10b981, transparent); border-radius: 9999px; transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .dark .nav-section-link::after { background: linear-gradient(90deg, transparent, #fbbf24, transparent); }
         .nav-section-link:hover { color: #0f2922; background: rgba(15, 41, 34, 0.04); }
         .dark .nav-section-link:hover { color: #fff; background: rgba(251, 191, 36, 0.08); }
         .nav-section-link:hover::after { transform: translateX(-50%) scaleX(0.7); }
-        .nav-section-link.active {
-            color: #0f2922;
-            font-weight: 700;
-            background: rgba(16, 185, 129, 0.10);
-        }
-        .dark .nav-section-link.active {
-            color: #fbbf24;
-            background: rgba(251, 191, 36, 0.12);
-        }
+        .nav-section-link.active { color: #0f2922; font-weight: 700; background: rgba(16, 185, 129, 0.10); }
+        .dark .nav-section-link.active { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
         .nav-section-link.active::after { transform: translateX(-50%) scaleX(1); }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-shrink: 0;
-        }
-        .navbar-auth-area {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .navbar-icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 9999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            background: transparent;
-            border: 1px solid transparent;
-            color: #475569;
-            font-size: 0.95rem;
-            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-            flex-shrink: 0;
-        }
+        .navbar-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+        .navbar-auth-area { display: flex; align-items: center; gap: 0.5rem; }
+        .navbar-icon-btn { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; border: 1px solid transparent; color: #475569; font-size: 0.95rem; transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; }
         .dark .navbar-icon-btn { color: #cbd5e1; }
-        .navbar-icon-btn:hover {
-            color: #f59e0b;
-            background: rgba(251, 191, 36, 0.10);
-            border-color: rgba(251, 191, 36, 0.25);
-        }
+        .navbar-icon-btn:hover { color: #f59e0b; background: rgba(251, 191, 36, 0.10); border-color: rgba(251, 191, 36, 0.25); }
 
-        .navbar-user-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.35rem 0.85rem 0.35rem 0.35rem;
-            border-radius: 9999px;
-            text-decoration: none;
-            font-family: inherit;
-            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 1px solid transparent;
-        }
-        .navbar-user-pill.role-badge-admin {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.08));
-            border-color: rgba(251, 191, 36, 0.35);
-            color: #78350f;
-        }
-        .dark .navbar-user-pill.role-badge-admin {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.10));
-            color: #fbbf24;
-        }
-        .navbar-user-pill.role-badge-member {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.06));
-            border-color: rgba(16, 185, 129, 0.3);
-            color: #065f46;
-        }
-        .dark .navbar-user-pill.role-badge-member {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(5, 150, 105, 0.08));
-            color: #34d399;
-        }
-        .navbar-user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 0.72rem;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-        }
-        .navbar-user-pill.role-badge-admin .navbar-user-avatar {
-            background: linear-gradient(135deg, #fbbf24, #d97706);
-        }
-        .navbar-user-pill.role-badge-member .navbar-user-avatar {
-            background: linear-gradient(135deg, #34d399, #059669);
-        }
-        .navbar-user-info {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-            min-width: 0;
-        }
-        .navbar-user-name {
-            font-size: 0.82rem;
-            font-weight: 700;
-            white-space: nowrap;
-            max-width: 100px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .navbar-user-role {
-            font-size: 0.62rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            opacity: 0.7;
-        }
-
-        .navbar-login-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.55rem 1.1rem;
-            border-radius: 9999px;
-            background: linear-gradient(135deg, #0f2922 0%, #1a4038 100%);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.82rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 2px 8px rgba(15, 41, 34, 0.2);
-        }
-        .navbar-login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(15, 41, 34, 0.3);
-        }
-        .dark .navbar-login-btn {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #0f2922;
-        }
+        /* USER PILL */
+        .navbar-user-pill { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.35rem 0.85rem 0.35rem 0.35rem; border-radius: 9999px; text-decoration: none; font-family: inherit; transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); border: 1px solid transparent; }
+        .navbar-user-pill.role-badge-admin { background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.08)); border-color: rgba(251, 191, 36, 0.35); color: #78350f; }
+        .dark .navbar-user-pill.role-badge-admin { background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.10)); color: #fbbf24; }
+        .navbar-user-pill.role-badge-member { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.06)); border-color: rgba(16, 185, 129, 0.3); color: #065f46; }
+        .dark .navbar-user-pill.role-badge-member { background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(5, 150, 105, 0.08)); color: #34d399; }
+        .navbar-user-pill.role-badge-sekretaris { background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.06)); border-color: rgba(59, 130, 246, 0.30); color: #1e40af; }
+        .dark .navbar-user-pill.role-badge-sekretaris { background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.08)); color: #93c5fd; }
+        .navbar-user-avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 0.72rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); }
+        .navbar-user-pill.role-badge-admin .navbar-user-avatar { background: linear-gradient(135deg, #fbbf24, #d97706); }
+        .navbar-user-pill.role-badge-member .navbar-user-avatar { background: linear-gradient(135deg, #34d399, #059669); }
+        .navbar-user-pill.role-badge-sekretaris .navbar-user-avatar { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+        .navbar-user-info { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+        .navbar-user-name { font-size: 0.82rem; font-weight: 700; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+        .navbar-user-role { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
+        .navbar-login-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.1rem; border-radius: 9999px; background: linear-gradient(135deg, #0f2922 0%, #1a4038 100%); color: #fff; font-family: inherit; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 8px rgba(15, 41, 34, 0.2); }
+        .navbar-login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15, 41, 34, 0.3); }
+        .dark .navbar-login-btn { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #0f2922; }
 
         #theme-toggle,
-        #admin-theme-toggle,
-        #admin-theme-toggle-mobile,
-        #member-theme-toggle,
-        #member-theme-toggle-mobile {
-            width: 40px;
-            height: 40px;
-            border-radius: 9999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-muted);
-            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-            flex-shrink: 0;
-        }
+        #admin-theme-toggle, #admin-theme-toggle-mobile,
+        #member-theme-toggle, #member-theme-toggle-mobile,
+        #sekretaris-theme-toggle, #sekretaris-theme-toggle-mobile { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; border: 1px solid transparent; color: var(--text-muted); transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; }
         #theme-toggle:hover,
-        #admin-theme-toggle:hover,
-        #admin-theme-toggle-mobile:hover,
-        #member-theme-toggle:hover,
-        #member-theme-toggle-mobile:hover {
-            color: #f59e0b;
-            border-color: rgba(251, 191, 36, 0.3);
-            transform: rotate(15deg) scale(1.05);
-        }
+        #admin-theme-toggle:hover, #admin-theme-toggle-mobile:hover,
+        #member-theme-toggle:hover, #member-theme-toggle-mobile:hover,
+        #sekretaris-theme-toggle:hover, #sekretaris-theme-toggle-mobile:hover { color: #f59e0b; border-color: rgba(251, 191, 36, 0.3); transform: rotate(15deg) scale(1.05); }
 
-        /* ════════════════════ SYNC STATUS BANNER ════════════════════ */
-        .sync-status-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 99990;
-            padding: 8px 16px;
-            text-align: center;
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: #ffffff;
-            font-family: 'Inter', system-ui, sans-serif;
-            transform: translateY(-100%);
-            transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            pointer-events: auto;
-            cursor: pointer;
-        }
-        .sync-status-banner.show {
-            transform: translateY(0);
-        }
+        /* SYNC BANNER */
+        .sync-status-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 99990; padding: 8px 16px; text-align: center; font-size: 0.82rem; font-weight: 500; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; transform: translateY(-100%); transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); pointer-events: auto; cursor: pointer; }
+        .sync-status-banner.show { transform: translateY(0); }
         .sync-status-banner.offline { background: #dc2626; }
         .sync-status-banner.pending { background: #d97706; }
         .sync-status-banner.syncing { background: #2563eb; }
         .sync-status-banner.success { background: #059669; }
 
-        /* ════════════════════ MOBILE ADMIN HEADER ════════════════════ */
-        .mobile-admin-header {
-            display: none;
-            position: sticky;
-            top: 0;
-            z-index: 30;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 1px solid rgba(15, 41, 34, 0.06);
-            padding: 0.55rem 0.85rem;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            min-height: 58px;
-        }
-        .dark .mobile-admin-header {
-            background: rgba(10, 20, 18, 0.92);
-            border-bottom-color: rgba(251, 191, 36, 0.08);
-        }
-
-        .mah-left {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            min-width: 0;
-            flex: 1;
-        }
-        .mah-logo {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #fff, #f0fdf4);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3px;
-            flex-shrink: 0;
-            box-shadow: 0 1px 6px rgba(15, 41, 34, 0.08);
-        }
+        /* MOBILE ADMIN HEADER */
+        .mobile-admin-header { display: none; position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(15, 41, 34, 0.06); padding: 0.55rem 0.85rem; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 58px; }
+        .dark .mobile-admin-header { background: rgba(10, 20, 18, 0.92); border-bottom-color: rgba(251, 191, 36, 0.08); }
+        .mah-left { display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex: 1; }
+        .mah-logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #fff, #f0fdf4); display: inline-flex; align-items: center; justify-content: center; padding: 3px; flex-shrink: 0; box-shadow: 0 1px 6px rgba(15, 41, 34, 0.08); }
         .dark .mah-logo { background: linear-gradient(135deg, #1e293b, #0f1f1a); }
         .mah-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .mah-title-wrap {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.15;
-            min-width: 0;
-        }
-        .mah-title {
-            font-family: 'Amiri', serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #0f2922;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .mah-title-wrap { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+        .mah-title { font-family: 'Amiri', serif; font-size: 0.95rem; font-weight: 700; color: #0f2922; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .dark .mah-title { color: #f1f5f9; }
-        .mah-sub {
-            font-size: 0.68rem;
-            color: #64748b;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .mah-sub { font-size: 0.68rem; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .dark .mah-sub { color: #94a3b8; }
-
-        .mah-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.15rem;
-            flex-shrink: 0;
-        }
-        .mah-icon-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: none;
-            background: transparent;
-            color: #475569;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
+        .mah-actions { display: flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }
+        .mah-icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: #475569; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; transition: all 0.2s ease; }
         .dark .mah-icon-btn { color: #cbd5e1; }
-        .mah-icon-btn:hover,
-        .mah-icon-btn:active {
-            background: rgba(15, 41, 34, 0.06);
-            color: #0f2922;
-        }
-        .dark .mah-icon-btn:hover,
-        .dark .mah-icon-btn:active {
-            background: rgba(255, 255, 255, 0.06);
-            color: #f1f5f9;
-        }
-        .mah-icon-btn.mah-logout:hover {
-            background: rgba(220, 38, 38, 0.1);
-            color: #dc2626;
-        }
+        .mah-icon-btn:hover, .mah-icon-btn:active { background: rgba(15, 41, 34, 0.06); color: #0f2922; }
+        .dark .mah-icon-btn:hover, .dark .mah-icon-btn:active { background: rgba(255, 255, 255, 0.06); color: #f1f5f9; }
+        .mah-icon-btn.mah-logout:hover { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
 
-        /* ════════════════════ SIDEBAR ════════════════════ */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            height: 100dvh;
-            width: 260px;
-            background: linear-gradient(180deg, #0f2922 0%, #0a1e19 100%);
-            color: #fff;
-            z-index: 40;
-            display: flex;
-            flex-direction: column;
-            transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }
+        /* SIDEBAR */
+        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; height: 100dvh; width: 260px; background: linear-gradient(180deg, #0f2922 0%, #0a1e19 100%); color: #fff; z-index: 40; display: flex; flex-direction: column; transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1), transform 0.42s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
         .sidebar.collapsed { width: 76px; }
-        .sidebar .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 1rem;
-            min-height: 72px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            flex-shrink: 0;
-            gap: 0.25rem;
-            background: rgba(0, 0, 0, 0.08);
-        }
-        .sidebar .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-decoration: none;
-            color: #fff;
-            flex: 1;
-            min-width: 0;
-        }
+        .sidebar .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; min-height: 72px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); flex-shrink: 0; gap: 0.25rem; background: rgba(0, 0, 0, 0.08); }
+        .sidebar .brand { display: flex; align-items: center; gap: 0.6rem; white-space: nowrap; overflow: hidden; text-decoration: none; color: #fff; flex: 1; min-width: 0; }
         .sidebar .brand img { flex-shrink: 0; }
         .sidebar .brand span { transition: opacity 0.28s ease; }
-        .sidebar .toggle-btn {
-            flex-shrink: 0;
-            width: 40px;
-            height: 40px;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.65);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.28s ease;
-        }
-        .sidebar .toggle-btn:hover {
-            background: rgba(251, 191, 36, 0.15);
-            border-color: rgba(251, 191, 36, 0.3);
-            color: #fbbf24;
-        }
+        .sidebar .toggle-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 9999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.65); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.28s ease; }
+        .sidebar .toggle-btn:hover { background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
         .sidebar.collapsed .toggle-btn#sidebar-toggle,
-        .sidebar.collapsed .toggle-btn#member-sidebar-toggle {
-            transform: rotate(180deg);
-        }
-
-        .sidebar .nav-links {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 0.85rem;
-            min-height: 0;
-        }
-        .sidebar .nav-links a {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
-            margin-bottom: 0.15rem;
-            border-radius: 8px;
-            color: rgba(255, 255, 255, 0.68);
-            transition: all 0.28s ease;
-            overflow: hidden;
-            white-space: nowrap;
-            font-size: 0.875rem;
-            font-weight: 500;
-            text-decoration: none;
-            min-height: 42px;
-            position: relative;
-        }
-        .sidebar .nav-links a:hover,
-        .sidebar .nav-links a.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.06);
-        }
-        .sidebar .nav-links a.active {
-            background: linear-gradient(90deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.02));
-        }
-        .sidebar .nav-links a i {
-            width: 1.25rem;
-            font-size: 1rem;
-            flex-shrink: 0;
-            text-align: center;
-        }
-        .sidebar .nav-links a:hover i,
-        .sidebar .nav-links a.active i { color: #fbbf24; }
-        .sidebar .nav-links a .link-text {
-            margin-left: 0.75rem;
-            transition: opacity 0.28s ease;
-        }
-        .sidebar.collapsed .link-text,
-        .sidebar.collapsed .menu-group-title,
-        .sidebar.collapsed .brand span,
-        .sidebar.collapsed .role-badge span,
-        .sidebar.collapsed .logout-btn span,
-        .sidebar.collapsed .submenu-toggle {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        .menu-group-title {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 0.62rem;
-            padding: 0.75rem 0.85rem 0.35rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 700;
-            transition: opacity 0.28s ease;
-        }
-        .sidebar .has-submenu > a {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-        .sidebar .has-submenu > a .submenu-toggle {
-            margin-left: auto;
-            transition: transform 0.28s ease, opacity 0.28s ease;
-        }
+        .sidebar.collapsed .toggle-btn#member-sidebar-toggle,
+        .sidebar.collapsed .toggle-btn#sekretaris-sidebar-toggle { transform: rotate(180deg); }
+        .sidebar .nav-links { flex: 1; overflow-y: auto; padding: 1rem 0.85rem; min-height: 0; }
+        .sidebar .nav-links a { display: flex; align-items: center; padding: 0.65rem 0.75rem; margin-bottom: 0.15rem; border-radius: 8px; color: rgba(255, 255, 255, 0.68); transition: all 0.28s ease; overflow: hidden; white-space: nowrap; font-size: 0.875rem; font-weight: 500; text-decoration: none; min-height: 42px; position: relative; }
+        .sidebar .nav-links a:hover, .sidebar .nav-links a.active { color: #fff; background: rgba(255, 255, 255, 0.06); }
+        .sidebar .nav-links a.active { background: linear-gradient(90deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.02)); }
+        .sidebar .nav-links a i { width: 1.25rem; font-size: 1rem; flex-shrink: 0; text-align: center; }
+        .sidebar .nav-links a:hover i, .sidebar .nav-links a.active i { color: #fbbf24; }
+        .sidebar .nav-links a .link-text { margin-left: 0.75rem; transition: opacity 0.28s ease; }
+        .sidebar.collapsed .link-text, .sidebar.collapsed .menu-group-title, .sidebar.collapsed .brand span, .sidebar.collapsed .role-badge span, .sidebar.collapsed .logout-btn span, .sidebar.collapsed .submenu-toggle { opacity: 0; width: 0; overflow: hidden; pointer-events: none; }
+        .menu-group-title { color: rgba(255, 255, 255, 0.3); font-size: 0.62rem; padding: 0.75rem 0.85rem 0.35rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; transition: opacity 0.28s ease; }
+        .sidebar .has-submenu > a { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .sidebar .has-submenu > a .submenu-toggle { margin-left: auto; transition: transform 0.28s ease, opacity 0.28s ease; }
         .sidebar .has-submenu.open > a .submenu-toggle { transform: rotate(90deg); }
-        .sidebar .submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.42s ease;
-            padding-left: 0.5rem;
-        }
+        .sidebar .submenu { max-height: 0; overflow: hidden; transition: max-height 0.42s ease; padding-left: 0.5rem; }
         .sidebar .has-submenu.open .submenu { max-height: 500px; }
-        .sidebar .submenu a {
-            padding: 0.55rem 1rem 0.55rem 2.35rem;
-            font-size: 0.825rem;
-            color: rgba(255, 255, 255, 0.55);
-            min-height: 38px;
-        }
+        .sidebar .submenu a { padding: 0.55rem 1rem 0.55rem 2.35rem; font-size: 0.825rem; color: rgba(255, 255, 255, 0.55); min-height: 38px; }
         .sidebar.collapsed .submenu { display: none !important; }
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            flex-shrink: 0;
-            background: rgba(0, 0, 0, 0.08);
-        }
-        .sidebar-footer .role-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.65rem 0.75rem;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.02));
-            border: 1px solid rgba(251, 191, 36, 0.15);
-            border-radius: 12px;
-        }
-        .sidebar-footer .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.7rem 0.75rem;
-            margin-top: 0.5rem;
-            border-radius: 12px;
-            cursor: pointer;
-            color: #f87171;
-            min-height: 42px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.28s ease;
-        }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.06); flex-shrink: 0; background: rgba(0, 0, 0, 0.08); }
+        .sidebar-footer .role-badge { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.75rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.02)); border: 1px solid rgba(251, 191, 36, 0.15); border-radius: 12px; }
+        .sidebar-footer .logout-btn { display: flex; align-items: center; gap: 0.55rem; padding: 0.7rem 0.75rem; margin-top: 0.5rem; border-radius: 12px; cursor: pointer; color: #f87171; min-height: 42px; font-size: 0.875rem; font-weight: 500; transition: all 0.28s ease; }
         .sidebar-footer .logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
-        .sidebar .sidebar-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 6px;
-            border-radius: 9999px;
-            background: #ef4444;
-            color: #fff;
-            font-size: 0.68rem;
-            font-weight: 700;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
+        .sidebar .sidebar-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 9999px; background: #ef4444; color: #fff; font-size: 0.68rem; font-weight: 700; margin-left: auto; flex-shrink: 0; }
         .sidebar .sidebar-badge.hidden { display: none !important; }
-
-        .main-content {
-            margin-left: 260px;
-            min-height: 100vh;
-            padding: 1.5rem;
-            transition: margin-left 0.42s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .main-content { margin-left: 260px; min-height: 100vh; padding: 1.5rem; transition: margin-left 0.42s cubic-bezier(0.4, 0, 0.2, 1); }
         .main-content.expanded { margin-left: 76px; }
-
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 39;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.28s ease, visibility 0.28s;
-        }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 39; opacity: 0; visibility: hidden; transition: opacity 0.28s ease, visibility 0.28s; }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
-        /* ════════════════════ FOOTER ════════════════════ */
-        .footer {
-            background: linear-gradient(180deg, #0f2922 0%, #051410 100%);
-            color: #cbd5e1;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 3rem 0;
-        }
-        .footer .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
+        /* FOOTER */
+        .footer { background: linear-gradient(180deg, #0f2922 0%, #051410 100%); color: #cbd5e1; border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 3rem 0; }
+        .footer .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
         .footer a { transition: color 0.18s ease; text-decoration: none; }
         .footer a:hover { color: #fbbf24 !important; }
 
-        /* ════════════════════ MOBILE BOTTOM NAV ════════════════════ */
+        /* MOBILE BOTTOM NAV */
         .mobile-bottom-nav { display: none; }
-
         @media (max-width: 768px) {
-            .mobile-bottom-nav {
-                display: block;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px));
-                padding-bottom: env(safe-area-inset-bottom, 0px);
-                background: rgba(255, 255, 255, 0.97);
-                backdrop-filter: blur(20px) saturate(180%);
-                -webkit-backdrop-filter: blur(20px) saturate(180%);
-                border-top: 1px solid rgba(15, 41, 34, 0.08);
-                z-index: 100;
-                box-shadow: 0 -1px 8px rgba(15, 41, 34, 0.04);
-            }
-            .dark .mobile-bottom-nav {
-                background: rgba(15, 23, 42, 0.97);
-                border-top-color: rgba(255, 255, 255, 0.06);
-                box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.3);
-            }
-
-            .mobile-bottom-nav-inner {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                height: var(--bn-height);
-                max-width: 640px;
-                margin: 0 auto;
-            }
-
-            .bottom-nav-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 3px;
-                padding: 4px 2px;
-                color: #8e8e93;
-                font-size: 10px;
-                font-weight: 500;
-                text-decoration: none;
-                cursor: pointer;
-                border: none;
-                background: transparent;
-                position: relative;
-                transition: color 0.18s ease, transform 0.12s ease;
-                -webkit-tap-highlight-color: transparent;
-                font-family: inherit;
-                line-height: 1;
-                user-select: none;
-                -webkit-user-select: none;
-            }
+            .mobile-bottom-nav { display: block; position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(15, 41, 34, 0.08); z-index: 100; box-shadow: 0 -1px 8px rgba(15, 41, 34, 0.04); }
+            .dark .mobile-bottom-nav { background: rgba(15, 23, 42, 0.97); border-top-color: rgba(255, 255, 255, 0.06); box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.3); }
+            .mobile-bottom-nav-inner { display: grid; grid-template-columns: repeat(5, 1fr); height: var(--bn-height); max-width: 640px; margin: 0 auto; }
+            .bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 2px; color: #8e8e93; font-size: 10px; font-weight: 500; text-decoration: none; cursor: pointer; border: none; background: transparent; position: relative; transition: color 0.18s ease, transform 0.12s ease; -webkit-tap-highlight-color: transparent; font-family: inherit; line-height: 1; user-select: none; -webkit-user-select: none; }
             .dark .bottom-nav-item { color: #6b7280; }
             .bottom-nav-item:active { transform: scale(0.92); }
-
-            .bottom-nav-item i {
-                font-size: 21px;
-                line-height: 22px;
-                height: 22px;
-                display: inline-block;
-                transition: transform 0.18s ease;
-            }
-            .bottom-nav-item .bn-label {
-                font-size: 10px;
-                line-height: 12px;
-                letter-spacing: -0.005em;
-                white-space: nowrap;
-                max-width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .bottom-nav-item .bn-badge {
-                position: absolute;
-                top: 2px;
-                left: 50%;
-                transform: translateX(8px);
-                min-width: 16px;
-                height: 16px;
-                padding: 0 4px;
-                background: #ef4444;
-                color: #fff;
-                font-size: 9px;
-                font-weight: 700;
-                border-radius: 9999px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border: 1.5px solid #fff;
-                line-height: 1;
-                animation: bnBadgePulse 2s ease-in-out infinite;
-            }
+            .bottom-nav-item i { font-size: 21px; line-height: 22px; height: 22px; display: inline-block; transition: transform 0.18s ease; }
+            .bottom-nav-item .bn-label { font-size: 10px; line-height: 12px; letter-spacing: -0.005em; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+            .bottom-nav-item .bn-badge { position: absolute; top: 2px; left: 50%; transform: translateX(8px); min-width: 16px; height: 16px; padding: 0 4px; background: #ef4444; color: #fff; font-size: 9px; font-weight: 700; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid #fff; line-height: 1; animation: bnBadgePulse 2s ease-in-out infinite; }
             .dark .bottom-nav-item .bn-badge { border-color: #0f172a; }
-            @keyframes bnBadgePulse {
-                0%, 100% { transform: translateX(8px) scale(1); }
-                50%      { transform: translateX(8px) scale(1.08); }
-            }
-
+            @keyframes bnBadgePulse { 0%, 100% { transform: translateX(8px) scale(1); } 50% { transform: translateX(8px) scale(1.08); } }
             .bottom-nav-item.active { color: #0f2922; font-weight: 600; }
-            .bottom-nav-item.active i {
-                color: #0f2922;
-                transform: translateY(-1px);
-            }
+            .bottom-nav-item.active i { color: #0f2922; transform: translateY(-1px); }
             .dark .bottom-nav-item.active { color: #fbbf24; }
             .dark .bottom-nav-item.active i { color: #fbbf24; }
-
-            .main-content {
-                padding: 1rem 1rem calc(1rem + var(--bn-height) + env(safe-area-inset-bottom, 0px)) !important;
-                margin-left: 0 !important;
-            }
+            .main-content { padding: 1rem 1rem calc(1rem + var(--bn-height) + env(safe-area-inset-bottom, 0px)) !important; margin-left: 0 !important; }
             .main-content.expanded { margin-left: 0 !important; }
-            #public-content {
-                padding-bottom: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px) + 8px) !important;
-            }
+            #public-content { padding-bottom: calc(var(--bn-height) + env(safe-area-inset-bottom, 0px) + 8px) !important; }
         }
 
-        /* ════════════════════ MORE SHEET ════════════════════ */
-        .mobile-more-sheet {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            display: none;
-        }
+        /* MORE SHEET */
+        .mobile-more-sheet { position: fixed; inset: 0; z-index: 9998; display: none; }
         .mobile-more-sheet.open { display: block; }
-
-        .mobile-more-backdrop {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            opacity: 0;
-            transition: opacity 0.28s ease;
-        }
+        .mobile-more-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.28s ease; }
         .mobile-more-sheet.open .mobile-more-backdrop { opacity: 1; }
-
-        .mobile-more-panel {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border-top-left-radius: 22px;
-            border-top-right-radius: 22px;
-            max-height: 88vh;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
-            overflow: hidden;
-        }
+        .mobile-more-panel { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 22px; border-top-right-radius: 22px; max-height: 88vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1); padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18); overflow: hidden; }
         .dark .mobile-more-panel { background: #0f172a; }
         .mobile-more-sheet.open .mobile-more-panel { transform: translateY(0); }
-
-        .mobile-more-handle {
-            width: 40px;
-            height: 4px;
-            background: #cbd5e1;
-            border-radius: 9999px;
-            margin: 10px auto 4px;
-            flex-shrink: 0;
-        }
+        .mobile-more-handle { width: 40px; height: 4px; background: #cbd5e1; border-radius: 9999px; margin: 10px auto 4px; flex-shrink: 0; }
         .dark .mobile-more-handle { background: #475569; }
-
-        .mobile-more-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 18px 14px;
-            border-bottom: 1px solid #e5e7eb;
-            flex-shrink: 0;
-        }
+        .mobile-more-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 18px 14px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
         .dark .mobile-more-header { border-bottom-color: #1e293b; }
-
-        .mobile-more-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            font-family: 'Amiri', serif;
-            color: #0f2922;
-            margin: 0;
-        }
+        .mobile-more-title { font-size: 1.05rem; font-weight: 700; font-family: 'Amiri', serif; color: #0f2922; margin: 0; }
         .dark .mobile-more-title { color: #f1f5f9; }
-
-        .mobile-more-close {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: none;
-            background: #f1f5f9;
-            color: #64748b;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            transition: all 0.2s ease;
-        }
+        .mobile-more-close { width: 34px; height: 34px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s ease; }
         .dark .mobile-more-close { background: #1e293b; color: #cbd5e1; }
-        .mobile-more-close:hover,
-        .mobile-more-close:active {
-            background: #e2e8f0;
-            color: #0f2922;
-        }
-        .dark .mobile-more-close:hover {
-            background: #334155;
-            color: #f1f5f9;
-        }
-
-        .mobile-more-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 6px 8px 20px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .mobile-more-section-title {
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            font-weight: 700;
-            padding: 14px 16px 6px;
-        }
-
-        .mobile-more-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #0f172a;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: background 0.15s ease;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .mobile-more-item:hover,
-        .mobile-more-item:active { background: #f1f5f9; }
+        .mobile-more-close:hover, .mobile-more-close:active { background: #e2e8f0; color: #0f2922; }
+        .dark .mobile-more-close:hover { background: #334155; color: #f1f5f9; }
+        .mobile-more-body { flex: 1; overflow-y: auto; padding: 6px 8px 20px; -webkit-overflow-scrolling: touch; }
+        .mobile-more-section-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; font-weight: 700; padding: 14px 16px 6px; }
+        .mobile-more-item { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 12px; text-decoration: none; color: #0f172a; font-size: 0.875rem; font-weight: 500; transition: background 0.15s ease; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer; font-family: inherit; }
+        .mobile-more-item:hover, .mobile-more-item:active { background: #f1f5f9; }
         .dark .mobile-more-item { color: #e2e8f0; }
-        .dark .mobile-more-item:hover,
-        .dark .mobile-more-item:active { background: #1e293b; }
-
-        .mobile-more-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 14px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-        .mobile-more-label {
-            flex: 1;
-            min-width: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .mobile-more-chev {
-            font-size: 12px;
-            color: #cbd5e1;
-            flex-shrink: 0;
-        }
+        .dark .mobile-more-item:hover, .dark .mobile-more-item:active { background: #1e293b; }
+        .mobile-more-icon { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+        .mobile-more-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mobile-more-chev { font-size: 12px; color: #cbd5e1; flex-shrink: 0; }
         .dark .mobile-more-chev { color: #475569; }
 
-        /* ════════════════════ RESPONSIVE ════════════════════ */
         @media (max-width: 1023px) {
             .navbar-links { display: none !important; }
             .navbar-brand-sub { display: none; }
             .navbar-inner { padding: 0.6rem 1rem; min-height: 58px; }
         }
-
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px !important;
-                max-width: 86vw;
-            }
+            .sidebar { transform: translateX(-100%); width: 280px !important; max-width: 86vw; }
             .sidebar.collapsed { transform: translateX(-100%); }
-            #sidebar-toggle,
-            #member-sidebar-toggle { display: none !important; }
+            #sidebar-toggle, #member-sidebar-toggle, #sekretaris-sidebar-toggle { display: none !important; }
             .mobile-admin-header { display: flex; }
             #public-content { padding-top: 62px; }
             .navbar-login-btn span { display: none; }
             .navbar-login-btn { padding: 0.55rem 0.65rem; }
             .navbar-login-btn i { font-size: 1rem; }
         }
-
         @media (min-width: 769px) {
-            .mobile-bottom-nav,
-            .mobile-more-sheet { display: none !important; }
+            .mobile-bottom-nav, .mobile-more-sheet { display: none !important; }
             .mobile-admin-header { display: none !important; }
         }
-
         .hidden { display: none !important; }
         body.sheet-open { overflow: hidden; }
 
         @media print {
-            .mobile-bottom-nav,
-            .mobile-more-sheet,
-            .mobile-admin-header,
-            .sidebar,
-            .sidebar-overlay,
-            #public-navbar,
-            .footer,
-            #telegram-fab-container,
-            .sync-status-banner {
-                display: none !important;
-            }
-            .main-content {
-                margin: 0 !important;
-                padding: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            #public-content {
-                padding: 0 !important;
-                padding-bottom: 0 !important;
-            }
+            .mobile-bottom-nav, .mobile-more-sheet, .mobile-admin-header, .sidebar, .sidebar-overlay, #public-navbar, .footer, #telegram-fab-container, .sync-status-banner { display: none !important; }
+            .main-content { margin: 0 !important; padding: 0 !important; padding-bottom: 0 !important; }
+            #public-content { padding: 0 !important; padding-bottom: 0 !important; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .bottom-nav-item,
-            .bottom-nav-item i,
-            .mobile-more-panel,
-            .mobile-more-backdrop,
-            .sync-status-banner {
-                transition-duration: 0.01ms !important;
-                animation-duration: 0.01ms !important;
-            }
+            .bottom-nav-item, .bottom-nav-item i, .mobile-more-panel, .mobile-more-backdrop, .sync-status-banner { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
             .bn-badge { animation: none !important; }
         }
 
-        #noscript-warning {
-            position: fixed;
-            inset: 0;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            padding: 24px;
-            font-family: 'Inter', sans-serif;
-            text-align: center;
-        }
+        #noscript-warning { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background: #fff; padding: 24px; font-family: 'Inter', sans-serif; text-align: center; }
         .dark #noscript-warning { background: #0f172a; color: #f1f5f9; }
-        #noscript-warning .ns-box {
-            max-width: 420px;
-            padding: 32px 24px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-        }
-        #noscript-warning h2 {
-            font-family: 'Amiri', serif;
-            font-size: 1.5rem;
-            margin: 0 0 12px;
-        }
-        #noscript-warning i {
-            font-size: 3rem;
-            color: #f59e0b;
-            margin-bottom: 16px;
-            display: inline-block;
-        }
+        #noscript-warning .ns-box { max-width: 420px; padding: 32px 24px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; }
+        #noscript-warning h2 { font-family: 'Amiri', serif; font-size: 1.5rem; margin: 0 0 12px; }
+        #noscript-warning i { font-size: 3rem; color: #f59e0b; margin-bottom: 16px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <!-- ══════════════════ BOOT LOADER ══════════════════ -->
+    <!-- BOOT LOADER -->
     <div id="app-boot-loader">
         <img src="logo-ansor.webp" alt="Logo Ansor" class="app-boot-logo" onerror="this.style.display='none'">
         <div class="app-boot-spinner"></div>
@@ -1240,7 +359,7 @@
         <p class="app-boot-sub">Memuat aplikasi...</p>
     </div>
 
-    <!-- ══════════════════ SYNC STATUS BANNER ══════════════════ -->
+    <!-- SYNC STATUS BANNER -->
     <div id="sync-status-banner" class="sync-status-banner" aria-live="polite"></div>
 
     <noscript>
@@ -1255,11 +374,8 @@
 
     <div id="app">
 
-        <!-- ══════════════════════════════════════════════════════════
-             LAYOUT PUBLIK
-             ══════════════════════════════════════════════════════════ -->
+        <!-- ══ LAYOUT PUBLIK ══ -->
         <div id="layout-public" class="hidden" style="display:flex; flex-direction:column; min-height:100vh;">
-
             <nav id="public-navbar">
                 <div class="navbar-inner">
                     <a href="/" class="navbar-brand" aria-label="Beranda">
@@ -1271,7 +387,6 @@
                             <span class="navbar-brand-sub">Kapanewon Sewon</span>
                         </div>
                     </a>
-
                     <div class="navbar-links">
                         <a class="nav-section-link" data-section="hero" data-scroll="true">Beranda</a>
                         <a class="nav-section-link" data-section="profil" data-scroll="true">Profil</a>
@@ -1283,7 +398,6 @@
                         <a class="nav-section-link" data-section="dokumen" data-scroll="true">Dokumen</a>
                         <a class="nav-section-link" data-section="kontak" data-scroll="true">Kontak</a>
                     </div>
-
                     <div class="navbar-actions">
                         <div id="public-auth-links" class="navbar-auth-area"></div>
                         <button id="theme-toggle" type="button" class="navbar-icon-btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
@@ -1293,34 +407,16 @@
                     </div>
                 </div>
             </nav>
-
             <main id="public-content" style="flex:1;"></main>
-
             <nav class="mobile-bottom-nav" data-role="public" aria-label="Navigasi utama">
                 <div class="mobile-bottom-nav-inner">
-                    <a href="/" class="bottom-nav-item" data-route="/">
-                        <i class="fas fa-home"></i>
-                        <span class="bn-label">Beranda</span>
-                    </a>
-                    <a href="/semua_berita" class="bottom-nav-item" data-route="/semua_berita">
-                        <i class="fas fa-newspaper"></i>
-                        <span class="bn-label">Berita</span>
-                    </a>
-                    <a href="/semua_kegiatan" class="bottom-nav-item" data-route="/semua_kegiatan">
-                        <i class="fas fa-calendar-check"></i>
-                        <span class="bn-label">Kegiatan</span>
-                    </a>
-                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span class="bn-label">Absensi</span>
-                    </a>
-                    <button type="button" class="bottom-nav-item" data-action="more">
-                        <i class="fas fa-bars"></i>
-                        <span class="bn-label">Lainnya</span>
-                    </button>
+                    <a href="/" class="bottom-nav-item" data-route="/"><i class="fas fa-home"></i><span class="bn-label">Beranda</span></a>
+                    <a href="/semua_berita" class="bottom-nav-item" data-route="/semua_berita"><i class="fas fa-newspaper"></i><span class="bn-label">Berita</span></a>
+                    <a href="/semua_kegiatan" class="bottom-nav-item" data-route="/semua_kegiatan"><i class="fas fa-calendar-check"></i><span class="bn-label">Kegiatan</span></a>
+                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi"><i class="fas fa-clipboard-check"></i><span class="bn-label">Absensi</span></a>
+                    <button type="button" class="bottom-nav-item" data-action="more"><i class="fas fa-bars"></i><span class="bn-label">Lainnya</span></button>
                 </div>
             </nav>
-
             <footer class="footer">
                 <div class="container">
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:2rem; margin-bottom:2.5rem;">
@@ -1332,9 +428,7 @@
                                     <p style="color:#86efac; font-size:0.85rem; margin:0;">Kapanewon Sewon</p>
                                 </div>
                             </div>
-                            <p style="color:#9ca3af; font-size:0.875rem; line-height:1.7; max-width:28rem;">
-                                Mengabdi untuk umat, berjuang untuk bangsa. Organisasi kepemudaan Islam yang berkhidmat di Kapanewon Sewon, Bantul, Yogyakarta.
-                            </p>
+                            <p style="color:#9ca3af; font-size:0.875rem; line-height:1.7; max-width:28rem;">Mengabdi untuk umat, berjuang untuk bangsa. Organisasi kepemudaan Islam yang berkhidmat di Kapanewon Sewon, Bantul, Yogyakarta.</p>
                         </div>
                         <div>
                             <h4 style="color:#fff; font-size:0.8rem; margin:0 0 1rem; text-transform:uppercase; letter-spacing:0.05em;">Halaman</h4>
@@ -1354,16 +448,12 @@
                             </ul>
                         </div>
                     </div>
-                    <div style="text-align:center; color:#6b7280; font-size:0.75rem; border-top:1px solid rgba(255,255,255,0.1); padding-top:1.5rem;">
-                        &copy; 2026 PAC GP Ansor Kapanewon Sewon. All rights reserved.
-                    </div>
+                    <div style="text-align:center; color:#6b7280; font-size:0.75rem; border-top:1px solid rgba(255,255,255,0.1); padding-top:1.5rem;">&copy; 2026 PAC GP Ansor Kapanewon Sewon. All rights reserved.</div>
                 </div>
             </footer>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════════
-             LAYOUT ADMIN
-             ══════════════════════════════════════════════════════════ -->
+        <!-- ══ LAYOUT ADMIN ══ -->
         <div id="layout-admin" class="hidden">
             <aside id="admin-sidebar" class="sidebar">
                 <div class="sidebar-header">
@@ -1379,7 +469,6 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                 </div>
-
                 <nav class="nav-links">
                     <div class="menu-group-title">Manajemen Umum</div>
                     <a href="/dashboard_admin"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
@@ -1393,7 +482,6 @@
                         </div>
                     </div>
                     <a href="/berita_admin"><i class="fas fa-newspaper"></i><span class="link-text">Manajemen Berita</span></a>
-
                     <div class="menu-group-title" style="margin-top:1.5rem;">Sumber Daya</div>
                     <div class="has-submenu">
                         <a href="#"><i class="fas fa-users"></i><span class="link-text">Anggota</span><i class="fas fa-chevron-right submenu-toggle" style="font-size:0.75rem;"></i></a>
@@ -1404,19 +492,16 @@
                     </div>
                     <a href="/profil_admin"><i class="fas fa-address-card"></i><span class="link-text">Profil</span></a>
                     <a href="/tokoh_admin"><i class="fas fa-user-tie"></i><span class="link-text">Tokoh</span></a>
-
                     <div class="menu-group-title" style="margin-top:1.5rem;">Konten &amp; Publikasi</div>
                     <a href="/arsip_admin"><i class="fas fa-archive"></i><span class="link-text">Arsip</span></a>
                     <a href="/kalender_admin"><i class="fas fa-calendar-alt"></i><span class="link-text">Kalender</span></a>
                     <a href="/galeri_admin"><i class="fas fa-images"></i><span class="link-text">Galeri</span></a>
-
                     <div class="menu-group-title" style="margin-top:1.5rem;">Operasional</div>
                     <a href="/keuangan_admin"><i class="fas fa-coins"></i><span class="link-text">Keuangan</span></a>
                     <a href="/absensi_admin"><i class="fas fa-clipboard-check"></i><span class="link-text">Absensi</span></a>
                     <a href="/inventaris_admin"><i class="fas fa-boxes"></i><span class="link-text">Inventaris</span></a>
                     <a href="/proker_admin"><i class="fas fa-tasks"></i><span class="link-text">Program Kerja</span></a>
                     <a href="/forum_admin"><i class="fas fa-comments"></i><span class="link-text">Forum</span></a>
-
                     <div class="menu-group-title" style="margin-top:1.5rem;">Form Builder</div>
                     <a href="/forms_admin" id="menu-forms-admin">
                         <i class="fas fa-wpforms"></i>
@@ -1424,25 +509,15 @@
                         <span id="forms-badge" class="sidebar-badge hidden">0</span>
                     </a>
                 </nav>
-
                 <div class="sidebar-footer">
-                    <div class="role-badge">
-                        <i class="fas fa-user-shield" style="color:#fbbf24;"></i>
-                        <span id="sidebar-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Admin</span>
-                    </div>
-                    <div id="sidebar-logout" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span style="font-size:0.875rem;">Logout</span>
-                    </div>
+                    <div class="role-badge"><i class="fas fa-user-shield" style="color:#fbbf24;"></i><span id="sidebar-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Admin</span></div>
+                    <div id="sidebar-logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span style="font-size:0.875rem;">Logout</span></div>
                 </div>
             </aside>
             <div id="sidebar-overlay" class="sidebar-overlay"></div>
-
             <header class="mobile-admin-header">
                 <div class="mah-left">
-                    <div class="mah-logo">
-                        <img src="logo-ansor.webp" alt="Logo" />
-                    </div>
+                    <div class="mah-logo"><img src="logo-ansor.webp" alt="Logo" /></div>
                     <div class="mah-title-wrap">
                         <p class="mah-title">Admin Panel</p>
                         <p class="mah-sub" id="admin-mobile-username">PAC GP Ansor Sewon</p>
@@ -1450,47 +525,24 @@
                 </div>
                 <div class="mah-actions">
                     <button id="admin-theme-toggle-mobile" type="button" class="mah-icon-btn" aria-label="Toggle Dark Mode">
-                        <i class="fas fa-moon theme-icon-moon"></i>
-                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                        <i class="fas fa-moon theme-icon-moon"></i><i class="fas fa-sun theme-icon-sun hidden"></i>
                     </button>
-                    <button type="button" class="mah-icon-btn mah-logout" id="admin-logout-mobile" aria-label="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
+                    <button type="button" class="mah-icon-btn mah-logout" id="admin-logout-mobile" aria-label="Logout"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </header>
-
             <main id="admin-content" class="main-content"></main>
-
             <nav class="mobile-bottom-nav" data-role="admin" aria-label="Navigasi admin">
                 <div class="mobile-bottom-nav-inner">
-                    <a href="/dashboard_admin" class="bottom-nav-item" data-route="/dashboard_admin">
-                        <i class="fas fa-chart-pie"></i>
-                        <span class="bn-label">Dashboard</span>
-                    </a>
-                    <a href="/surat_admin" class="bottom-nav-item" data-route="/surat_admin">
-                        <i class="fas fa-file-alt"></i>
-                        <span class="bn-label">Surat</span>
-                    </a>
-                    <a href="/logbook_admin" class="bottom-nav-item" data-route="/logbook_admin">
-                        <i class="fas fa-book"></i>
-                        <span class="bn-label">Logbook</span>
-                    </a>
-                    <a href="/forms_admin" class="bottom-nav-item" data-route="/forms_admin">
-                        <i class="fas fa-wpforms"></i>
-                        <span class="bn-label">Form</span>
-                        <span class="bn-badge hidden" data-badge="forms">0</span>
-                    </a>
-                    <button type="button" class="bottom-nav-item" data-action="more">
-                        <i class="fas fa-bars"></i>
-                        <span class="bn-label">Lainnya</span>
-                    </button>
+                    <a href="/dashboard_admin" class="bottom-nav-item" data-route="/dashboard_admin"><i class="fas fa-chart-pie"></i><span class="bn-label">Dashboard</span></a>
+                    <a href="/surat_admin" class="bottom-nav-item" data-route="/surat_admin"><i class="fas fa-file-alt"></i><span class="bn-label">Surat</span></a>
+                    <a href="/logbook_admin" class="bottom-nav-item" data-route="/logbook_admin"><i class="fas fa-book"></i><span class="bn-label">Logbook</span></a>
+                    <a href="/forms_admin" class="bottom-nav-item" data-route="/forms_admin"><i class="fas fa-wpforms"></i><span class="bn-label">Form</span><span class="bn-badge hidden" data-badge="forms">0</span></a>
+                    <button type="button" class="bottom-nav-item" data-action="more"><i class="fas fa-bars"></i><span class="bn-label">Lainnya</span></button>
                 </div>
             </nav>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════════
-             LAYOUT MEMBER
-             ══════════════════════════════════════════════════════════ -->
+        <!-- ══ LAYOUT MEMBER ══ -->
         <div id="layout-member" class="hidden">
             <aside id="member-sidebar" class="sidebar">
                 <div class="sidebar-header">
@@ -1499,43 +551,28 @@
                         <span style="font-family:'Amiri',serif; font-weight:700; font-size:1.15rem; line-height:1.1;">Ansor<br>Sewon</span>
                     </a>
                     <button id="member-theme-toggle" type="button" class="toggle-btn" title="Toggle Dark Mode">
-                        <i class="fas fa-moon theme-icon-moon"></i>
-                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                        <i class="fas fa-moon theme-icon-moon"></i><i class="fas fa-sun theme-icon-sun hidden"></i>
                     </button>
-                    <button id="member-sidebar-toggle" type="button" class="toggle-btn" title="Minimize/Maximize">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+                    <button id="member-sidebar-toggle" type="button" class="toggle-btn" title="Minimize/Maximize"><i class="fas fa-chevron-left"></i></button>
                 </div>
-
                 <nav class="nav-links">
                     <div class="menu-group-title">Manajemen Member</div>
                     <a href="/dashboard_member"><i class="fas fa-chart-pie"></i><span class="link-text">Dashboard</span></a>
                     <a href="/surat_member"><i class="fas fa-file-alt"></i><span class="link-text">Surat</span></a>
                     <a href="/logbook_member"><i class="fas fa-book"></i><span class="link-text">Logbook</span></a>
-
                     <div class="menu-group-title" style="margin-top:1.5rem;">Navigasi</div>
                     <a href="/"><i class="fas fa-home"></i><span class="link-text">Beranda Publik</span></a>
                     <a href="/absensi"><i class="fas fa-clipboard-check"></i><span class="link-text">Absensi</span></a>
                 </nav>
-
                 <div class="sidebar-footer">
-                    <div class="role-badge">
-                        <i class="fas fa-user" style="color:#34d399;"></i>
-                        <span id="member-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Member</span>
-                    </div>
-                    <div id="member-logout" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span style="font-size:0.875rem;">Logout</span>
-                    </div>
+                    <div class="role-badge"><i class="fas fa-user" style="color:#34d399;"></i><span id="member-role" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Member</span></div>
+                    <div id="member-logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span style="font-size:0.875rem;">Logout</span></div>
                 </div>
             </aside>
             <div id="member-overlay" class="sidebar-overlay"></div>
-
             <header class="mobile-admin-header">
                 <div class="mah-left">
-                    <div class="mah-logo">
-                        <img src="logo-ansor.webp" alt="Logo" />
-                    </div>
+                    <div class="mah-logo"><img src="logo-ansor.webp" alt="Logo" /></div>
                     <div class="mah-title-wrap">
                         <p class="mah-title">Member Area</p>
                         <p class="mah-sub" id="member-mobile-username">PAC GP Ansor Sewon</p>
@@ -1543,122 +580,177 @@
                 </div>
                 <div class="mah-actions">
                     <button id="member-theme-toggle-mobile" type="button" class="mah-icon-btn" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i><i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button type="button" class="mah-icon-btn mah-logout" id="member-logout-mobile" aria-label="Logout"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </header>
+            <main id="member-content" class="main-content"></main>
+            <nav class="mobile-bottom-nav" data-role="member" aria-label="Navigasi member">
+                <div class="mobile-bottom-nav-inner">
+                    <a href="/dashboard_member" class="bottom-nav-item" data-route="/dashboard_member"><i class="fas fa-chart-pie"></i><span class="bn-label">Dashboard</span></a>
+                    <a href="/surat_member" class="bottom-nav-item" data-route="/surat_member"><i class="fas fa-file-alt"></i><span class="bn-label">Surat</span></a>
+                    <a href="/logbook_member" class="bottom-nav-item" data-route="/logbook_member"><i class="fas fa-book"></i><span class="bn-label">Logbook</span></a>
+                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi"><i class="fas fa-clipboard-check"></i><span class="bn-label">Absensi</span></a>
+                    <button type="button" class="bottom-nav-item" data-action="more"><i class="fas fa-bars"></i><span class="bn-label">Lainnya</span></button>
+                </div>
+            </nav>
+        </div>
+
+        <!-- ══ LAYOUT SEKRETARIS ══ -->
+        <div id="layout-sekretaris" class="hidden">
+            <aside id="sekretaris-sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <a href="/sekretaris_dashboard" class="brand">
+                        <img src="logo-ansor.webp" alt="Logo" style="height:36px; width:auto;" />
+                        <span style="font-family:'Amiri',serif; font-weight:700; font-size:1.15rem; line-height:1.1;">Sekretaris<br>Ranting</span>
+                    </a>
+                    <button id="sekretaris-theme-toggle" type="button" class="toggle-btn" title="Toggle Dark Mode">
                         <i class="fas fa-moon theme-icon-moon"></i>
                         <i class="fas fa-sun theme-icon-sun hidden"></i>
                     </button>
-                    <button type="button" class="mah-icon-btn mah-logout" id="member-logout-mobile" aria-label="Logout">
+                    <button id="sekretaris-sidebar-toggle" type="button" class="toggle-btn" title="Minimize/Maximize">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                <nav class="nav-links">
+                    <div class="menu-group-title">Ranting Saya</div>
+                    <a href="/sekretaris_dashboard">
+                        <i class="fas fa-chart-pie"></i>
+                        <span class="link-text">Dashboard</span>
+                    </a>
+                    <a href="/sekretaris_surat">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="link-text">Surat Ranting</span>
+                    </a>
+                    <a href="/sekretaris_logbook">
+                        <i class="fas fa-book"></i>
+                        <span class="link-text">Logbook Ranting</span>
+                    </a>
+                    <a href="/sekretaris_absensi">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="link-text">Absensi Ranting</span>
+                    </a>
+                    <a href="/sekretaris_laporan">
+                        <i class="fas fa-file-pdf"></i>
+                        <span class="link-text">Laporan Ranting</span>
+                    </a>
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Monitoring</div>
+                    <a href="/absensi">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="link-text">Absensi Global</span>
+                    </a>
+                    <a href="/anggota">
+                        <i class="fas fa-users"></i>
+                        <span class="link-text">Anggota</span>
+                    </a>
+                    <a href="/keuangan">
+                        <i class="fas fa-coins"></i>
+                        <span class="link-text">Keuangan</span>
+                    </a>
+                    <a href="/kalender">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="link-text">Kalender</span>
+                    </a>
+                    <a href="/forum_admin">
+                        <i class="fas fa-comments"></i>
+                        <span class="link-text">Forum</span>
+                    </a>
+                    <div class="menu-group-title" style="margin-top:1.5rem;">Lainnya</div>
+                    <a href="/">
+                        <i class="fas fa-globe"></i>
+                        <span class="link-text">Beranda Publik</span>
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="role-badge">
+                        <i class="fas fa-user-edit" style="color:#60a5fa;"></i>
+                        <span id="sekretaris-ranting-label" style="font-size:0.875rem; color:rgba(255,255,255,0.8);">Sekretaris</span>
+                    </div>
+                    <div id="sekretaris-logout" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span style="font-size:0.875rem;">Logout</span>
+                    </div>
+                </div>
+            </aside>
+            <div id="sekretaris-overlay" class="sidebar-overlay"></div>
+            <header class="mobile-admin-header">
+                <div class="mah-left">
+                    <div class="mah-logo"><img src="logo-ansor.webp" alt="Logo" /></div>
+                    <div class="mah-title-wrap">
+                        <p class="mah-title">Sekretaris Ranting</p>
+                        <p class="mah-sub" id="sekretaris-mobile-username">-</p>
+                    </div>
+                </div>
+                <div class="mah-actions">
+                    <button id="sekretaris-theme-toggle-mobile" type="button" class="mah-icon-btn" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon theme-icon-moon"></i>
+                        <i class="fas fa-sun theme-icon-sun hidden"></i>
+                    </button>
+                    <button type="button" class="mah-icon-btn mah-logout" id="sekretaris-logout-mobile" aria-label="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
             </header>
-
-            <main id="member-content" class="main-content"></main>
-
-            <nav class="mobile-bottom-nav" data-role="member" aria-label="Navigasi member">
+            <main id="sekretaris-content" class="main-content"></main>
+            <nav class="mobile-bottom-nav" data-role="sekretaris" aria-label="Navigasi sekretaris">
                 <div class="mobile-bottom-nav-inner">
-                    <a href="/dashboard_member" class="bottom-nav-item" data-route="/dashboard_member">
-                        <i class="fas fa-chart-pie"></i>
-                        <span class="bn-label">Dashboard</span>
+                    <a href="/sekretaris_dashboard" class="bottom-nav-item" data-route="/sekretaris_dashboard">
+                        <i class="fas fa-chart-pie"></i><span class="bn-label">Dashboard</span>
                     </a>
-                    <a href="/surat_member" class="bottom-nav-item" data-route="/surat_member">
-                        <i class="fas fa-file-alt"></i>
-                        <span class="bn-label">Surat</span>
+                    <a href="/sekretaris_surat" class="bottom-nav-item" data-route="/sekretaris_surat">
+                        <i class="fas fa-file-alt"></i><span class="bn-label">Surat</span>
                     </a>
-                    <a href="/logbook_member" class="bottom-nav-item" data-route="/logbook_member">
-                        <i class="fas fa-book"></i>
-                        <span class="bn-label">Logbook</span>
+                    <a href="/sekretaris_logbook" class="bottom-nav-item" data-route="/sekretaris_logbook">
+                        <i class="fas fa-book"></i><span class="bn-label">Logbook</span>
                     </a>
-                    <a href="/absensi" class="bottom-nav-item" data-route="/absensi">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span class="bn-label">Absensi</span>
+                    <a href="/sekretaris_absensi" class="bottom-nav-item" data-route="/sekretaris_absensi">
+                        <i class="fas fa-clipboard-check"></i><span class="bn-label">Absensi</span>
                     </a>
                     <button type="button" class="bottom-nav-item" data-action="more">
-                        <i class="fas fa-bars"></i>
-                        <span class="bn-label">Lainnya</span>
+                        <i class="fas fa-bars"></i><span class="bn-label">Lainnya</span>
                     </button>
                 </div>
             </nav>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════════
-             LAYOUT AUTH
-             ══════════════════════════════════════════════════════════ -->
+        <!-- ══ LAYOUT AUTH ══ -->
         <div id="layout-auth" class="hidden">
             <div id="auth-content" style="display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem 1rem;"></div>
         </div>
 
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         TELEGRAM FAB
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ TELEGRAM FAB ══ -->
     <div id="telegram-fab-container" aria-live="polite">
         <div id="telegram-fab-panel" role="dialog" aria-modal="false" aria-labelledby="tg-fab-title">
             <div class="tg-fab-header">
-                <div class="tg-fab-header-icon">
-                    <i class="fab fa-telegram-plane"></i>
-                </div>
+                <div class="tg-fab-header-icon"><i class="fab fa-telegram-plane"></i></div>
                 <div class="tg-fab-header-text">
                     <h3 id="tg-fab-title" class="tg-fab-title">Bot Telegram</h3>
-                    <p class="tg-fab-subtitle">
-                        <i class="fas fa-bolt"></i>
-                        <span>Isi &amp; kelola data via chat</span>
-                    </p>
+                    <p class="tg-fab-subtitle"><i class="fas fa-bolt"></i><span>Isi &amp; kelola data via chat</span></p>
                 </div>
-                <button type="button" id="tg-fab-close" class="tg-fab-close" aria-label="Tutup">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button type="button" id="tg-fab-close" class="tg-fab-close" aria-label="Tutup"><i class="fas fa-times"></i></button>
             </div>
-
             <div class="tg-fab-body">
-                <p class="tg-fab-desc">
-                    Isi <strong>logbook</strong>, <strong>surat</strong>,
-                    <strong>keuangan</strong>, dan data lainnya langsung dari
-                    Telegram. <strong>Klik command</strong> di bawah untuk langsung
-                    eksekusi.
-                </p>
-
-                <div id="tg-fab-role-hint" class="tg-fab-role-hint tg-role-public">
-                    <i class="fas fa-user"></i>
-                    <span>Mode: Publik</span>
-                </div>
-
-                <p class="tg-fab-section-label">
-                    <i class="fas fa-terminal"></i>
-                    <span id="tg-fab-cmd-label">Pilih command</span>
-                </p>
+                <p class="tg-fab-desc">Isi <strong>logbook</strong>, <strong>surat</strong>, <strong>keuangan</strong>, dan data lainnya langsung dari Telegram. <strong>Klik command</strong> di bawah untuk langsung eksekusi.</p>
+                <div id="tg-fab-role-hint" class="tg-fab-role-hint tg-role-public"><i class="fas fa-user"></i><span>Mode: Publik</span></div>
+                <p class="tg-fab-section-label"><i class="fas fa-terminal"></i><span id="tg-fab-cmd-label">Pilih command</span></p>
                 <div id="tg-fab-cmds" class="tg-fab-cmds"></div>
-
                 <div class="tg-fab-deeplink-hint">
                     <i class="fas fa-info-circle"></i>
-                    <div>
-                        <strong>Tips:</strong> Pastikan sudah
-                        <code>/link</code> di bot dulu sebelum klik command
-                        yang butuh akses data.
-                    </div>
+                    <div><strong>Tips:</strong> Pastikan sudah <code>/link</code> di bot dulu sebelum klik command yang butuh akses data.</div>
                 </div>
-
                 <div class="tg-fab-security">
                     <i class="fas fa-shield-alt"></i>
-                    <div>
-                        Akses perintah <strong>dibatasi sesuai role</strong> akun
-                        yang tertaut. Token bot tidak pernah terekspos ke browser.
-                    </div>
+                    <div>Akses perintah <strong>dibatasi sesuai role</strong> akun yang tertaut. Token bot tidak pernah terekspos ke browser.</div>
                 </div>
             </div>
-
             <div class="tg-fab-footer">
-                <a id="tg-fab-open-link" href="#" target="_blank" rel="noopener noreferrer" class="tg-fab-open-btn">
-                    <i class="fab fa-telegram"></i>
-                    <span>Buka Bot Telegram</span>
-                </a>
-                <p class="tg-fab-hint">
-                    <i class="fas fa-info-circle"></i>
-                    Daftar akun di website dulu, lalu <code>/link</code> di bot
-                </p>
+                <a id="tg-fab-open-link" href="#" target="_blank" rel="noopener noreferrer" class="tg-fab-open-btn"><i class="fab fa-telegram"></i><span>Buka Bot Telegram</span></a>
+                <p class="tg-fab-hint"><i class="fas fa-info-circle"></i>Daftar akun di website dulu, lalu <code>/link</code> di bot</p>
             </div>
         </div>
-
         <button type="button" id="telegram-fab-btn" aria-label="Buka bot Telegram" aria-expanded="false" aria-controls="telegram-fab-panel">
             <span class="tg-fab-pulse" aria-hidden="true"></span>
             <i class="fab fa-telegram-plane"></i>
@@ -1666,27 +758,20 @@
         </button>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         MORE SHEET
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ MORE SHEET ══ -->
     <div id="mobile-more-sheet" class="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-sheet-title">
         <div class="mobile-more-backdrop" data-action="close-more"></div>
         <div class="mobile-more-panel">
             <div class="mobile-more-handle"></div>
             <div class="mobile-more-header">
                 <h3 id="more-sheet-title" class="mobile-more-title">Menu Lainnya</h3>
-                <button type="button" class="mobile-more-close" data-action="close-more" aria-label="Tutup">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button type="button" class="mobile-more-close" data-action="close-more" aria-label="Tutup"><i class="fas fa-times"></i></button>
             </div>
             <div class="mobile-more-body" id="more-sheet-body"></div>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         CDN SCRIPTS — Primary (urutan penting)
-         ✅ FIX: docx pakai jsDelivr (lebih reliable dari cdnjs)
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ CDN SCRIPTS ══ -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -1697,316 +782,122 @@
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js"
+            onerror="this.onerror=null; var s=document.createElement('script'); s.src='https://unpkg.com/docx@7.8.2/build/index.js'; document.head.appendChild(s);"></script>
 
-    <!-- ✅ docx: jsDelivr PRIMARY (reliable) -->
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.2.0/build/index.umd.js"></script>
-
-    <!-- ══════════════════════════════════════════════════════════
-         CDN FALLBACK LOADER — v3.0.0 SAFE (NO document.write)
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ CDN FALLBACK LOADER ══ -->
     <script>
     (function() {
         'use strict';
-
         var FALLBACKS = [
-            { global: 'FullCalendar', url: 'https://unpkg.com/fullcalendar@6.1.8/index.global.min.js' },
-            { global: 'Swiper',       url: 'https://unpkg.com/swiper@11/swiper-bundle.min.js' },
-            { global: 'AOS',          url: 'https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js' },
-            { global: 'Quill',        url: 'https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js' },
-            { global: 'jsPlumb',      url: 'https://unpkg.com/jsplumb@2.15.6/dist/js/jsplumb.min.js' },
-            { global: 'interact',     url: 'https://unpkg.com/interactjs@1.10.27/dist/interact.min.js' },
-            { global: 'QRCode',       url: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js' },
-            { global: 'JsBarcode',    url: 'https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js' },
-            { global: 'html2canvas',  url: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js' },
-            { global: 'jspdf',        url: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js' },
-            { global: 'docx',         url: 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.0/docx.min.js' }
+            { global: 'FullCalendar', urls: ['https://unpkg.com/fullcalendar@6.1.8/index.global.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js']},
+            { global: 'Swiper', urls: ['https://unpkg.com/swiper@11/swiper-bundle.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js']},
+            { global: 'AOS', urls: ['https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js', 'https://unpkg.com/aos@2.3.1/dist/aos.js']},
+            { global: 'Quill', urls: ['https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.min.js']},
+            { global: 'jsPlumb', urls: ['https://unpkg.com/jsplumb@2.15.6/dist/js/jsplumb.min.js', 'https://cdn.jsdelivr.net/npm/jsplumb@2.15.6/dist/js/jsplumb.min.js']},
+            { global: 'interact', urls: ['https://unpkg.com/interactjs@1.10.27/dist/interact.min.js', 'https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js']},
+            { global: 'QRCode', urls: ['https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js']},
+            { global: 'JsBarcode', urls: ['https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js']},
+            { global: 'html2canvas', urls: ['https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js']},
+            { global: 'jspdf', urls: ['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js']},
+            { global: 'docx', urls: ['https://unpkg.com/docx@7.8.2/build/index.js', 'https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js', 'https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js']}
         ];
-
-        // ✅ Tunggu DOM ready & cek setelah semua CDN selesai attempt load
-        function checkAndLoad() {
-            var missing = [];
-            for (var i = 0; i < FALLBACKS.length; i++) {
-                if (typeof window[FALLBACKS[i].global] === 'undefined') {
-                    missing.push(FALLBACKS[i]);
+        function loadScript(url) {
+            return new Promise(function(resolve, reject) {
+                var s = document.createElement('script');
+                s.src = url;
+                s.async = false;
+                s.onload = function() { resolve(url); };
+                s.onerror = function() { reject(new Error('Failed: ' + url)); };
+                document.head.appendChild(s);
+            });
+        }
+        async function loadWithFallback(lib) {
+            for (var i = 0; i < lib.urls.length; i++) {
+                try {
+                    await loadScript(lib.urls[i]);
+                    if (typeof window[lib.global] !== 'undefined') {
+                        console.log('[CDN] ✅ Fallback OK: ' + lib.global);
+                        return true;
+                    }
+                } catch (e) {
+                    console.warn('[CDN] ⚠️ Try ' + (i + 1) + ' failed: ' + lib.global);
                 }
             }
-
+            console.error('[CDN] ❌ All fallbacks FAILED: ' + lib.global);
+            return false;
+        }
+        async function checkAndLoad() {
+            var missing = FALLBACKS.filter(function(lib) {
+                return typeof window[lib.global] === 'undefined';
+            });
             if (missing.length === 0) {
                 console.log('[CDN] ✅ Semua library loaded OK');
                 window.__CDN_FALLBACK_DONE = true;
                 return;
             }
-
             console.warn('[CDN] ⚠️ ' + missing.length + ' library gagal — loading fallback...');
-
-            // ✅ PAKAI appendChild, BUKAN document.write
-            var loadedCount = 0;
-            var failedCount = 0;
-
-            missing.forEach(function(lib) {
-                console.log('[CDN] → Fallback: ' + lib.global);
-
-                var s = document.createElement('script');
-                s.src = lib.url;
-                s.async = false; // Preserve order
-
-                s.onload = function() {
-                    loadedCount++;
-                    console.log('[CDN] ✅ Fallback loaded: ' + lib.global +
-                        ' (' + loadedCount + '/' + missing.length + ')');
-
-                    if (loadedCount + failedCount === missing.length) {
-                        window.__CDN_FALLBACK_DONE = true;
-                        console.log('[CDN] ✅ Fallback complete');
-                    }
-                };
-
-                s.onerror = function() {
-                    failedCount++;
-                    console.error('[CDN] ❌ Fallback FAILED: ' + lib.global);
-
-                    if (loadedCount + failedCount === missing.length) {
-                        window.__CDN_FALLBACK_DONE = true;
-                        console.warn('[CDN] ⚠️ Fallback complete with ' +
-                            failedCount + ' failure(s)');
-                    }
-                };
-
-                document.head.appendChild(s);
-            });
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(checkAndLoad, 200);
-            });
-        } else {
-            setTimeout(checkAndLoad, 200);
-        }
-    })();
-    </script>
-
-    <!-- ══════════════════════════════════════════════════════════
-         PRELOAD HOMEPAGE ENDPOINTS (fire-and-forget)
-         ══════════════════════════════════════════════════════════ -->
-    <script>
-    (function() {
-        'use strict';
-
-        var API = 'https://script.google.com/macros/s/AKfycbwxL8wL7G__dlIHeEgVc8FWsjjC235t42ZyStwSADDIqlxxcUp7FGqmsQUHEMJeNpN5ow/exec';
-
-        var PRELOAD = [
-            'getProfil',
-            'getStruktur',
-            'getBerita',
-            'getLogbook',
-            'getGaleri',
-            'getUsers'
-        ];
-
-        var isLoggedIn = false;
-        try {
-            var rawUser = (window.SafeStorage || localStorage).getItem('user');
-            if (rawUser) isLoggedIn = true;
-        } catch (e) {}
-
-        if (isLoggedIn) {
-            console.log('[Preload] ⚡ User logged in, skip anon preload');
-            return;
-        }
-
-        var hasAnyCache = false;
-        try {
-            for (var i = 0; i < sessionStorage.length; i++) {
-                var k = sessionStorage.key(i);
-                if (k && k.indexOf('cache_getProfil_anon_') === 0) {
-                    hasAnyCache = true;
-                    break;
-                }
+            for (var i = 0; i < missing.length; i++) {
+                await loadWithFallback(missing[i]);
             }
-        } catch (e) {}
-
-        if (hasAnyCache) {
-            console.log('[Preload] ⚡ Cache exists, skip preload');
-            return;
+            window.__CDN_FALLBACK_DONE = true;
+            console.log('[CDN] ✅ Fallback sequence complete');
         }
-
-        console.log('[Preload] ⚡ Firing ' + PRELOAD.length + ' endpoint...');
-
-        PRELOAD.forEach(function(action) {
-            var cbName = 'preload_' + action + '_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-            var w = window;
-            var responded = false;
-
-            w[cbName] = function(res) {
-                if (responded) return;
-                responded = true;
-                if (res && res.success) {
-                    try {
-                        var key = 'cache_' + action + '_anon_' + JSON.stringify({});
-                        sessionStorage.setItem(key, JSON.stringify({
-                            data: res,
-                            _timestamp: Date.now()
-                        }));
-                        console.log('[Preload] ✅ ' + action + ' cached');
-                    } catch (e) {
-                        console.warn('[Preload] Cache quota exceeded for ' + action);
-                    }
-                }
-                try { delete w[cbName]; } catch (e) { w[cbName] = null; }
-            };
-
-            var s = document.createElement('script');
-            s.src = API + '?action=' + action + '&callback=' + cbName;
-            s.async = true;
-            s.onerror = function() {
-                if (responded) return;
-                responded = true;
-                console.warn('[Preload] ❌ ' + action + ' failed');
-                try { delete w[cbName]; } catch (e) { w[cbName] = null; }
-            };
-            document.head.appendChild(s);
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { setTimeout(checkAndLoad, 300); });
+        } else {
+            setTimeout(checkAndLoad, 300);
+        }
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         SERVICE WORKER REGISTRATION — v2.1.0 SAFE MODE
-         ✅ FIX: 404 tidak crash (HEAD check dulu)
-         ✅ FIX: Skip localhost (dev)
-         ✅ FIX: Skip non-HTTPS
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ SERVICE WORKER ══ -->
     <script>
     (function() {
         'use strict';
-
-        // Skip jika tidak didukung
-        if (!('serviceWorker' in navigator)) {
-            console.log('[SW] Service Worker not supported');
-            return;
+        if (!('serviceWorker' in navigator)) return;
+        if (/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) return;
+        if (location.protocol !== 'https:') return;
+        function getSwUrl() {
+            var path = window.location.pathname;
+            var basePath = path.substring(0, path.lastIndexOf('/') + 1);
+            return basePath + 'sw.js';
         }
-
-        // Skip di localhost (development)
-        if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname)) {
-            console.log('[SW] Skipped on localhost (dev mode)');
-            return;
-        }
-
-        // Skip jika bukan HTTPS
-        if (location.protocol !== 'https:') {
-            console.log('[SW] Requires HTTPS');
-            return;
-        }
-
+        var SW_URL = getSwUrl();
         window.addEventListener('load', function() {
-            // Step 1: HEAD check dulu — pastikan sw.js ada
-            fetch('/sw.js', { method: 'HEAD', cache: 'no-store' })
+            fetch(SW_URL, { method: 'HEAD', cache: 'no-store' })
                 .then(function(res) {
-                    if (!res.ok) {
-                        throw new Error('sw.js not found (HTTP ' + res.status + ')');
-                    }
-                    // Step 2: Register
-                    return navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    if (!res.ok) throw new Error('sw.js HTTP ' + res.status);
+                    var basePath = SW_URL.substring(0, SW_URL.lastIndexOf('/') + 1);
+                    return navigator.serviceWorker.register(SW_URL, { scope: basePath });
                 })
-                .then(function(registration) {
-                    console.log('[SW] ✅ Registered:', registration.scope);
-
-                    registration.addEventListener('updatefound', function() {
-                        var newWorker = registration.installing;
-                        if (!newWorker) return;
-
-                        newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('[SW] ✨ New version available');
-                                if (typeof showToast === 'function') {
-                                    showToast('Versi baru tersedia. Refresh untuk update.', 'info', 5000);
-                                }
-                            }
-                        });
-                    });
+                .then(function(reg) {
+                    console.log('[SW] ✅ Registered:', reg.scope);
                 })
                 .catch(function(err) {
-                    // WARN only — tidak crash app
                     console.warn('[SW] ⚠️ Not registered:', err.message);
                 });
         });
-
-        // Listen messages dari SW
-        navigator.serviceWorker.addEventListener('message', function(event) {
-            var data = event.data || {};
-            console.log('[SW] Message:', data.type);
-
-            if (data.type === 'SW_ACTIVATED') {
-                console.log('[SW] Activated version:', data.version);
-            }
-
-            if (data.type === 'TRIGGER_SYNC') {
-                if (window.SyncManager && typeof window.SyncManager.syncNow === 'function') {
-                    window.SyncManager.syncNow();
-                }
-            }
-        });
-
-        // Debug helpers
-        window.__swHelpers = {
-            ping: function() {
-                return new Promise(function(resolve) {
-                    var controller = navigator.serviceWorker.controller;
-                    if (!controller) return resolve(null);
-                    var channel = new MessageChannel();
-                    channel.port1.onmessage = function(e) { resolve(e.data); };
-                    controller.postMessage({ type: 'PING' }, [channel.port2]);
-                });
-            },
-            getStats: function() {
-                return new Promise(function(resolve) {
-                    var controller = navigator.serviceWorker.controller;
-                    if (!controller) return resolve(null);
-                    var channel = new MessageChannel();
-                    channel.port1.onmessage = function(e) { resolve(e.data); };
-                    controller.postMessage({ type: 'GET_CACHE_STATS' }, [channel.port2]);
-                });
-            },
-            clearCache: function() {
-                return new Promise(function(resolve) {
-                    var controller = navigator.serviceWorker.controller;
-                    if (!controller) return resolve(null);
-                    var channel = new MessageChannel();
-                    channel.port1.onmessage = function(e) { resolve(e.data); };
-                    controller.postMessage({ type: 'CLEAR_CACHE' }, [channel.port2]);
-                });
-            }
-        };
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         PERF OPTIMIZER — LOAD PALING AWAL
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ PERF + SYNC ══ -->
     <script src="js/perf-optimizer.js?v=3"></script>
-
-    <!-- ══════════════════════════════════════════════════════════
-         SYNC MANAGER — Offline-First Layer
-         ══════════════════════════════════════════════════════════ -->
     <script src="js/sync-manager.js?v=2"></script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         APP CORE — v47.0.0 (Offline-First Edition)
-         ══════════════════════════════════════════════════════════ -->
-    <script src="js/app.js?v=4700"></script>
+    <!-- ══ APP CORE ══ -->
+    <script src="js/app.js?v=4801"></script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         PERF PATCH — LOAD PALING AKHIR
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ PERF PATCH ══ -->
     <script src="js/perf-patch.js?v=3"></script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         MOBILE UI CONTROLLER — Telegram Style
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ✅ MODUL SEKRETARIS ABSENSI (v1.2.0) -->
+    <script src="js/sekretaris_absensi.js?v=1"></script>
+
+    <!-- ══ MOBILE UI CONTROLLER ══ -->
     <script>
     (function() {
         'use strict';
-
         var ICON_COLORS = {
             blue:   'linear-gradient(135deg,#60a5fa,#2563eb)',
             green:  'linear-gradient(135deg,#34d399,#059669)',
@@ -2021,7 +912,6 @@
             slate:  'linear-gradient(135deg,#94a3b8,#475569)',
             gold:   'linear-gradient(135deg,#fbbf24,#f59e0b)'
         };
-
         var MORE_CONFIG = {
             public: [
                 { section: 'Organisasi' },
@@ -2079,66 +969,75 @@
                 { section: 'Akun' },
                 { label: 'Beranda Publik',       icon: 'fa-globe',           color: 'teal',   href: '/' },
                 { label: 'Logout',               icon: 'fa-sign-out-alt',    color: 'red',    action: 'logout' }
+            ],
+            sekretaris: [
+                { section: 'Ranting Saya' },
+                { label: 'Surat Ranting',        icon: 'fa-file-alt',        color: 'blue',   href: '/sekretaris_surat' },
+                { label: 'Logbook Ranting',      icon: 'fa-book',            color: 'green',  href: '/sekretaris_logbook' },
+                { label: 'Absensi Ranting',      icon: 'fa-clipboard-check', color: 'red',    href: '/sekretaris_absensi' },
+                { label: 'Laporan Ranting',      icon: 'fa-file-pdf',        color: 'red',    href: '/sekretaris_laporan' },
+                { section: 'Monitoring' },
+                { label: 'Absensi Global',       icon: 'fa-clipboard-list',  color: 'slate',  href: '/absensi' },
+                { label: 'Anggota',              icon: 'fa-users',           color: 'blue',   href: '/anggota' },
+                { label: 'Keuangan',             icon: 'fa-coins',           color: 'yellow', href: '/keuangan' },
+                { label: 'Kalender',             icon: 'fa-calendar-alt',    color: 'orange', href: '/kalender' },
+                { label: 'Forum Diskusi',        icon: 'fa-comments',        color: 'purple', href: '/forum_admin' },
+                { label: 'Arsip Dokumen',        icon: 'fa-archive',         color: 'slate',  href: '/arsip' },
+                { section: 'Akun' },
+                { label: 'Beranda Publik',       icon: 'fa-globe',           color: 'teal',   href: '/' },
+                { label: 'Logout',               icon: 'fa-sign-out-alt',    color: 'red',    action: 'logout' }
             ]
         };
-
         function currentRole() {
             try {
-                var raw = (window.SafeStorage || localStorage).getItem('user');
+                var ss = window.SafeStorage;
+                var raw = ss ? ss.getItem('user') : null;
+                if (!raw) {
+                    try { raw = localStorage.getItem('user'); } catch (e) {}
+                }
                 if (!raw) return 'public';
                 var u = JSON.parse(raw);
-                return (u && (u.role === 'admin' || u.role === 'member')) ? u.role : 'public';
+                var r = u && u.role;
+                if (r === 'admin' || r === 'sekretaris' || r === 'member') return r;
+                return 'public';
             } catch (e) { return 'public'; }
         }
-
         function currentLayout() {
-            var el;
-            el = document.getElementById('layout-public');
-            if (el && !el.classList.contains('hidden')) return 'public';
-            el = document.getElementById('layout-admin');
-            if (el && !el.classList.contains('hidden')) return 'admin';
-            el = document.getElementById('layout-member');
-            if (el && !el.classList.contains('hidden')) return 'member';
-            el = document.getElementById('layout-auth');
-            if (el && !el.classList.contains('hidden')) return 'auth';
+            var el = document.getElementById('layout-public'); if (el && !el.classList.contains('hidden')) return 'public';
+            el = document.getElementById('layout-admin'); if (el && !el.classList.contains('hidden')) return 'admin';
+            el = document.getElementById('layout-member'); if (el && !el.classList.contains('hidden')) return 'member';
+            el = document.getElementById('layout-sekretaris'); if (el && !el.classList.contains('hidden')) return 'sekretaris';
+            el = document.getElementById('layout-auth'); if (el && !el.classList.contains('hidden')) return 'auth';
             return 'public';
         }
-
         function currentPath() {
             var hash = window.location.hash.replace('#', '') || '/';
             return hash.split('?')[0];
         }
-
         function escapeHtml(s) {
             if (window.escapeHtml) return window.escapeHtml(s);
             return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
                 return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
             });
         }
-
         function escapeAttr(s) {
             return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
-
         function updateBottomNavActive() {
             var layout = currentLayout();
             var path = currentPath();
             var nav = document.querySelector('.mobile-bottom-nav[data-role="' + layout + '"]');
             if (!nav) return;
-
             var items = nav.querySelectorAll('.bottom-nav-item[data-route]');
             items.forEach(function(item) {
                 var route = item.getAttribute('data-route');
-                var isActive = (route === path) ||
-                    (route !== '/' && path.indexOf(route) === 0);
+                var isActive = (route === path) || (route !== '/' && path.indexOf(route) === 0);
                 item.classList.toggle('active', isActive);
             });
         }
-
         var moreSheet = document.getElementById('mobile-more-sheet');
         var moreBody = document.getElementById('more-sheet-body');
         var moreTitle = document.getElementById('more-sheet-title');
-
         function openMore() {
             if (!moreSheet) return;
             var role = currentRole();
@@ -2146,22 +1045,19 @@
             moreSheet.classList.add('open');
             document.body.classList.add('sheet-open');
         }
-
         function closeMore() {
             if (!moreSheet) return;
             moreSheet.classList.remove('open');
             document.body.classList.remove('sheet-open');
         }
-
         function populateMore(role) {
             if (!moreBody) return;
             var config = MORE_CONFIG[role] || MORE_CONFIG.public;
-
             moreTitle.textContent =
-                role === 'admin'  ? 'Menu Admin' :
+                role === 'admin' ? 'Menu Admin' :
+                role === 'sekretaris' ? 'Menu Sekretaris' :
                 role === 'member' ? 'Menu Member' :
-                                    'Menu Lainnya';
-
+                'Menu Lainnya';
             var html = '';
             config.forEach(function(item) {
                 if (item.section) {
@@ -2172,53 +1068,35 @@
                 var isAction = !!item.action;
                 var tag = isAction ? 'button' : 'a';
                 var attrs = '';
-                if (isAction) {
-                    attrs = ' type="button" data-more-action="' + escapeAttr(item.action) + '"';
-                } else {
-                    attrs = ' href="' + escapeAttr(item.href) + '" data-more-nav="true"';
-                }
-                html +=
-                    '<' + tag + ' class="mobile-more-item"' + attrs + '>' +
-                        '<span class="mobile-more-icon" style="background:' + iconColor + '">' +
-                            '<i class="fas ' + escapeAttr(item.icon) + '"></i>' +
-                        '</span>' +
+                if (isAction) attrs = ' type="button" data-more-action="' + escapeAttr(item.action) + '"';
+                else attrs = ' href="' + escapeAttr(item.href) + '" data-more-nav="true"';
+                html += '<' + tag + ' class="mobile-more-item"' + attrs + '>' +
+                        '<span class="mobile-more-icon" style="background:' + iconColor + '"><i class="fas ' + escapeAttr(item.icon) + '"></i></span>' +
                         '<span class="mobile-more-label">' + escapeHtml(item.label) + '</span>' +
                         '<i class="fas fa-chevron-right mobile-more-chev"></i>' +
-                    '</' + tag + '>';
+                        '</' + tag + '>';
             });
             moreBody.innerHTML = html;
         }
-
         document.addEventListener('click', function(e) {
             var moreBtn = e.target.closest('.bottom-nav-item[data-action="more"]');
-            if (moreBtn) {
-                e.preventDefault();
-                openMore();
-                return;
-            }
-            if (e.target.closest('[data-action="close-more"]')) {
-                e.preventDefault();
-                closeMore();
-                return;
-            }
+            if (moreBtn) { e.preventDefault(); openMore(); return; }
+            if (e.target.closest('[data-action="close-more"]')) { e.preventDefault(); closeMore(); return; }
             var actBtn = e.target.closest('[data-more-action]');
             if (actBtn) {
                 e.preventDefault();
                 var act = actBtn.getAttribute('data-more-action');
                 closeMore();
                 setTimeout(function() {
-                    if (act === 'logout' && typeof window.logout === 'function') {
-                        window.logout();
-                    }
+                    if (act === 'logout' && typeof window.logout === 'function') window.logout();
                 }, 200);
                 return;
             }
             var navLink = e.target.closest('a[data-more-nav="true"]');
-            if (navLink) {
-                closeMore();
-                return;
-            }
-            if (e.target.closest('#admin-logout-mobile') || e.target.closest('#member-logout-mobile')) {
+            if (navLink) { closeMore(); return; }
+            if (e.target.closest('#admin-logout-mobile') ||
+                e.target.closest('#member-logout-mobile') ||
+                e.target.closest('#sekretaris-logout-mobile')) {
                 e.preventDefault();
                 if (typeof window.showConfirm === 'function') {
                     window.showConfirm('Logout dari akun ini?', function() {
@@ -2230,16 +1108,16 @@
                 return;
             }
         });
-
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && moreSheet && moreSheet.classList.contains('open')) {
-                closeMore();
-            }
+            if (e.key === 'Escape' && moreSheet && moreSheet.classList.contains('open')) closeMore();
         });
-
         function updateHeaderNames() {
             try {
-                var raw = (window.SafeStorage || localStorage).getItem('user');
+                var ss = window.SafeStorage;
+                var raw = ss ? ss.getItem('user') : null;
+                if (!raw) {
+                    try { raw = localStorage.getItem('user'); } catch (e) {}
+                }
                 if (!raw) return;
                 var u = JSON.parse(raw);
                 var name = (u.nama || u.name || u.username || '').trim();
@@ -2247,11 +1125,15 @@
                 var shortName = name.split(/\s+/)[0];
                 var adminEl = document.getElementById('admin-mobile-username');
                 var memberEl = document.getElementById('member-mobile-username');
+                var sekEl = document.getElementById('sekretaris-mobile-username');
                 if (adminEl) adminEl.textContent = 'Halo, ' + shortName;
                 if (memberEl) memberEl.textContent = 'Halo, ' + shortName;
+                if (sekEl) {
+                    var kal = String(u.kalurahan || '').trim();
+                    sekEl.textContent = 'Halo, ' + shortName + (kal ? ' · ' + kal : '');
+                }
             } catch (e) {}
         }
-
         function syncBadgeFromSidebar() {
             var sidebarBadge = document.getElementById('forms-badge');
             var navBadges = document.querySelectorAll('.bn-badge[data-badge="forms"]');
@@ -2259,64 +1141,44 @@
             var count = sidebarBadge.classList.contains('hidden') ? 0 : (sidebarBadge.textContent || '0');
             var n = parseInt(count, 10) || 0;
             navBadges.forEach(function(b) {
-                if (n > 0) {
-                    b.textContent = n > 99 ? '99+' : n;
-                    b.classList.remove('hidden');
-                } else {
-                    b.classList.add('hidden');
-                }
+                if (n > 0) { b.textContent = n > 99 ? '99+' : n; b.classList.remove('hidden'); }
+                else { b.classList.add('hidden'); }
             });
         }
-
         function init() {
             updateBottomNavActive();
             updateHeaderNames();
             syncBadgeFromSidebar();
-
             window.addEventListener('hashchange', function() {
                 updateBottomNavActive();
                 updateHeaderNames();
                 setTimeout(syncBadgeFromSidebar, 500);
             });
-
             setInterval(syncBadgeFromSidebar, 2000);
         }
-
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(init, 400);
-            });
+            document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 400); });
         } else {
             setTimeout(init, 400);
         }
-
         window.__mobileUI = {
             openMore: openMore,
             closeMore: closeMore,
             updateBottomNavActive: updateBottomNavActive,
             config: MORE_CONFIG,
-            version: 'v38.6.0'
+            version: 'v48.3.0'
         };
-
-        console.log('[MobileUI] Telegram-style bottom nav ready — v38.6.0');
+        console.log('[MobileUI] Telegram-style bottom nav ready — v48.3.0');
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         TELEGRAM FAB CONTROLLER — v4.1.0 (Fixed Copy Button)
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ TELEGRAM FAB CONTROLLER ══ -->
     <script>
     (function() {
         'use strict';
-
         var meta = document.querySelector('meta[name="telegram-bot"]');
         var BOT_USERNAME = (meta && meta.content ? meta.content : '').trim().replace(/^@/, '');
-
-        if (!BOT_USERNAME) {
-            console.warn('[TelegramFAB] Meta "telegram-bot" tidak diset. FAB disabled.');
-            return;
-        }
-
+        if (!BOT_USERNAME) { console.warn('[TelegramFAB] Meta "telegram-bot" tidak diset.'); return; }
         var container = document.getElementById('telegram-fab-container');
         var btn       = document.getElementById('telegram-fab-btn');
         var panel     = document.getElementById('telegram-fab-panel');
@@ -2325,130 +1187,110 @@
         var cmdsWrap  = document.getElementById('tg-fab-cmds');
         var roleHint  = document.getElementById('tg-fab-role-hint');
         var cmdLabel  = document.getElementById('tg-fab-cmd-label');
-
-        if (!container || !btn || !panel) {
-            console.warn('[TelegramFAB] Elemen FAB tidak ditemukan di DOM.');
-            return;
-        }
-
+        if (!container || !btn || !panel) return;
         function detectDevice() {
             try {
                 var ua = navigator.userAgent || '';
-                var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
-                if (isMobileUA) return 'mobile';
-
-                if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
-                    return 'mobile';
-                }
-                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-                    return 'mobile';
-                }
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return 'mobile';
+                if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) return 'mobile';
+                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return 'mobile';
                 return 'desktop';
-            } catch (e) {
-                return 'desktop';
-            }
+            } catch (e) { return 'desktop'; }
         }
-
         function buildDeepLink(payload) {
             var p = String(payload || '').trim().replace(/^\/+/, '');
             var device = detectDevice();
-
             if (device === 'mobile') {
                 var tgUrl = 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
                 if (p) tgUrl += '&start=' + encodeURIComponent(p);
                 return tgUrl;
             }
-
             return 'https://web.telegram.org/k/#@' + BOT_USERNAME;
         }
-
         function buildSimpleLink() {
-            var device = detectDevice();
-            if (device === 'mobile') {
-                return 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
-            }
-            return 'https://web.telegram.org/k/#@' + BOT_USERNAME;
+            return detectDevice() === 'mobile'
+                ? 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME)
+                : 'https://web.telegram.org/k/#@' + BOT_USERNAME;
         }
-
         function buildFallbackLink(payload) {
             var p = String(payload || '').trim().replace(/^\/+/, '');
             var url = 'https://t.me/' + encodeURIComponent(BOT_USERNAME);
             if (p) url += '?start=' + encodeURIComponent(p);
             return url;
         }
-
         var COMMANDS = {
             public: [
                 { cmd: '/start',  payload: 'start',  desc: 'Mulai & info bot' },
                 { cmd: '/link',   payload: 'link',   desc: 'Tautkan akun website Anda' },
                 { cmd: '/info',   payload: 'info',   desc: 'Lihat info publik organisasi' },
+                { cmd: '/publik', payload: 'publik', desc: 'Info publik terpadu' },
+                { cmd: '/ansor',  payload: 'ansor',  desc: 'Pengetahuan GP Ansor' },
                 { cmd: '/help',   payload: 'help',   desc: 'Daftar semua perintah' }
             ],
             member: [
-                { cmd: '/logbook_add', payload: 'logbook_add', desc: 'Isi logbook baru (guided)' },
-                { cmd: '/surat_add',   payload: 'surat_add',   desc: 'Buat surat baru (guided)' },
-                { cmd: '/logbook',     payload: 'logbook',     desc: 'Lihat daftar logbook saya' },
-                { cmd: '/surat',       payload: 'surat',       desc: 'Lihat daftar surat saya' },
+                { cmd: '/logbook_add', payload: 'logbook_add', desc: 'Isi logbook baru' },
+                { cmd: '/surat_add',   payload: 'surat_add',   desc: 'Buat surat baru' },
+                { cmd: '/logbook',     payload: 'logbook',     desc: 'Lihat logbook saya' },
+                { cmd: '/surat',       payload: 'surat',       desc: 'Lihat surat saya' },
+                { cmd: '/stats',       payload: 'stats',       desc: 'Statistik organisasi' },
+                { cmd: '/help',        payload: 'help',        desc: 'Bantuan' }
+            ],
+            sekretaris: [
+                { cmd: '/logbook_add', payload: 'logbook_add', desc: 'Isi logbook ranting' },
+                { cmd: '/surat_add',   payload: 'surat_add',   desc: 'Buat surat ranting' },
+                { cmd: '/logbook',     payload: 'logbook',     desc: 'Lihat logbook ranting' },
+                { cmd: '/surat',       payload: 'surat',       desc: 'Lihat surat ranting' },
                 { cmd: '/stats',       payload: 'stats',       desc: 'Statistik organisasi' },
                 { cmd: '/help',        payload: 'help',        desc: 'Bantuan' }
             ],
             admin: [
-                { cmd: '/logbook_add',   payload: 'logbook_add',   desc: 'Isi logbook baru (guided)' },
-                { cmd: '/surat_add',     payload: 'surat_add',     desc: 'Buat surat baru (guided)' },
-                { cmd: '/keuangan_add',  payload: 'keuangan_add',  desc: 'Catat transaksi keuangan' },
-                { cmd: '/pending',       payload: 'pending',       desc: 'Setujui/tolak pendaftar' },
+                { cmd: '/logbook_add',   payload: 'logbook_add',   desc: 'Isi logbook baru' },
+                { cmd: '/surat_add',     payload: 'surat_add',     desc: 'Buat surat baru' },
+                { cmd: '/keuangan_add',  payload: 'keuangan_add',  desc: 'Catat transaksi' },
+                { cmd: '/pending',       payload: 'pending',       desc: 'Setujui pendaftar' },
                 { cmd: '/qr',            payload: 'qr',            desc: 'Status QR absensi' },
-                { cmd: '/broadcast',     payload: 'broadcast',     desc: 'Kirim pengumuman ke admin' },
-                { cmd: '/logbook_del',   payload: 'logbook_del',   desc: 'Hapus logbook (by id)' },
-                { cmd: '/surat_del',     payload: 'surat_del',     desc: 'Hapus surat (by id)' },
+                { cmd: '/broadcast',     payload: 'broadcast',     desc: 'Broadcast pesan' },
                 { cmd: '/help',          payload: 'help',          desc: 'Bantuan' }
             ]
         };
-
         var ROLE_LABEL = {
-            public: { icon: 'fa-user',        cls: 'tg-role-public', text: 'Mode: Publik — login dulu untuk input data' },
-            member: { icon: 'fa-user-check',  cls: 'tg-role-member', text: 'Mode: Member — bisa input logbook & surat' },
-            admin:  { icon: 'fa-shield-alt',  cls: 'tg-role-admin',  text: 'Mode: Admin — akses penuh' }
+            public:     { icon: 'fa-user',        cls: 'tg-role-public',     text: 'Mode: Publik — login dulu untuk input data' },
+            member:     { icon: 'fa-user-check',  cls: 'tg-role-member',     text: 'Mode: Member — bisa input logbook & surat' },
+            sekretaris: { icon: 'fa-user-edit',   cls: 'tg-role-sekretaris', text: 'Mode: Sekretaris — akses data ranting' },
+            admin:      { icon: 'fa-shield-alt',  cls: 'tg-role-admin',      text: 'Mode: Admin — akses penuh' }
         };
-
         function currentRole() {
             try {
-                var raw = (window.SafeStorage || localStorage).getItem('user');
+                var ss = window.SafeStorage;
+                var raw = ss ? ss.getItem('user') : null;
+                if (!raw) {
+                    try { raw = localStorage.getItem('user'); } catch (e) {}
+                }
                 if (!raw) return 'public';
                 var u = JSON.parse(raw);
                 if (!u || !u.role) return 'public';
-                return (u.role === 'admin' || u.role === 'member') ? u.role : 'public';
+                return (u.role === 'admin' || u.role === 'sekretaris' || u.role === 'member') ? u.role : 'public';
             } catch (e) { return 'public'; }
         }
-
         function currentLayout() {
-            var el;
-            el = document.getElementById('layout-public');
-            if (el && !el.classList.contains('hidden')) return 'public';
-            el = document.getElementById('layout-admin');
-            if (el && !el.classList.contains('hidden')) return 'admin';
-            el = document.getElementById('layout-member');
-            if (el && !el.classList.contains('hidden')) return 'member';
-            el = document.getElementById('layout-auth');
-            if (el && !el.classList.contains('hidden')) return 'auth';
+            var el = document.getElementById('layout-public'); if (el && !el.classList.contains('hidden')) return 'public';
+            el = document.getElementById('layout-admin'); if (el && !el.classList.contains('hidden')) return 'admin';
+            el = document.getElementById('layout-member'); if (el && !el.classList.contains('hidden')) return 'member';
+            el = document.getElementById('layout-sekretaris'); if (el && !el.classList.contains('hidden')) return 'sekretaris';
+            el = document.getElementById('layout-auth'); if (el && !el.classList.contains('hidden')) return 'auth';
             return 'public';
         }
-
         function escapeHtml(s) {
             if (window.escapeHtml) return window.escapeHtml(s);
             return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
                 return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
             });
         }
-
         function escapeAttr(s) {
             return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
-
         function copyToClipboard(text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                return navigator.clipboard.writeText(text);
-            }
+            if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
             return new Promise(function(resolve, reject) {
                 try {
                     var ta = document.createElement('textarea');
@@ -2461,135 +1303,68 @@
                     ta.select();
                     var ok = document.execCommand('copy');
                     document.body.removeChild(ta);
-                    if (ok) resolve();
-                    else reject(new Error('execCommand failed'));
-                } catch (e) {
-                    reject(e);
-                }
+                    if (ok) resolve(); else reject(new Error('execCommand failed'));
+                } catch (e) { reject(e); }
             });
         }
-
-        function getDeviceInfo() {
-            var device = detectDevice();
-            if (device === 'mobile') {
-                return {
-                    device: 'mobile',
-                    icon: 'fa-mobile-alt',
-                    label: 'Buka Aplikasi Telegram',
-                    btnText: 'Buka App Telegram'
-                };
-            }
-            return {
-                device: 'desktop',
-                icon: 'fa-desktop',
-                label: 'Buka Telegram Web',
-                btnText: 'Buka Telegram Web'
-            };
-        }
-
         function renderPanel(role) {
-            var deviceInfo = getDeviceInfo();
-            var isDesktop = deviceInfo.device === 'desktop';
-
             openLink.href = buildSimpleLink();
             openLink.target = '_blank';
             openLink.rel = 'noopener noreferrer';
-
             var btnTextEl = openLink.querySelector('span');
-            if (btnTextEl) btnTextEl.textContent = deviceInfo.btnText;
-
+            if (btnTextEl) {
+                btnTextEl.textContent = detectDevice() === 'mobile'
+                    ? 'Buka App Telegram'
+                    : 'Buka Telegram Web';
+            }
             if (cmdLabel) {
-                cmdLabel.textContent = isDesktop
+                cmdLabel.textContent = detectDevice() === 'desktop'
                     ? 'Klik untuk buka | 📋 untuk copy'
                     : 'Klik command untuk langsung eksekusi';
             }
-
             var info = ROLE_LABEL[role] || ROLE_LABEL.public;
             roleHint.className = 'tg-fab-role-hint ' + info.cls;
-            roleHint.innerHTML = '<i class="fas ' + info.icon + '"></i><span>' +
-                escapeHtml(info.text) + '</span>';
-
+            roleHint.innerHTML = '<i class="fas ' + info.icon + '"></i><span>' + escapeHtml(info.text) + '</span>';
             var list = COMMANDS[role] || COMMANDS.public;
+            var isDesktop = detectDevice() === 'desktop';
             var html = '';
-
             list.forEach(function(item) {
                 var deepUrl = buildDeepLink(item.payload);
-                var cmdText = item.cmd;
-
                 if (isDesktop) {
                     html +=
                         '<div class="tg-fab-cmd-row">' +
-                            '<a href="' + escapeAttr(deepUrl) + '"' +
-                            '   class="tg-fab-cmd tg-fab-cmd-link"' +
-                            '   data-payload="' + escapeAttr(item.payload) + '"' +
-                            '   target="_blank"' +
-                            '   rel="noopener noreferrer"' +
-                            '   title="Buka Telegram Web & jalankan ' + escapeAttr(cmdText) + '">' +
-                            '   <span class="tg-fab-cmd-code">' + escapeHtml(cmdText) + '</span>' +
-                            '   <span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
-                            '   <i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
+                            '<a href="' + escapeAttr(deepUrl) + '" class="tg-fab-cmd tg-fab-cmd-link" data-payload="' + escapeAttr(item.payload) + '" target="_blank" rel="noopener noreferrer">' +
+                                '<span class="tg-fab-cmd-code">' + escapeHtml(item.cmd) + '</span>' +
+                                '<span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
+                                '<i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
                             '</a>' +
-                            '<button type="button"' +
-                            '        class="tg-fab-copy-btn"' +
-                            '        data-cmd="' + escapeAttr(cmdText) + '"' +
-                            '        title="Copy ' + escapeAttr(cmdText) + ' ke clipboard">' +
-                            '   <i class="fas fa-copy"></i>' +
+                            '<button type="button" class="tg-fab-copy-btn" data-cmd="' + escapeAttr(item.cmd) + '" title="Copy">' +
+                                '<i class="fas fa-copy"></i>' +
                             '</button>' +
                         '</div>';
                 } else {
-                    html +=
-                        '<a href="' + escapeAttr(deepUrl) + '"' +
-                        '   class="tg-fab-cmd tg-fab-cmd-link"' +
-                        '   data-payload="' + escapeAttr(item.payload) + '"' +
-                        '   target="_blank"' +
-                        '   rel="noopener noreferrer"' +
-                        '   title="Buka Telegram App & jalankan ' + escapeAttr(cmdText) + '">' +
-                        '   <span class="tg-fab-cmd-code">' + escapeHtml(cmdText) + '</span>' +
-                        '   <span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
-                        '   <i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
-                        '</a>';
+                    html += '<a href="' + escapeAttr(deepUrl) + '" class="tg-fab-cmd tg-fab-cmd-link" data-payload="' + escapeAttr(item.payload) + '" target="_blank" rel="noopener noreferrer">' +
+                                '<span class="tg-fab-cmd-code">' + escapeHtml(item.cmd) + '</span>' +
+                                '<span class="tg-fab-cmd-desc">' + escapeHtml(item.desc) + '</span>' +
+                                '<i class="fas fa-external-link-alt tg-fab-cmd-arrow"></i>' +
+                            '</a>';
                 }
             });
-
             cmdsWrap.innerHTML = html;
-            updateDeviceHint(deviceInfo);
         }
-
-        function updateDeviceHint(deviceInfo) {
-            var hintEl = document.querySelector('.tg-fab-deeplink-hint div');
-            if (!hintEl) return;
-
-            if (deviceInfo.device === 'mobile') {
-                hintEl.innerHTML =
-                    '<strong>Mode HP:</strong> Klik command → ' +
-                    '<strong>aplikasi Telegram</strong> terbuka & langsung eksekusi. ' +
-                    'Pastikan sudah <code>/link</code> dulu.';
-            } else {
-                hintEl.innerHTML =
-                    '<strong>Mode PC:</strong> Klik command → ' +
-                    '<strong>Telegram Web</strong> terbuka. ' +
-                    'Atau klik ikon <i class="fas fa-copy" style="color:#0088cc;"></i> ' +
-                    'untuk <strong>copy command</strong> lalu paste di Telegram Web. ' +
-                    'Pastikan sudah <code>/link</code> dulu.';
-            }
-        }
-
         function open() {
             renderPanel(currentRole());
             container.classList.add('tg-open');
             btn.setAttribute('aria-expanded', 'true');
         }
-
         function close() {
             container.classList.remove('tg-open');
             btn.setAttribute('aria-expanded', 'false');
         }
-
         function toggle() {
             if (container.classList.contains('tg-open')) close();
             else open();
         }
-
         function updateVisibility() {
             if (currentLayout() === 'auth') {
                 container.classList.add('tg-hidden');
@@ -2598,224 +1373,150 @@
                 container.classList.remove('tg-hidden');
             }
         }
-
         function handleDeepLinkClick(e) {
             if (e.target.closest('.tg-fab-copy-btn')) return;
-
             var link = e.target.closest('.tg-fab-cmd-link');
             if (!link) return;
-
             var payload = link.getAttribute('data-payload') || '';
             var device = detectDevice();
-
             setTimeout(close, 300);
-
             if (device === 'mobile') {
                 var tgUrl = 'tg://resolve?domain=' + encodeURIComponent(BOT_USERNAME);
                 if (payload) tgUrl += '&start=' + encodeURIComponent(payload);
-
                 var fallbackUrl = buildFallbackLink(payload);
                 var didOpen = false;
-
-                var visibilityHandler = function() {
-                    if (document.hidden) didOpen = true;
-                };
+                var visibilityHandler = function() { if (document.hidden) didOpen = true; };
                 document.addEventListener('visibilitychange', visibilityHandler);
-
-                try {
-                    window.location.href = tgUrl;
-                } catch (err) {
-                    console.warn('[TelegramFAB] tg:// open error:', err);
-                }
-
+                try { window.location.href = tgUrl; } catch (err) {}
                 setTimeout(function() {
                     document.removeEventListener('visibilitychange', visibilityHandler);
                     if (!didOpen && !document.hidden) {
-                        console.log('[TelegramFAB] Fallback ke t.me');
                         window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
                     }
                 }, 1500);
-
                 e.preventDefault();
             }
         }
-
-        // ✅ FIX v4.1.0: Copy handler dengan stopPropagation eksplisit
         function handleCopyClick(e) {
-            var btn = e.target.closest('.tg-fab-copy-btn');
-            if (!btn) return;
-
+            var btnEl = e.target.closest('.tg-fab-copy-btn');
+            if (!btnEl) return;
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-
-            var cmd = btn.getAttribute('data-cmd') || '';
+            var cmd = btnEl.getAttribute('data-cmd') || '';
             if (!cmd) return;
-
-            var iconEl = btn.querySelector('i');
+            var iconEl = btnEl.querySelector('i');
             var originalClass = iconEl ? iconEl.className : 'fas fa-copy';
-
             copyToClipboard(cmd).then(function() {
                 if (iconEl) iconEl.className = 'fas fa-check';
-                btn.classList.add('tg-fab-copy-success');
-
+                btnEl.classList.add('tg-fab-copy-success');
                 if (typeof window.showToast === 'function') {
-                    window.showToast(
-                        '📋 Command dicopy: ' + cmd + ' — paste di Telegram Web',
-                        'success', 3500
-                    );
-                } else {
-                    console.log('[TelegramFAB] Copied:', cmd);
+                    window.showToast('📋 Command dicopy: ' + cmd, 'success', 3500);
                 }
-
                 setTimeout(function() {
                     if (iconEl) iconEl.className = originalClass;
-                    btn.classList.remove('tg-fab-copy-success');
+                    btnEl.classList.remove('tg-fab-copy-success');
                 }, 1600);
-            }).catch(function(err) {
-                console.warn('[TelegramFAB] Copy failed:', err);
+            }).catch(function() {
                 if (typeof window.showToast === 'function') {
                     window.showToast('Gagal copy. Copy manual: ' + cmd, 'error', 3000);
                 }
             });
         }
-
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggle();
-        });
-
-        closeBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            close();
-        });
-
+        btn.addEventListener('click', function(e) { e.stopPropagation(); toggle(); });
+        closeBtn.addEventListener('click', function(e) { e.stopPropagation(); close(); });
         document.addEventListener('click', function(e) {
             if (!container.classList.contains('tg-open')) return;
             if (container.contains(e.target)) return;
             close();
         });
-
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && container.classList.contains('tg-open')) {
-                close();
-            }
+            if (e.key === 'Escape' && container.classList.contains('tg-open')) close();
         });
-
-        // ✅ FIX: Attach copy handler DULU (higher priority), lalu deep link
-        cmdsWrap.addEventListener('click', handleCopyClick, true); // capture phase
+        cmdsWrap.addEventListener('click', handleCopyClick, true);
         cmdsWrap.addEventListener('click', handleDeepLinkClick);
-
-        window.addEventListener('hashchange', function() {
-            setTimeout(updateVisibility, 60);
-        });
-
+        window.addEventListener('hashchange', function() { setTimeout(updateVisibility, 60); });
         setTimeout(updateVisibility, 300);
         setInterval(updateVisibility, 1500);
-
         window.__telegramFAB = {
-            open: open,
-            close: close,
+            open: open, close: close,
             role: currentRole,
             botUsername: BOT_USERNAME,
             buildDeepLink: buildDeepLink,
             buildSimpleLink: buildSimpleLink,
             buildFallbackLink: buildFallbackLink,
             detectDevice: detectDevice,
-            getDeviceInfo: getDeviceInfo,
             copyToClipboard: copyToClipboard,
-            version: 'v4.1.0-fixed-copy'
+            version: 'v4.1.0'
         };
-
-        console.log('[TelegramFAB] Smart deep-link + copy ready — bot: @' + BOT_USERNAME +
-                    ' | device: ' + detectDevice());
+        console.log('[TelegramFAB] Ready — bot: @' + BOT_USERNAME);
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         BOOT LOADER HIDER — Once Per Session v4.0.0
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ BOOT LOADER HIDER ══ -->
     <script>
     (function() {
         'use strict';
-
-        var BOOT_KEY = '__boot_done';
-        var BOOT_MIN_MS = 450;
-        var BOOT_MAX_MS = 2500;
-        var bootStart = Date.now();
-        var hidden = false;
-        var checkInterval = null;
-
-        function isBootDone() {
+        var BOOT_KEY = '__boot_done'; var BOOT_MIN_MS = 450; var BOOT_MAX_MS = 2500;
+        var bootStart = Date.now(); var hidden = false; var checkInterval = null;
+        function safeSessionGet(key) {
             try {
-                return sessionStorage.getItem(BOOT_KEY) === 'true';
-            } catch (e) { return false; }
+                if (window.SafeSessionStorage) return window.SafeSessionStorage.getItem(key);
+                return sessionStorage.getItem(key);
+            } catch (e) { return null; }
         }
-
-        function markBootDone() {
-            try { sessionStorage.setItem(BOOT_KEY, 'true'); } catch (e) {}
-        }
-
-        function clearBootFlag() {
+        function safeSessionSet(key, val) {
             try {
-                sessionStorage.removeItem(BOOT_KEY);
-                localStorage.removeItem(BOOT_KEY);
+                if (window.SafeSessionStorage) window.SafeSessionStorage.setItem(key, val);
+                else sessionStorage.setItem(key, val);
             } catch (e) {}
         }
-
+        function safeSessionRemove(key) {
+            try {
+                if (window.SafeSessionStorage) window.SafeSessionStorage.removeItem(key);
+                else sessionStorage.removeItem(key);
+            } catch (e) {}
+        }
+        function safeLocalRemove(key) {
+            try {
+                if (window.SafeStorage) window.SafeStorage.removeItem(key);
+                else localStorage.removeItem(key);
+            } catch (e) {}
+        }
+        function isBootDone() { return safeSessionGet(BOOT_KEY) === 'true'; }
+        function markBootDone() { safeSessionSet(BOOT_KEY, 'true'); }
+        function clearBootFlag() { safeSessionRemove(BOOT_KEY); safeLocalRemove(BOOT_KEY); }
         function hideBootLoader(immediate) {
-            if (hidden) return;
-            hidden = true;
-
+            if (hidden) return; hidden = true;
             var loader = document.getElementById('app-boot-loader');
             if (!loader) return;
-
             if (immediate) {
                 loader.style.display = 'none';
                 if (loader.parentNode) loader.parentNode.removeChild(loader);
             } else {
                 loader.classList.add('app-boot-done');
                 setTimeout(function() {
-                    if (loader && loader.parentNode) {
-                        loader.parentNode.removeChild(loader);
-                    }
+                    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
                 }, 450);
             }
-
-            console.log('[BootLoader] Hidden after ' + (Date.now() - bootStart) + 'ms' +
-                        (immediate ? ' (instant)' : ' (fade)'));
         }
-
         function isLayoutVisible() {
-            return !!(
-                document.querySelector('#layout-public:not(.hidden)') ||
-                document.querySelector('#layout-admin:not(.hidden)') ||
-                document.querySelector('#layout-member:not(.hidden)') ||
-                document.querySelector('#layout-auth:not(.hidden)')
-            );
+            return !!(document.querySelector('#layout-public:not(.hidden)') ||
+                     document.querySelector('#layout-admin:not(.hidden)') ||
+                     document.querySelector('#layout-member:not(.hidden)') ||
+                     document.querySelector('#layout-sekretaris:not(.hidden)') ||
+                     document.querySelector('#layout-auth:not(.hidden)'));
         }
-
         function isElementLoaded(el) {
             if (!el || el.children.length === 0) return false;
-            if (el.querySelector('.skeleton-box, .skeleton-stack, .struktur-skeleton, .skeleton-card')) {
-                return false;
-            }
-            if (el.querySelector('.fa-spinner, .loading-spinner')) {
-                return false;
-            }
+            if (el.querySelector('.skeleton-box, .skeleton-stack, .struktur-skeleton, .skeleton-card')) return false;
+            if (el.querySelector('.fa-spinner, .loading-spinner')) return false;
             var text = (el.textContent || '').toLowerCase().trim();
-            if (text.indexOf('memuat') !== -1 && text.length < 50) {
-                return false;
-            }
+            if (text.indexOf('memuat') !== -1 && text.length < 50) return false;
             return true;
         }
-
         function isContentReady() {
-            var checks = [
-                '#profil-sejarah', '#profil-visi-misi', '#profil-struktur',
-                '#berita-list', '#galeri-wrapper', '#arsip-dokumen-list',
-                '#village-stats', '#keuangan-summary'
-            ];
+            var checks = ['#profil-sejarah', '#profil-visi-misi', '#profil-struktur', '#berita-list', '#galeri-wrapper', '#arsip-dokumen-list', '#village-stats', '#keuangan-summary'];
             var ready = 0, total = 0;
             for (var i = 0; i < checks.length; i++) {
                 var el = document.querySelector(checks[i]);
@@ -2826,37 +1527,19 @@
             var threshold = Math.max(3, Math.ceil(total * 0.65));
             return total > 0 && ready >= threshold;
         }
-
-        // Instant skip if session already booted
-        if (isBootDone()) {
-            console.log('[BootLoader] ⚡ Session active — instant skip');
-            hideBootLoader(true);
-            window.__hideBootLoader = hideBootLoader;
-            window.__isContentReady = isContentReady;
-            window.__resetBootFlag = clearBootFlag;
-            window.__bootLoader = {
-                hide: hideBootLoader,
-                isContentReady: isContentReady,
-                isBootDone: isBootDone,
-                markDone: markBootDone,
-                reset: clearBootFlag,
-                version: 'v4.0.0-once-per-session'
-            };
-            return;
-        }
-
         window.__hideBootLoader = hideBootLoader;
         window.__isContentReady = isContentReady;
         window.__resetBootFlag = clearBootFlag;
         window.__bootLoader = {
-            hide: hideBootLoader,
-            isContentReady: isContentReady,
-            isBootDone: isBootDone,
-            markDone: markBootDone,
-            reset: clearBootFlag,
-            version: 'v4.0.0-once-per-session'
+            hide: hideBootLoader, isContentReady: isContentReady,
+            isBootDone: isBootDone, markDone: markBootDone,
+            reset: clearBootFlag, version: 'v4.1.0'
         };
-
+        if (isBootDone()) {
+            console.log('[BootLoader] ⚡ Session active — instant skip');
+            hideBootLoader(true);
+            return;
+        }
         checkInterval = setInterval(function() {
             var elapsed = Date.now() - bootStart;
             if (!isLayoutVisible()) return;
@@ -2867,13 +1550,11 @@
                 hideBootLoader();
             }
         }, 100);
-
         setTimeout(function() {
             clearInterval(checkInterval);
             markBootDone();
             hideBootLoader();
         }, BOOT_MAX_MS + 800);
-
         window.addEventListener('index:content-ready', function() {
             var elapsed = Date.now() - bootStart;
             var delay = Math.max(0, BOOT_MIN_MS - elapsed);
@@ -2883,13 +1564,11 @@
                 hideBootLoader();
             }, delay);
         });
-
         window.addEventListener('router:page-ready', function() {
             clearInterval(checkInterval);
             markBootDone();
             hideBootLoader();
         });
-
         window.addEventListener('error', function() {
             setTimeout(function() {
                 clearInterval(checkInterval);
@@ -2897,7 +1576,6 @@
                 hideBootLoader();
             }, 800);
         });
-
         window.addEventListener('unhandledrejection', function() {
             setTimeout(function() {
                 clearInterval(checkInterval);
@@ -2905,66 +1583,44 @@
                 hideBootLoader();
             }, 800);
         });
-
-        console.log('[BootLoader] Smart hider ready — once per session — min:' +
-                    BOOT_MIN_MS + 'ms | max:' + BOOT_MAX_MS + 'ms');
     })();
     </script>
 
-    <!-- ══════════════════════════════════════════════════════════
-         SYNC STATUS BANNER CONTROLLER
-         ══════════════════════════════════════════════════════════ -->
+    <!-- ══ SYNC STATUS BANNER ══ -->
     <script>
     (function() {
         'use strict';
-
         var banner = document.getElementById('sync-status-banner');
-        if (!banner) {
-            console.warn('[SyncBanner] Element #sync-status-banner not found');
-            return;
-        }
-
+        if (!banner) return;
         var dismissTimer = null;
-
         function showBanner(state, message, icon) {
-            if (dismissTimer) {
-                clearTimeout(dismissTimer);
-                dismissTimer = null;
-            }
-
+            if (dismissTimer) { clearTimeout(dismissTimer); dismissTimer = null; }
             banner.className = 'sync-status-banner ' + state;
             banner.innerHTML = '<i class="fas ' + icon + '"></i><span>' + message + '</span>';
-
             void banner.offsetHeight;
             banner.classList.add('show');
-
             if (state === 'success') {
-                dismissTimer = setTimeout(function() {
-                    banner.classList.remove('show');
-                }, 3000);
+                dismissTimer = setTimeout(function() { banner.classList.remove('show'); }, 3000);
             }
         }
-
-        function hideBanner() {
-            banner.classList.remove('show');
-        }
-
+        function hideBanner() { banner.classList.remove('show'); }
         function updateFromQueue() {
             var queue = [];
             try {
                 if (window.SyncManager && typeof window.SyncManager.getQueue === 'function') {
                     queue = window.SyncManager.getQueue();
                 } else {
-                    var raw = localStorage.getItem('offline_sync_queue_v2');
+                    var raw = null;
+                    try {
+                        var ss = window.SafeStorage;
+                        raw = ss ? ss.getItem('offline_sync_queue_v2') : null;
+                        if (!raw) raw = localStorage.getItem('offline_sync_queue_v2');
+                    } catch (e) { raw = null; }
                     if (raw) queue = JSON.parse(raw) || [];
                 }
-            } catch (e) {
-                queue = [];
-            }
-
+            } catch (e) { queue = []; }
             var count = Array.isArray(queue) ? queue.length : 0;
             var online = navigator.onLine;
-
             if (!online) {
                 showBanner('offline', 'Mode Offline' + (count > 0 ? ' — ' + count + ' perubahan menunggu' : ''), 'fa-wifi');
             } else if (count > 0) {
@@ -2973,7 +1629,6 @@
                 hideBanner();
             }
         }
-
         banner.addEventListener('click', function() {
             if (!navigator.onLine) {
                 if (typeof window.showToast === 'function') {
@@ -2981,32 +1636,25 @@
                 }
                 return;
             }
-
             if (window.SyncManager && typeof window.SyncManager.syncNow === 'function') {
                 showBanner('syncing', 'Menyinkronkan data...', 'fa-sync-alt fa-spin');
-
-                window.SyncManager.syncNow()
-                    .then(function(result) {
-                        if (result && result.success) {
-                            if (result.processed > 0) {
-                                showBanner('success', result.processed + ' perubahan berhasil disinkronkan!', 'fa-check-circle');
-                            } else {
-                                hideBanner();
-                            }
+                window.SyncManager.syncNow().then(function(result) {
+                    if (result && result.success) {
+                        if (result.processed > 0) {
+                            showBanner('success', result.processed + ' perubahan berhasil disinkronkan!', 'fa-check-circle');
                         } else {
-                            updateFromQueue();
+                            hideBanner();
                         }
-                    })
-                    .catch(function() {
+                    } else {
                         updateFromQueue();
-                    });
+                    }
+                }).catch(function() { updateFromQueue(); });
             } else {
                 if (typeof window.showToast === 'function') {
                     window.showToast('SyncManager belum siap. Coba lagi.', 'warning', 3000);
                 }
             }
         });
-
         window.addEventListener('online', function() {
             updateFromQueue();
             setTimeout(function() {
@@ -3025,15 +1673,8 @@
                 }
             }, 1000);
         });
-
-        window.addEventListener('offline', function() {
-            updateFromQueue();
-        });
-
-        window.addEventListener('sync:queued', function(e) {
-            updateFromQueue();
-        });
-
+        window.addEventListener('offline', function() { updateFromQueue(); });
+        window.addEventListener('sync:queued', function() { updateFromQueue(); });
         window.addEventListener('sync:complete', function(e) {
             var detail = e.detail || {};
             if (detail.processed > 0 && detail.failed === 0) {
@@ -3042,21 +1683,10 @@
                 updateFromQueue();
             }
         });
-
-        window.addEventListener('sync:error', function() {
-            updateFromQueue();
-        });
-
+        window.addEventListener('sync:error', function() { updateFromQueue(); });
         setInterval(updateFromQueue, 5000);
         setTimeout(updateFromQueue, 1500);
-
-        window.__syncBanner = {
-            update: updateFromQueue,
-            hide: hideBanner,
-            show: showBanner
-        };
-
-        console.log('[SyncBanner] Controller ready');
+        window.__syncBanner = { update: updateFromQueue, hide: hideBanner, show: showBanner };
     })();
     </script>
 
