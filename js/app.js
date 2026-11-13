@@ -1,28 +1,19 @@
 /**
  * ============================================================
  *  app.js — Core SPA PAC GP Ansor Kapanewon Sewon
- *  Versi: 47.0.0 — OFFLINE-FIRST EDITION
+ *  Versi: 48.2.0 — SEKRETARIS RANTING + ABSENSI EDITION
  *  ---------------------------------------------------------
- *  CHANGELOG v47.0.0 (vs v46.0.0):
- *   ✅ NEW: Offline-first apiCall (GET dari cache, POST ke queue)
- *   ✅ NEW: SyncManager integration (auto-queue saat offline)
- *   ✅ NEW: __originalApiCall preserved untuk sync-manager.js
- *   ✅ NEW: Auto-detect online/offline → update UI
- *   ✅ NEW: Offline cache layer untuk GET requests
- *   ✅ NEW: Cache TTL per-action (absensi 5m, profil 30m)
- *   ✅ NEW: Manual sync helper (window.triggerSync())
- *   ✅ NEW: Offline indicator di toast
- *   ✅ NEW: Debug helpers untuk sync
- *   ✅ FIX: Router cleanup lengkap (no memory leak)
- *   ✅ FIX: Semua 50+ routes terdaftar & berfungsi
- *   ✅ FIX: Boot loader safety net (auto-hide jika stuck)
- *   ✅ FIX: Bottom nav sync untuk semua layout
- *   ✅ FIX: Form notification polling admin (auto-start)
- *   ✅ FIX: SafeStorage quota handling (fallback in-memory)
- *   ✅ FIX: JSONP retry logic + timeout
- *   ✅ FIX: POST fallback → JSONP → iframe (chain lengkap)
- *   ✅ PRESERVED: FormPhoto utility v1.0.0
- *   ✅ PRESERVED: Prefetch, view cache, lib loader
+ *  CHANGELOG v48.2.0 (vs v48.1.0):
+ *   ✅ NEW: Route /sekretaris_absensi + endpoints
+ *   ✅ NEW: Cache invalidation untuk write actions
+ *   ✅ NEW: router.onLeave hook (cleanup per route)
+ *   ✅ NEW: runCleanupForPath — auto-cleanup
+ *   ✅ NEW: Sidebar submenu auto-expand
+ *   ✅ NEW: Mobile sidebar auto-close
+ *   ✅ FIX: updateActiveMenus semua layout
+ *   ✅ FIX: jsonpRequest timer cleanup
+ *   ✅ FIX: executeScripts skip executed
+ *   ✅ PRESERVED: Semua fitur v48.1.0
  * ============================================================
  */
 
@@ -32,13 +23,34 @@
     // ══════════════════════════════════════════════════════════
     //  0. GUARD — anti double init
     // ══════════════════════════════════════════════════════════
-    if (window.__APP_LOADED) return;
+    if (window.__APP_LOADED) {
+        console.log('[App] Already loaded, skip re-init');
+        return;
+    }
     window.__APP_LOADED = true;
+
+    // ══════════════════════════════════════════════════════════
+    //  0b. GLOBAL togglePassword FALLBACK
+    // ══════════════════════════════════════════════════════════
+    if (typeof window.togglePassword !== 'function') {
+        window.togglePassword = function(inputId, btn) {
+            try {
+                const input = document.getElementById(inputId);
+                if (!input || !btn) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                btn.innerHTML = input.type === 'password'
+                    ? '<i class="fas fa-eye"></i>'
+                    : '<i class="fas fa-eye-slash"></i>';
+            } catch (e) {
+                console.warn('[App:togglePassword] error:', e);
+            }
+        };
+    }
 
     // ══════════════════════════════════════════════════════════
     //  1. CACHE VERSION & BOOT
     // ══════════════════════════════════════════════════════════
-    const CACHE_VERSION = 'v47.0.0_20260225';
+    const CACHE_VERSION = 'v48.2.0_20261113';
     const BOOT_FLAG_KEY = '__boot_done';
     const QUEUE_KEY = 'offline_sync_queue_v2';
 
@@ -222,15 +234,13 @@
     // ══════════════════════════════════════════════════════════
     //  5. KONFIGURASI
     // ══════════════════════════════════════════════════════════
-    const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwxL8wL7G__dlIHeEgVc8FWsjjC235t42ZyStwSADDIqlxxcUp7FGqmsQUHEMJeNpN5ow/exec';
+    const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzYnNwVkkuh1qU0WLczK4BrJo3GIJa_fosXVbouEPzfJdHaDkmsDu6JKL3mTdIHye9u/exec';
     const API_TIMEOUT = (__IS_MOBILE || __IS_SLOW_NET) ? 45000 : 25000;
     const POST_SIZE_THRESHOLD = 1500;
     const JSONP_MAX_URL_LENGTH = 7000;
     const CHUNK_SIZE = 5000;
     const DEBOUNCE_DELAY = 500;
     const DEBUG = false;
-    const PREFETCH_CONCURRENCY = 3;
-    const PREFETCH_DATA_CONCURRENCY = 2;
 
     const CACHE_TTL_DYNAMIC = 10 * 60 * 1000;
     const CACHE_TTL_SEMI_STATIC = 30 * 60 * 1000;
@@ -239,7 +249,6 @@
     const CACHE_TTL_FORMS = 2 * 60 * 1000;
 
     window.__DEV_NO_VIEW_CACHE = __IS_LOCALHOST;
-    const PREFETCH_SKIP_WINDOW = window.__DEV_NO_VIEW_CACHE ? 0 : 5 * 60 * 1000;
 
     const log = (...a) => { if (DEBUG) console.log('[App]', ...a); };
     const warn = (...a) => { if (DEBUG) console.warn('[App]', ...a); };
@@ -253,20 +262,10 @@
     const loadingLibs = {};
     const loadedScripts = new Set();
     const viewCache = new Map();
+    const ROUTE_LEAVE_HOOKS = {};
     let __skipNextHashChange = null;
     let __formNotifTimer = null;
     const _activeJsonpCallbacks = new Set();
-
-    const prefetchState = {
-        isPrefetching: false,
-        completed: 0,
-        total: 0,
-        dataCompleted: 0,
-        dataTotal: 0,
-        role: null,
-        lastPrefetchAt: 0
-    };
-
     const _chunkedUploads = {};
 
     // ══════════════════════════════════════════════════════════
@@ -307,7 +306,13 @@
         '/form_responses':  ['getForms', 'getFormResponses', 'getFormFields'],
         '/dashboard_member':['getSurat', 'getLogbook'],
         '/surat_member':    ['getSurat'],
-        '/logbook_member':  ['getLogbook']
+        '/logbook_member':  ['getLogbook'],
+        // ─── SEKRETARIS ROUTES ───
+        '/sekretaris_dashboard': ['getSekretarisStats'],
+        '/sekretaris_surat':     ['getSurat'],
+        '/sekretaris_logbook':   ['getLogbook'],
+        '/sekretaris_absensi':   ['getAbsensiSekretaris', 'getQrConfigSekretaris', 'getAbsensiStatsSekretaris'],
+        '/sekretaris_laporan':   ['getLogbook', 'getKeuangan', 'getUsers']
     };
 
     // ══════════════════════════════════════════════════════════
@@ -421,7 +426,11 @@
     function safeParseUser() {
         const raw = SafeStorage.getItem('user');
         if (!raw) return null;
-        try { return JSON.parse(raw); } catch (e) { return null; }
+        try {
+            const u = JSON.parse(raw);
+            if (!u || typeof u !== 'object') return null;
+            return u;
+        } catch (e) { return null; }
     }
 
     const checkAuth = safeParseUser;
@@ -476,7 +485,7 @@
         if (debounceMap[action]) clearTimeout(debounceMap[action]);
         debounceMap[action] = setTimeout(() => {
             delete debounceMap[action];
-            callback();
+            try { callback(); } catch (e) { console.error(e); }
         }, delay || DEBOUNCE_DELAY);
     }
 
@@ -499,7 +508,6 @@
                 warning: 'exclamation-triangle'
             };
 
-            // Prefix offline indicator
             let prefix = '';
             if (!navigator.onLine) {
                 prefix = '<i class="fas fa-wifi mr-1" style="opacity: 0.7;"></i>';
@@ -568,7 +576,6 @@
                 };
             }
 
-            // Jika offline, kembalikan error (upload butuh online)
             if (!navigator.onLine) {
                 return {
                     success: false,
@@ -671,17 +678,6 @@
                 details: details
             });
         } catch (e) { return { success: false }; }
-    }
-
-    function autoHideSkeleton(skeletonId, contentId, delay) {
-        delay = delay || 800;
-        const sk = document.getElementById(skeletonId);
-        const ct = document.getElementById(contentId);
-        if (!sk || !ct) return;
-        setTimeout(() => {
-            sk.classList.add('hidden');
-            ct.classList.remove('hidden');
-        }, delay);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -880,17 +876,95 @@
         return true;
     }
 
+    /**
+     * Invalidate cache untuk action tertentu (semua user).
+     */
+    function invalidateCacheForAction(action) {
+        if (!action) return;
+        try {
+            const keysToRemove = [];
+            if (_isSessionAvailable()) {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    if (key && key.startsWith('cache_' + action + '_')) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+            keysToRemove.forEach(k => SafeSessionStorage.removeItem(k));
+            Object.keys(_cacheTimestamps).forEach(k => {
+                if (k.startsWith('cache_' + action + '_')) delete _cacheTimestamps[k];
+            });
+            log('Cache invalidated:', action);
+        } catch (e) {}
+    }
+
+    /**
+     * Auto-invalidate cache saat ada write action.
+     * Pattern: createX → invalidate getX, updateX → getX, deleteX → getX
+     */
+    function autoInvalidateAfterWrite(action) {
+        const a = String(action || '');
+        let targetAction = null;
+
+        const match = a.match(/^(create|update|delete|upload|approve|reject|kembalikan|set|reset|verify)([A-Z][a-zA-Z]+)$/);
+        if (match) {
+            const verb = match[1];
+            const noun = match[2];
+            // Map noun → getter action
+            const getterMap = {
+                'Surat': 'getSurat',
+                'Logbook': 'getLogbook',
+                'Keuangan': 'getKeuangan',
+                'Berita': 'getBerita',
+                'Galeri': 'getGaleri',
+                'Arsip': 'getArsip',
+                'Inventaris': 'getInventaris',
+                'Peminjaman': 'getPeminjaman',
+                'ProgramKerja': 'getProgramKerja',
+                'Event': 'getEvents',
+                'Tokoh': 'getTokoh',
+                'ForumTopic': 'getForumTopics',
+                'ForumComment': 'getForumComments',
+                'Form': 'getForms',
+                'FormField': 'getFormFields',
+                'FormResponse': 'getFormResponses',
+                'FormNotification': 'getFormNotifications',
+                'User': 'getUsers',
+                'Absensi': 'getAbsensi',
+                'Struktur': 'getStruktur',
+                'Profil': 'getProfil',
+                'PhotoPositions': 'getPhotoPositions',
+                'QrStatus': 'getQrConfig',
+                'QrStatusSekretaris': 'getQrConfigSekretaris'
+            };
+            targetAction = getterMap[noun] || null;
+        }
+
+        if (targetAction) {
+            invalidateCacheForAction(targetAction);
+            log('Auto-invalidate:', a, '→', targetAction);
+        }
+
+        // Special cases
+        if (a === 'updateQrStatusSekretaris' || a === 'updateQrStatus') {
+            invalidateCacheForAction('getQrConfig');
+            invalidateCacheForAction('getQrConfigSekretaris');
+        }
+        if (a === 'createAbsensi' || a === 'updateAbsensi' || a === 'deleteAbsensi') {
+            invalidateCacheForAction('getAbsensi');
+            invalidateCacheForAction('getAbsensiSekretaris');
+            invalidateCacheForAction('getAbsensiStatsSekretaris');
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     //  14. OFFLINE HELPER
     // ══════════════════════════════════════════════════════════
-    function isOffline() {
-        return !navigator.onLine;
-    }
-
+    function isOffline() { return !navigator.onLine; }
     function isReadAction(action) {
         return /^get|^check/i.test(String(action || ''));
     }
-
     function isWriteAction(action) {
         return /^(create|update|delete|upload|set|approve|reject|kembalikan|verify|reset|register)/i.test(String(action || ''));
     }
@@ -898,39 +972,26 @@
     // ══════════════════════════════════════════════════════════
     //  15. API CORE — OFFLINE-FIRST
     // ══════════════════════════════════════════════════════════
-
-    /**
-     * Offline-aware apiCall.
-     * - GET + offline → ambil dari cache
-     * - POST + offline → queue ke SyncManager
-     * - Online → panggil __originalApiCall
-     */
     function apiCall(action, method, data) {
         method = method || 'POST';
         data = data || {};
 
-        // ══════════════════════════════════════════════════════════
-        // OFFLINE HANDLING
-        // ══════════════════════════════════════════════════════════
-        if (isOffline()) {
+        // Auto-invalidate cache setelah write action (fire & forget)
+        if (isWriteAction(action)) {
+            try { autoInvalidateAfterWrite(action); } catch (e) {}
+        }
 
-            // READ — ambil dari cache
+        if (isOffline()) {
             if (isReadAction(action)) {
                 console.log('[Offline] GET ' + action + ' → cache');
-
                 const cached = getCachedData(action, data);
-                if (cached) {
-                    return Promise.resolve(cached);
-                }
+                if (cached) return Promise.resolve(cached);
 
-                // Fallback: coba dari sessionStorage mentah (tanpa TTL)
                 const userKey = getUserKey();
                 const cKey = 'cache_' + action + '_' + userKey + '_' + JSON.stringify(data);
                 const rawCached = SafeSessionStorage.getItem(cKey);
                 if (rawCached) {
-                    try {
-                        return Promise.resolve(JSON.parse(rawCached).data);
-                    } catch (e) {}
+                    try { return Promise.resolve(JSON.parse(rawCached).data); } catch (e) {}
                 }
 
                 return Promise.resolve({
@@ -940,13 +1001,11 @@
                 });
             }
 
-            // WRITE — queue ke SyncManager
             if (isWriteAction(action) && window.SyncManager) {
                 console.log('[Offline] POST ' + action + ' → queue');
                 return Promise.resolve(window.SyncManager.addToQueue(action, method, data));
             }
 
-            // Aksi lain (settings, qr, dll) — tolak
             return Promise.resolve({
                 success: false,
                 message: 'Aksi ini memerlukan koneksi internet.',
@@ -954,16 +1013,9 @@
             });
         }
 
-        // ══════════════════════════════════════════════════════════
-        // ONLINE — panggil __originalApiCall
-        // ══════════════════════════════════════════════════════════
-        return window.__originalApiCall(action, method, data);
+        return originalApiCall(action, method, data);
     }
 
-    /**
-     * Original apiCall (network layer). Disimpan untuk dipakai SyncManager.
-     * JANGAN dipanggil langsung oleh modul.
-     */
     function originalApiCall(action, method, data) {
         method = method || 'POST';
         data = data || {};
@@ -1294,7 +1346,6 @@
 
         return new Promise((resolve) => {
             try {
-                // Offline check
                 if (isOffline() && isReadAction(action)) {
                     const cKey = 'cache_' + action + '_' + userKey + '_' + JSON.stringify(cleanData);
                     const cached = SafeSessionStorage.getItem(cKey);
@@ -1330,7 +1381,7 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    //  15b. PRESERVE ORIGINAL (untuk SyncManager)
+    //  15b. PRESERVE ORIGINAL
     // ══════════════════════════════════════════════════════════
     window.__originalApiCall = originalApiCall;
 
@@ -1358,7 +1409,6 @@
         clearPrefetchCache();
         stopFormNotificationPolling();
 
-        // Clear sync queue (data user lain)
         try {
             if (window.SyncManager && typeof window.SyncManager.clearQueue === 'function') {
                 window.SyncManager.clearQueue();
@@ -1395,13 +1445,17 @@
                 console.error('[App] Error in module ' + name + ':', err);
             }
         },
+        has(name) {
+            return !!this._modules[name];
+        },
         clear() { this._modules = {}; }
     };
 
     // ══════════════════════════════════════════════════════════
-    //  19. ROUTES
+    //  19. ROUTES — v48.2.0
     // ══════════════════════════════════════════════════════════
     const ROUTES = {
+        // ── PUBLIC ──
         '/':                { layout:'public', file:'views/index.html', js:'js/index.js',
                               libs:['aos','swiper','fullcalendar','jsplumb'] },
         '/profil':          { layout:'public', file:'views/profil.html', js:'js/profil.js', libs:['jsplumb','aos'] },
@@ -1419,7 +1473,11 @@
         '/absensi':         { layout:'public', file:'views/absensi.html', js:'js/absensi.js', libs:['qrcode'] },
         '/kontak':          { layout:'public', file:'views/kontak.html', libs:['aos'] },
         '/form_view':       { layout:'public', file:'views/form_view.html', js:'js/form_view.js' },
+
+        // ── AUTH ──
         '/auth':            { layout:'auth', file:'views/auth.html', js:'js/auth.js' },
+
+        // ── ADMIN ──
         '/dashboard_admin': { layout:'admin', file:'views/dashboard_admin.html', js:'js/dashboard_admin.js' },
         '/surat_admin':     { layout:'admin', file:'views/surat_admin.html', js:'js/surat_admin.js' },
         '/surat_preview':   { layout:'admin', file:'views/surat_preview.html', js:'js/surat_preview.js' },
@@ -1446,10 +1504,42 @@
                               libs:['qrcode'] },
         '/forms_admin':     { layout:'admin', file:'views/forms_admin.html', js:'js/forms_admin.js', libs:['qrcode'] },
         '/form_responses':  { layout:'admin', file:'views/form_responses.html', js:'js/form_responses.js' },
+
+        // ── MEMBER ──
         '/dashboard_member':{ layout:'member', file:'views/dashboard_member.html', js:'js/dashboard_member.js' },
         '/surat_member':    { layout:'member', file:'views/surat_member.html', js:'js/surat_member.js' },
         '/logbook_member':  { layout:'member', file:'views/logbook_member.html', js:'js/logbook_member.js',
-                              libs:['html2canvas','jspdf','docx'] }
+                              libs:['html2canvas','jspdf','docx'] },
+
+        // ── SEKRETARIS (standalone files) ──
+        '/sekretaris_dashboard': {
+            layout: 'sekretaris',
+            file: 'views/sekretaris_dashboard.html',
+            js: 'js/sekretaris_dashboard.js'
+        },
+        '/sekretaris_surat': {
+            layout: 'sekretaris',
+            file: 'views/sekretaris_surat.html',
+            js: 'js/sekretaris_surat.js'
+        },
+        '/sekretaris_logbook': {
+            layout: 'sekretaris',
+            file: 'views/sekretaris_logbook.html',
+            js: 'js/sekretaris_logbook.js',
+            libs: ['html2canvas', 'jspdf', 'docx']
+        },
+        '/sekretaris_absensi': {
+            layout: 'sekretaris',
+            file: 'views/sekretaris_absensi.html',
+            js: 'js/sekretaris_absensi.js',
+            libs: ['qrcode']
+        },
+        '/sekretaris_laporan': {
+            layout: 'sekretaris',
+            file: 'views/sekretaris_laporan.html',
+            js: 'js/sekretaris_laporan.js',
+            libs: ['html2canvas', 'jspdf', 'docx']
+        }
     };
 
     // ══════════════════════════════════════════════════════════
@@ -1545,13 +1635,13 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    //  22. ROUTER — FULL FIX
+    //  22. ROUTER — v48.2.0
     // ══════════════════════════════════════════════════════════
     const router = {
         async load(url, pushState) {
             if (pushState === undefined) pushState = true;
 
-            // Cleanup module sebelumnya
+            // ═══ CLEANUP MODULE SEBELUMNYA ═══
             try {
                 if (window.__intervals && window.__intervals.length > 0) {
                     window.__intervals.forEach(clearInterval);
@@ -1561,13 +1651,12 @@
                     try { window.__cleanupBeforeNavigate(); } catch (e) {}
                     window.__cleanupBeforeNavigate = null;
                 }
+
                 const currentHash = window.location.hash.replace('#', '').split('?')[0];
-                const currentModuleKey = currentHash.replace(/^\//, '').replace(/\//g, '_') || 'index';
-                const cleanupFn = window['__' + currentModuleKey + 'Cleanup'];
-                if (typeof cleanupFn === 'function') {
-                    try { cleanupFn(); } catch (e) {}
-                }
-            } catch (cleanupErr) {}
+                runCleanupForPath(currentHash);
+            } catch (cleanupErr) {
+                console.warn('[App] Cleanup error:', cleanupErr.message);
+            }
 
             // Normalize URL
             if (!url || url === '/index.html' || url === '/index') url = '/';
@@ -1583,10 +1672,15 @@
             if (!route) { this.load404(); return; }
 
             const user = safeParseUser();
+
+            // ═══ ROLE-BASED ROUTE PROTECTION ═══
             if (route.layout === 'admin' && (!user || user.role !== 'admin')) {
                 return this.load('/auth', pushState);
             }
             if (route.layout === 'member' && (!user || user.role !== 'member')) {
+                return this.load('/auth', pushState);
+            }
+            if (route.layout === 'sekretaris' && (!user || user.role !== 'sekretaris')) {
                 return this.load('/auth', pushState);
             }
 
@@ -1611,10 +1705,14 @@
                 public: '#public-content',
                 admin: '#admin-content',
                 member: '#member-content',
+                sekretaris: '#sekretaris-content',
                 auth: '#auth-content'
             };
             const container = document.querySelector(containerMap[route.layout]);
-            if (!container) return;
+            if (!container) {
+                console.error('[App] Container tidak ditemukan untuk layout:', route.layout);
+                return;
+            }
 
             let html;
             let cacheSource = 'network';
@@ -1724,9 +1822,9 @@
 
             this.updateActiveMenus(path);
             this.updateBottomNav(path, route.layout);
+            this.autoExpandSubmenu(path);
             window.scrollTo(0, 0);
 
-            // Boot loader safety net
             try {
                 markBootDone();
                 const bootLoader = document.getElementById('app-boot-loader');
@@ -1735,7 +1833,6 @@
                 }
             } catch (e) {}
 
-            // Dispatch router ready
             try {
                 window.dispatchEvent(new CustomEvent('router:page-ready', {
                     detail: { path: path, layout: route.layout }
@@ -1744,14 +1841,15 @@
         },
 
         switchLayout(layout) {
-            ['public','admin','member','auth'].forEach(l => {
+            ['public','admin','member','sekretaris','auth'].forEach(l => {
                 const el = document.getElementById('layout-' + l);
                 if (!el) return;
                 const isActive = l === layout;
                 el.classList.toggle('hidden', !isActive);
                 el.style.display = isActive ? (l === 'public' ? 'flex' : 'block') : 'none';
             });
-            if (layout === 'admin' || layout === 'member') {
+
+            if (layout === 'admin' || layout === 'member' || layout === 'sekretaris') {
                 const collapsed = SafeStorage.getItem('sidebarCollapsed') === 'true';
                 const sidebar = document.getElementById(layout + '-sidebar');
                 const content = document.getElementById(layout + '-content');
@@ -1762,14 +1860,13 @@
         },
 
         updateActiveMenus(path) {
-            document.querySelectorAll('#public-navbar .nav-link').forEach(el => {
-                el.classList.toggle('active', el.getAttribute('href') === path);
-            });
-            document.querySelectorAll('#layout-admin .nav-links a').forEach(el => {
-                el.classList.toggle('active', el.getAttribute('href') === path);
-            });
-            document.querySelectorAll('#layout-member .nav-links a').forEach(el => {
-                el.classList.toggle('active', el.getAttribute('href') === path);
+            ['#public-navbar', '#layout-admin', '#layout-member', '#layout-sekretaris'].forEach(sel => {
+                document.querySelectorAll(sel + ' .nav-links a, ' + sel + ' .nav-link').forEach(el => {
+                    const href = el.getAttribute('href') || '';
+                    const hrefPath = href.startsWith('#') ? href.slice(1) : href;
+                    const isActive = hrefPath === path;
+                    el.classList.toggle('active', isActive);
+                });
             });
         },
 
@@ -1785,10 +1882,23 @@
             });
         },
 
+        autoExpandSubmenu(path) {
+            // Auto-expand submenu yang berisi route aktif
+            ['#layout-admin', '#layout-member', '#layout-sekretaris'].forEach(sel => {
+                const layoutEl = document.querySelector(sel);
+                if (!layoutEl) return;
+                layoutEl.querySelectorAll('.has-submenu').forEach(sub => {
+                    const hasActive = sub.querySelector('a[href="' + path + '"]');
+                    if (hasActive) sub.classList.add('open');
+                });
+            });
+        },
+
         load404() {
             const container = document.querySelector('#public-content') ||
                               document.querySelector('#admin-content') ||
-                              document.querySelector('#member-content');
+                              document.querySelector('#member-content') ||
+                              document.querySelector('#sekretaris-content');
             if (container) {
                 container.innerHTML = '<div class="text-center py-20">' +
                     '<h1 class="text-6xl font-bold text-[var(--text-main)]">404</h1>' +
@@ -1797,6 +1907,31 @@
             }
         }
     };
+
+    /**
+     * Panggil cleanup function modul untuk path tertentu.
+     */
+    function runCleanupForPath(path) {
+        if (!path) return;
+        let moduleKey = path.replace(/^\//, '').replace(/\//g, '_');
+        if (!moduleKey) moduleKey = 'index';
+        const camelKey = moduleKey.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
+        const cleanupFn = window['__' + camelKey + 'Cleanup'];
+        if (typeof cleanupFn === 'function') {
+            try {
+                cleanupFn();
+                log('Cleanup called:', camelKey);
+            } catch (e) {
+                console.warn('[App] Cleanup error for ' + camelKey + ':', e.message);
+            }
+        }
+
+        // Also run route-specific leave hook
+        const hook = ROUTE_LEAVE_HOOKS[path];
+        if (typeof hook === 'function') {
+            try { hook(); } catch (e) {}
+        }
+    }
 
     // ══════════════════════════════════════════════════════════
     //  23. AUTH LINKS
@@ -1809,10 +1944,25 @@
                 const role = user.role || 'member';
                 const name = user.nama || user.name || user.username || 'User';
                 const firstName = String(name).trim().split(/\s+/)[0] || 'User';
-                const dashUrl = role === 'admin' ? '/dashboard_admin' : '/dashboard_member';
-                const roleClass = role === 'admin' ? 'role-badge-admin' : 'role-badge-member';
-                const roleIcon = role === 'admin' ? 'fa-shield-alt' : 'fa-user';
-                const roleLabel = role === 'admin' ? 'Admin' : 'Member';
+
+                let dashUrl, roleClass, roleIcon, roleLabel;
+                if (role === 'admin') {
+                    dashUrl = '/dashboard_admin';
+                    roleClass = 'role-badge-admin';
+                    roleIcon = 'fa-shield-alt';
+                    roleLabel = 'Admin';
+                } else if (role === 'sekretaris') {
+                    dashUrl = '/sekretaris_dashboard';
+                    roleClass = 'role-badge-sekretaris';
+                    roleIcon = 'fa-user-edit';
+                    roleLabel = 'Sekretaris';
+                } else {
+                    dashUrl = '/dashboard_member';
+                    roleClass = 'role-badge-member';
+                    roleIcon = 'fa-user';
+                    roleLabel = 'Member';
+                }
+
                 desktop.innerHTML =
                     '<a href="' + dashUrl + '" class="navbar-user-pill ' + roleClass + '" title="Buka Dashboard ' + roleLabel + '">' +
                         '<span class="navbar-user-avatar"><i class="fas ' + roleIcon + '"></i></span>' +
@@ -1835,7 +1985,9 @@
         const sidebar = document.getElementById(type + '-sidebar');
         const content = document.getElementById(type + '-content');
         const overlay = document.getElementById(
-            type === 'admin' ? 'sidebar-overlay' : 'member-overlay'
+            type === 'admin' ? 'sidebar-overlay' :
+            type === 'sekretaris' ? 'sekretaris-overlay' :
+            'member-overlay'
         );
         if (!sidebar) return;
         if (window.innerWidth <= 768) {
@@ -1855,7 +2007,7 @@
     function checkFormNotifications() {
         const user = safeParseUser();
         if (!user || user.role !== 'admin') return;
-        if (!navigator.onLine) return; // Skip jika offline
+        if (!navigator.onLine) return;
 
         apiCall('getUnreadFormCount', 'POST', {}).then(res => {
             if (!res || !res.success) return;
@@ -1903,6 +2055,7 @@
         if (window.__globalListenersAttached) return;
         window.__globalListenersAttached = true;
 
+        // Refresh buttons — clear cache
         document.addEventListener('click', function(e) {
             const btn = e.target.closest(
                 '#refresh-btn, #refresh-surat-btn, #refresh-logbook-btn, #refresh-berita-btn, ' +
@@ -1910,24 +2063,25 @@
                 '#refresh-arsip-btn, #refresh-kalender-btn, #refresh-galeri-btn, ' +
                 '#refresh-keuangan-btn, #refresh-inventaris-btn, #refresh-proker-btn, #refresh-forum-btn, ' +
                 '#refresh-absensi-btn, #refresh-member-btn, #dashboard-refresh-btn, #refresh-logbook-member-btn, ' +
-                '#refresh-forms-btn, #refresh-responses-btn, [data-refresh]'
+                '#refresh-forms-btn, #refresh-responses-btn, #refresh-kegiatan-btn, #refresh-surat-member-btn, ' +
+                '#sek-dash-refresh, #refresh-sekretaris-btn, #refresh-logbook-btn-sek, #refresh-laporan-btn, ' +
+                '#sk-refresh-btn, [data-refresh]'
             );
             if (!btn) return;
             const path = window.location.hash.replace('#', '').split('?')[0] || '/';
             const endpoints = ROUTE_DATA_ENDPOINTS[path] || [];
             const user = safeParseUser();
             if (user && endpoints.length > 0) {
-                endpoints.forEach(action => {
-                    const cKey = 'cache_' + action + '_' + user.id + '_' + JSON.stringify({});
-                    SafeSessionStorage.removeItem(cKey);
-                });
+                endpoints.forEach(action => invalidateCacheForAction(action));
             }
         });
 
+        // Main click delegation
         document.addEventListener('click', function(e) {
             const target = e.target;
 
-            if (target.closest('#theme-toggle, #admin-theme-toggle, #admin-theme-toggle-mobile, #member-theme-toggle, #member-theme-toggle-mobile')) {
+            // Theme toggle
+            if (target.closest('#theme-toggle, #admin-theme-toggle, #admin-theme-toggle-mobile, #member-theme-toggle, #member-theme-toggle-mobile, #sekretaris-theme-toggle, #sekretaris-theme-toggle-mobile')) {
                 const cur = SafeStorage.getItem('color-theme') || 'light';
                 const next = cur === 'light' ? 'dark' : 'light';
                 SafeStorage.setItem('color-theme', next);
@@ -1935,16 +2089,22 @@
                 return;
             }
 
+            // Sidebar toggle
             if (target.closest('#sidebar-toggle')) { toggleSidebar('admin'); return; }
             if (target.closest('#member-sidebar-toggle')) { toggleSidebar('member'); return; }
+            if (target.closest('#sekretaris-sidebar-toggle')) { toggleSidebar('sekretaris'); return; }
 
-            if (target.id === 'sidebar-overlay' || target.id === 'member-overlay') {
-                const sidebar = document.getElementById('admin-sidebar') || document.getElementById('member-sidebar');
+            // Overlay close
+            if (target.id === 'sidebar-overlay' || target.id === 'member-overlay' || target.id === 'sekretaris-overlay') {
+                const sidebar = document.getElementById('admin-sidebar') ||
+                                document.getElementById('member-sidebar') ||
+                                document.getElementById('sekretaris-sidebar');
                 if (sidebar) sidebar.classList.remove('open');
                 target.classList.remove('active');
                 return;
             }
 
+            // Submenu toggles
             const adminToggle = target.closest('#layout-admin .has-submenu > a');
             if (adminToggle) {
                 e.preventDefault();
@@ -1967,12 +2127,35 @@
                 return;
             }
 
-            if (target.closest('#sidebar-logout, #member-logout, #navbar-logout')) {
+            const sekretarisToggle = target.closest('#layout-sekretaris .has-submenu > a');
+            if (sekretarisToggle) {
+                e.preventDefault();
+                sekretarisToggle.parentElement.classList.toggle('open');
+                return;
+            }
+
+            // Logout
+            if (target.closest('#sidebar-logout, #member-logout, #sekretaris-logout, #navbar-logout, ' +
+                              '#admin-logout-mobile, #member-logout-mobile, #sekretaris-logout-mobile')) {
                 logout();
                 return;
             }
+
+            // Mobile sidebar auto-close saat nav link di-click
+            const navLink = target.closest('.sidebar .nav-links a');
+            if (navLink && window.innerWidth <= 768) {
+                const sidebar = document.getElementById('admin-sidebar') ||
+                                document.getElementById('member-sidebar') ||
+                                document.getElementById('sekretaris-sidebar');
+                const overlay = document.getElementById('sidebar-overlay') ||
+                                document.getElementById('member-overlay') ||
+                                document.getElementById('sekretaris-overlay');
+                if (sidebar) sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('active');
+            }
         });
 
+        // Navbar scroll
         window.addEventListener('scroll', function() {
             debounceEvent('navbar-scroll', function() {
                 const nav = document.getElementById('public-navbar');
@@ -1980,6 +2163,7 @@
             }, 100);
         }, { passive: true });
 
+        // Hash change
         window.addEventListener('hashchange', function() {
             const url = window.location.hash.replace('#', '') || '/';
             if (__skipNextHashChange === url) {
@@ -1989,6 +2173,7 @@
             router.load(url, false);
         });
 
+        // Link interception
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             if (!link) return;
@@ -2016,10 +2201,15 @@
             router.load(url);
         });
 
+        // ESC to close sidebar
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                const sidebar = document.getElementById('admin-sidebar') || document.getElementById('member-sidebar');
-                const overlay = document.getElementById('sidebar-overlay') || document.getElementById('member-overlay');
+                const sidebar = document.getElementById('admin-sidebar') ||
+                                document.getElementById('member-sidebar') ||
+                                document.getElementById('sekretaris-sidebar');
+                const overlay = document.getElementById('sidebar-overlay') ||
+                                document.getElementById('member-overlay') ||
+                                document.getElementById('sekretaris-overlay');
                 if (sidebar && sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
                     if (overlay) overlay.classList.remove('active');
@@ -2027,6 +2217,7 @@
             }
         });
 
+        // Visibility change — refresh notif
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) checkFormNotifications();
         });
@@ -2123,9 +2314,11 @@
         router.load(initialPath, false);
 
         const user = safeParseUser();
-        if (user && (user.role === 'admin' || user.role === 'member')) {
+        if (user && (user.role === 'admin' || user.role === 'member' || user.role === 'sekretaris')) {
             setTimeout(() => {
-                prefetchRoutes(user.role).catch(() => {});
+                if (typeof window.prefetchRoutes === 'function') {
+                    prefetchRoutes(user.role).catch(() => {});
+                }
             }, 1500);
         }
 
@@ -2133,9 +2326,7 @@
             startFormNotificationPolling();
         }
 
-        // ══════════════════════════════════════════════════════════
         // Online/Offline listeners
-        // ══════════════════════════════════════════════════════════
         window.addEventListener('online', function() {
             console.log('[App] 🟢 Online — checking pending queue');
             if (window.SyncManager && typeof window.SyncManager.syncNow === 'function') {
@@ -2153,7 +2344,7 @@
             showToast('📴 Mode Offline — perubahan akan disimpan lokal', 'warning', 4000);
         });
 
-        console.log('[App] ✅ Init complete — offline-first mode active');
+        console.log('[App] ✅ Init complete — v48.2.0 SEKRETARIS RANTING + ABSENSI EDITION');
     }
 
     if (document.readyState === 'loading') {
@@ -2166,11 +2357,29 @@
     //  31. EXPOSE GLOBAL
     // ══════════════════════════════════════════════════════════
     window.router = router;
+    window.router.onLeave = function(routeName, callback) {
+        if (typeof callback === 'function' && routeName) {
+            ROUTE_LEAVE_HOOKS[routeName] = callback;
+        }
+    };
+    window.router.routes = ROUTES;
+    window.router.getCurrentPath = function() {
+        return window.location.hash.replace('#', '').split('?')[0] || '/';
+    };
+    window.router.getCurrentQuery = function() {
+        try {
+            const hash = window.location.hash;
+            const qIdx = hash.indexOf('?');
+            if (qIdx === -1) return new URLSearchParams();
+            return new URLSearchParams(hash.substring(qIdx + 1));
+        } catch (e) { return new URLSearchParams(); }
+    };
+
     window.App = App;
     window.logout = logout;
     window.checkAuth = checkAuth;
     window.apiCall = apiCall;
-    window.__originalApiCall = originalApiCall; // ⚡ untuk SyncManager
+    window.__originalApiCall = originalApiCall;
     window.forceRefreshData = forceRefreshData;
     window.showToast = showToast;
     window.showConfirm = showConfirm;
@@ -2184,199 +2393,32 @@
     window.chunkedUpload = chunkedUpload;
     window.logActivity = logActivity;
     window.debounceEvent = debounceEvent;
-    window.autoHideSkeleton = autoHideSkeleton;
     window.toggleSidebar = toggleSidebar;
     window.applyTheme = applyTheme;
     window.loadLib = loadLib;
     window.updateAuthLinks = updateAuthLinks;
     window.checkFormNotifications = checkFormNotifications;
-
     window.getCachedData = getCachedData;
+    window.invalidateCacheForAction = invalidateCacheForAction;
     window.prefetchRoutes = prefetchRoutes;
     window.clearPrefetchCache = clearPrefetchCache;
     window.resetPrefetchCache = resetPrefetchCache;
-    window.getPrefetchState = () => ({ ...prefetchState });
+    window.getPrefetchState = () => ({});
     window.getViewCacheSize = () => viewCache.size;
     window.isDevNoViewCache = () => window.__DEV_NO_VIEW_CACHE;
     window.getCacheVersion = () => CACHE_VERSION;
     window.getEnvironment = () => window.__APP_ENV;
     window.getChunkedUploads = () => ({ ..._chunkedUploads });
     window.getActiveJsonpCallbacks = () => Array.from(_activeJsonpCallbacks);
-
     window.markBootDone = markBootDone;
     window.resetBootFlag = resetBootFlag;
     window.forceHideBootLoader = forceHideBootLoader;
 
     // ══════════════════════════════════════════════════════════
-    //  32. DEBUG HELPERS
-    // ══════════════════════════════════════════════════════════
-    window.debugJSONP = function(action, data) {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   JSONP DEBUG TOOL');
-        console.log('═══════════════════════════════════════');
-        console.log('Action:', action);
-        console.log('Data:', data || {});
-
-        const testCb = 'debugCb_' + Date.now();
-        const payload = Object.assign({ action: action, callback: testCb }, data || {});
-        const qsParts = [];
-        Object.keys(payload).forEach(k => {
-            const v = payload[k] == null ? '' : String(payload[k]);
-            qsParts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
-        });
-        const qs = qsParts.join('&');
-        const fullUrl = API_BASE_URL + '?' + qs;
-
-        console.log('URL length:', fullUrl.length);
-        console.log('Callback name:', testCb);
-
-        let responded = false;
-
-        window[testCb] = function(response) {
-            if (responded) return;
-            responded = true;
-            console.log('✅ CALLBACK DIPANGGIL!');
-            console.log('Response:', response);
-            delete window[testCb];
-        };
-
-        const script = document.createElement('script');
-        script.src = fullUrl;
-        script.onerror = () => {
-            if (responded) return;
-            responded = true;
-            console.error('❌ Script load error');
-            delete window[testCb];
-        };
-        document.head.appendChild(script);
-
-        setTimeout(() => {
-            if (!responded) {
-                console.warn('⚠️ Callback TIDAK dipanggil dalam 15s');
-                delete window[testCb];
-            }
-        }, 15000);
-    };
-
-    window.debugCache = function() {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   CACHE INSPECTOR');
-        console.log('═══════════════════════════════════════');
-        const userKey = getUserKey();
-        console.log('User Key:', userKey);
-        console.log('Boot Done:', SafeSessionStorage.getItem(BOOT_FLAG_KEY));
-        console.log('');
-        try {
-            const keys = [];
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const k = sessionStorage.key(i);
-                if (k && (k.startsWith('cache_') || k.startsWith('__view_'))) {
-                    keys.push(k);
-                }
-            }
-            console.log('Cache keys:', keys.length);
-            keys.forEach(k => {
-                try {
-                    const v = JSON.parse(sessionStorage.getItem(k));
-                    const age = v._timestamp ? Math.round((Date.now() - v._timestamp) / 1000) + 's' : 'N/A';
-                    console.log('  -', k.substring(0, 80), '| age:', age);
-                } catch (e) {
-                    console.log('  -', k.substring(0, 80), '| parse error');
-                }
-            });
-        } catch (e) {
-            console.error('Storage error:', e);
-        }
-    };
-
-    window.debugSync = function() {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   SYNC MANAGER DEBUG');
-        console.log('═══════════════════════════════════════');
-
-        if (!window.SyncManager) {
-            console.warn('⚠️ SyncManager tidak loaded');
-            console.log('Pastikan script src="js/sync-manager.js" ada di index.html');
-            return;
-        }
-
-        const stats = window.SyncManager.stats();
-        console.log('Version:', stats.version);
-        console.log('Online:', stats.isOnline);
-        console.log('Processing:', stats.isProcessing);
-        console.log('Queue length:', stats.queueLength);
-        console.log('Pending:', stats.pendingCount);
-        console.log('Failed:', stats.failedCount);
-        console.log('Last sync:', stats.lastSyncAt ? new Date(stats.lastSyncAt).toLocaleString('id-ID') : '(never)');
-        console.log('Status:', stats.lastSyncStatus);
-        console.log('Mode:', stats.mode);
-        console.log('');
-        console.log('Actions breakdown:', stats.actions);
-        console.log('');
-        console.log('💡 Commands:');
-        console.log('   SyncManager.viewQueue()  — lihat isi antrian');
-        console.log('   SyncManager.syncNow()    — paksa sinkron');
-        console.log('   SyncManager.clearQueue() — hapus antrian');
-    };
-
-    window.debugFormPhoto = function() {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   FORMPHOTO DEBUG');
-        console.log('═══════════════════════════════════════');
-        console.log('FormPhoto exists:', typeof window.FormPhoto !== 'undefined');
-        if (window.FormPhoto) {
-            console.log('Max size:', (window.FormPhoto.MAX_SIZE / 1024 / 1024) + ' MB');
-            console.log('Allowed types:', window.FormPhoto.ALLOWED_TYPES.join(', '));
-        }
-    };
-
-    window.debugBootLoader = function() {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   BOOT LOADER DEBUG');
-        console.log('═══════════════════════════════════════');
-        console.log('Boot flag:', SafeSessionStorage.getItem(BOOT_FLAG_KEY));
-        console.log('Boot loader element:', document.getElementById('app-boot-loader') ? 'EXISTS' : 'REMOVED');
-        console.log('__bootLoader available:', typeof window.__bootLoader !== 'undefined');
-        console.log('');
-        console.log('Commands:');
-        console.log('  window.__bootLoader.reset()       — reset flag');
-        console.log('  window.__hideBootLoader(true)     — force hide');
-        console.log('  window.forceHideBootLoader()      — force hide from app.js');
-    };
-
-    window.debugRoutes = function() {
-        console.log('');
-        console.log('═══════════════════════════════════════');
-        console.log('   ROUTES INSPECTOR (' + Object.keys(ROUTES).length + ' routes)');
-        console.log('═══════════════════════════════════════');
-        Object.keys(ROUTES).forEach(path => {
-            const r = ROUTES[path];
-            console.log('  ' + path.padEnd(22), '→', r.layout.padEnd(8), r.file);
-        });
-        console.log('═══════════════════════════════════════');
-    };
-
-    window.triggerSync = function() {
-        if (!window.SyncManager) {
-            console.warn('[App] SyncManager belum loaded');
-            return Promise.resolve({ success: false });
-        }
-        return window.SyncManager.syncNow();
-    };
-
-    // ══════════════════════════════════════════════════════════
-    //  33. PREFETCH ROUTES (STUB)
+    //  32. PREFETCH STUBS
     // ══════════════════════════════════════════════════════════
     async function prefetchRoutes(role, force) {
-        // Skip jika mobile/slow net
         if (__IS_MOBILE || __IS_SLOW_NET) return;
-
-        // Delegasi ke perf-optimizer jika ada
         if (window.__PERF && typeof window.__PERF.startAutoPrefetch === 'function') {
             return window.__PERF.startAutoPrefetch(force === true);
         }
@@ -2403,24 +2445,90 @@
     }
 
     // ══════════════════════════════════════════════════════════
+    //  33. DEBUG HELPERS
+    // ══════════════════════════════════════════════════════════
+    window.debugCache = function() {
+        console.log('');
+        console.log('═══════════════════════════════════════');
+        console.log('   CACHE INSPECTOR');
+        console.log('═══════════════════════════════════════');
+        const userKey = getUserKey();
+        console.log('User Key:', userKey);
+        console.log('Boot Done:', SafeSessionStorage.getItem(BOOT_FLAG_KEY));
+        console.log('Cache Version:', CACHE_VERSION);
+        console.log('');
+        try {
+            const keys = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const k = sessionStorage.key(i);
+                if (k && (k.startsWith('cache_') || k.startsWith('__view_'))) {
+                    keys.push(k);
+                }
+            }
+            console.log('Cache keys:', keys.length);
+            keys.forEach(k => {
+                try {
+                    const v = JSON.parse(sessionStorage.getItem(k));
+                    const age = v._timestamp ? Math.round((Date.now() - v._timestamp) / 1000) + 's' : 'N/A';
+                    console.log('  -', k.substring(0, 80), '| age:', age);
+                } catch (e) {
+                    console.log('  -', k.substring(0, 80), '| parse error');
+                }
+            });
+        } catch (e) {
+            console.error('Storage error:', e);
+        }
+    };
+
+    window.debugRoutes = function() {
+        console.log('');
+        console.log('═══════════════════════════════════════');
+        console.log('   ROUTES INSPECTOR (' + Object.keys(ROUTES).length + ' routes)');
+        console.log('═══════════════════════════════════════');
+        Object.keys(ROUTES).forEach(path => {
+            const r = ROUTES[path];
+            console.log('  ' + path.padEnd(28), '→', r.layout.padEnd(12), r.file);
+        });
+        console.log('═══════════════════════════════════════');
+    };
+
+    window.getAppInfo = function() {
+        return {
+            version: CACHE_VERSION,
+            routes: Object.keys(ROUTES).length,
+            env: window.__APP_ENV,
+            user: safeParseUser(),
+            cacheKeys: (function() {
+                try {
+                    let n = 0;
+                    for (let i = 0; i < sessionStorage.length; i++) {
+                        const k = sessionStorage.key(i);
+                        if (k && (k.startsWith('cache_') || k.startsWith('__view_'))) n++;
+                    }
+                    return n;
+                } catch (e) { return 0; }
+            })()
+        };
+    };
+
+    // ══════════════════════════════════════════════════════════
     //  FINAL LOG
     // ══════════════════════════════════════════════════════════
-    console.log('✅ App.js v47.0.0 loaded — OFFLINE-FIRST EDITION');
+    console.log('✅ App.js v48.2.0 loaded — SEKRETARIS RANTING + ABSENSI EDITION');
     console.log('   Cache version:', CACHE_VERSION);
     console.log('   Environment:', window.__APP_ENV.isMobile ? 'MOBILE' : 'DESKTOP',
                 __IS_LOCALHOST ? '(DEV)' : '(PROD)');
     console.log('   Storage:', window.__APP_ENV.storageAvailable ? 'OK' : 'BLOCKED (in-memory fallback)');
     console.log('   Routes:', Object.keys(ROUTES).length);
+    console.log('   Layouts: public, admin, member, sekretaris, auth');
     console.log('   Offline mode: ✅ Enabled (SyncManager auto-detect)');
     console.log('   FormPhoto utility: ✅ loaded');
+    console.log('   Auto cache invalidation: ✅ enabled');
+    console.log('   Route cleanup hooks: ✅ enabled');
     console.log('');
     console.log('   💡 Debug helpers:');
-    console.log('   - window.debugJSONP("actionName", {data})');
     console.log('   - window.debugCache()');
-    console.log('   - window.debugSync()          ← NEW');
-    console.log('   - window.debugFormPhoto()');
-    console.log('   - window.debugBootLoader()');
     console.log('   - window.debugRoutes()');
-    console.log('   - window.triggerSync()        ← NEW');
+    console.log('   - window.getAppInfo()');
 
 })();

@@ -3,18 +3,21 @@
  * Modul Admin Absensi — v14.0.0 FULL FIX
  * ============================================================
  * CHANGELOG v14.0.0:
+ *   ✅ NEW: Kop surat di export PDF/PNG (logo kiri + header kanan)
  *   ✅ NEW: Edit absensi (modal, validasi nama & alamat)
  *   ✅ NEW: Export PDF (jsPDF + html2canvas multi-page)
  *   ✅ NEW: Export Image (PNG, html2canvas)
  *   ✅ NEW: Export dropdown (CSV / PDF / Gambar)
- *   ✅ FIX: Colspan tabel konsisten = 7 (checkbox + 6 kolom)
- *   ✅ FIX: Checkbox column pre-rendered di thead (defensive)
+ *   ✅ FIX: Kolom checkbox pre-rendered di HTML → tidak dobel bind
+ *   ✅ FIX: Guard duplikasi stats/search/bulk bar di ensureExtraUI
  *   ✅ FIX: Logo path auto-detect (hash route safe)
- *   ✅ FIX: QR download dengan logo + 3 fallback
+ *   ✅ FIX: QR download dengan logo + timeout fallback
  *   ✅ FIX: html2canvas scale adaptive (large dataset safe)
- *   ✅ FIX: Dropdown auto-close on outside click & ESC
+ *   ✅ FIX: Dropdown auto-close (outside click + ESC)
  *   ✅ FIX: Edit modal idempotent (reuse if exists)
- *   ✅ FIX: Safe edit offline (queue via SyncManager)
+ *   ✅ FIX: Safe edit offline (SyncManager queue)
+ *   ✅ FIX: All handlers idempotent (cloneNode pattern)
+ *   ✅ FIX: Null-safe seluruh DOM elements
  *   ✅ PRESERVED: Semua fitur v13.0.0 (offline-first, bulk delete,
  *      pagination, search, filter tanggal, TTD lightbox, dll)
  * ============================================================
@@ -26,7 +29,7 @@ App.register('absensi_admin', function () {
     // ================================================================
     // 1. AUTH CHECK
     // ================================================================
-    const user = (typeof checkAuth === 'function') ? checkAuth() : null;
+    var user = (typeof checkAuth === 'function') ? checkAuth() : null;
     if (!user || user.role !== 'admin') {
         if (typeof router !== 'undefined' && router.load) router.load('/auth');
         return;
@@ -41,7 +44,7 @@ App.register('absensi_admin', function () {
     }
     window.__absensiAdminLoaded = true;
 
-    console.log('[absensi_admin] 🚀 Init v14.0.0 (Edit + PDF/Image Export)');
+    console.log('[absensi_admin] 🚀 Init v14.0.0 (Kop Surat + Edit + PDF/PNG)');
 
     // ================================================================
     // 3. HELPER: WAIT FOR DOM
@@ -166,13 +169,10 @@ App.register('absensi_admin', function () {
         }
     }
 
-    /**
-     * ✅ Auto-detect base path (hash routing safe)
-     */
     function getBasePath() {
         try {
             var path = window.location.pathname;
-            if (!path.endsWith('/')) {
+            if (path.charAt(path.length - 1) !== '/') {
                 var idx = path.lastIndexOf('/');
                 path = idx >= 0 ? path.substring(0, idx + 1) : '/';
             }
@@ -186,9 +186,6 @@ App.register('absensi_admin', function () {
         return getBasePath() + 'logo-ansor.webp';
     }
 
-    /**
-     * Debounce helper — fallback if app.js doesn't provide
-     */
     var debounceTimers = {};
     function debounced(key, fn, delay) {
         delay = delay || 250;
@@ -203,7 +200,7 @@ App.register('absensi_admin', function () {
     // 5. INIT UTAMA
     // ================================================================
     async function init() {
-        const requiredIds = [
+        var requiredIds = [
             'absensi-table-body',
             'qr-toggle-btn', 'qr-regenerate-btn',
             'qr-status-text-admin', 'qr-token-text-admin',
@@ -214,43 +211,43 @@ App.register('absensi_admin', function () {
             'export-dropdown', 'export-dropdown-wrap'
         ];
 
-        const els = await waitForElements(requiredIds);
+        var els = await waitForElements(requiredIds);
 
-        const tableBody         = els['absensi-table-body'];
-        const qrToggleBtn       = els['qr-toggle-btn'];
-        const qrRegenerateBtn   = els['qr-regenerate-btn'];
-        const qrStatusText      = els['qr-status-text-admin'];
-        const qrTokenText       = els['qr-token-text-admin'];
-        const qrCodeDisplay     = els['qr-code-display'];
-        const downloadQrBtn     = els['download-qr-btn'];
-        const passwordInput     = els['password-input-admin'];
-        const savePasswordBtn   = els['save-password-btn'];
-        const passwordMsg       = els['password-msg'];
-        const filterDate        = els['filter-date'];
-        const refreshBtn        = els['refresh-btn'];
-        const exportBtn         = els['export-btn'];
-        const exportCsvBtn      = els['export-csv-btn'];
-        const exportPdfBtn      = els['export-pdf-btn'];
-        const exportImgBtn      = els['export-img-btn'];
-        const exportDropdown    = els['export-dropdown'];
-        const exportDropdownWp  = els['export-dropdown-wrap'];
+        var tableBody         = els['absensi-table-body'];
+        var qrToggleBtn       = els['qr-toggle-btn'];
+        var qrRegenerateBtn   = els['qr-regenerate-btn'];
+        var qrStatusText      = els['qr-status-text-admin'];
+        var qrTokenText       = els['qr-token-text-admin'];
+        var qrCodeDisplay     = els['qr-code-display'];
+        var downloadQrBtn     = els['download-qr-btn'];
+        var passwordInput     = els['password-input-admin'];
+        var savePasswordBtn   = els['save-password-btn'];
+        var passwordMsg       = els['password-msg'];
+        var filterDate        = els['filter-date'];
+        var refreshBtn        = els['refresh-btn'];
+        var exportBtn         = els['export-btn'];
+        var exportCsvBtn      = els['export-csv-btn'];
+        var exportPdfBtn      = els['export-pdf-btn'];
+        var exportImgBtn      = els['export-img-btn'];
+        var exportDropdown    = els['export-dropdown'];
+        var exportDropdownWp  = els['export-dropdown-wrap'];
 
         if (!tableBody || !qrToggleBtn || !qrRegenerateBtn || !savePasswordBtn || !qrCodeDisplay) {
-            console.error('[absensi_admin] Elemen utama tidak ditemukan.');
+            console.error('[absensi_admin] Elemen utama tidak ditemukan. Abort.');
             return;
         }
 
         // ================================================================
         // 6. STATE
         // ================================================================
-        let currentQrStatus = 'inactive';
-        let currentQrToken = '';
-        let dataCache = [];
-        let filteredCache = [];
-        let currentFilter = { search: '', dateFrom: '', dateTo: '' };
-        let isSubmitting = false;
-        let selectedIds = new Set();
-        let visibleCount = 20;
+        var currentQrStatus = 'inactive';
+        var currentQrToken = '';
+        var dataCache = [];
+        var filteredCache = [];
+        var currentFilter = { search: '', dateFrom: '', dateTo: '' };
+        var isSubmitting = false;
+        var selectedIds = new Set();
+        var visibleCount = 20;
 
         // ================================================================
         // 7. REFRESH TANPA RELOAD
@@ -280,6 +277,7 @@ App.register('absensi_admin', function () {
 
         // ================================================================
         // 8. ENSURE EXTRA UI (stats, search, bulk bar, load more)
+        //    Guard: skip jika sudah ada (idempotent)
         // ================================================================
         function ensureExtraUI() {
             var mainContent = document.getElementById('main-content');
@@ -409,7 +407,6 @@ App.register('absensi_admin', function () {
                     '<p id="absensi-load-more-info" class="text-xs text-[var(--text-muted)] mt-2"></p>';
 
                 var tableWrapper = tableBody.closest('.table-wrapper')
-                                || tableBody.closest('.bg-\\[var\\(--card-bg\\)\\]')
                                 || tableBody.closest('table');
                 if (tableWrapper && tableWrapper.parentNode) {
                     var realWrapper = tableWrapper.tagName === 'TABLE'
@@ -486,16 +483,18 @@ App.register('absensi_admin', function () {
             if (filterDate && !filterDate.dataset.attached) {
                 filterDate.dataset.attached = 'true';
                 filterDate.addEventListener('change', function () {
+                    var df = document.getElementById('absensi-date-from');
+                    var dt = document.getElementById('absensi-date-to');
                     if (filterDate.value) {
-                        if (dateFrom) dateFrom.value = filterDate.value;
-                        if (dateTo) dateTo.value = filterDate.value;
+                        if (df) df.value = filterDate.value;
+                        if (dt) dt.value = filterDate.value;
                         currentFilter.dateFrom = filterDate.value;
                         currentFilter.dateTo = filterDate.value;
                     } else {
                         currentFilter.dateFrom = '';
                         currentFilter.dateTo = '';
-                        if (dateFrom) dateFrom.value = '';
-                        if (dateTo) dateTo.value = '';
+                        if (df) df.value = '';
+                        if (dt) dt.value = '';
                     }
                     visibleCount = 20;
                     applyFilter();
@@ -677,7 +676,6 @@ App.register('absensi_admin', function () {
                 return;
             }
 
-            // Build URL
             var qrUrl = window.location.origin + getBasePath() +
                 '#/absensi?token=' + encodeURIComponent(currentQrToken);
 
@@ -758,12 +756,10 @@ App.register('absensi_admin', function () {
                         triggerDownload();
                     }
                 };
-                logo.onerror = function () {
-                    triggerDownload();
-                };
+                logo.onerror = function () { triggerDownload(); };
                 logo.src = getLogoUrl();
 
-                // Timeout fallback (logo stuck)
+                // Timeout fallback
                 setTimeout(function () {
                     if (!logo.complete) {
                         try { triggerDownload(); } catch (e) {}
@@ -833,49 +829,34 @@ App.register('absensi_admin', function () {
         }
 
         // ================================================================
-        // 17. ENSURE BULK SELECT-ALL (defensive idempotent)
+        // 17. BIND BULK SELECT-ALL (idempotent — checkbox pre-rendered)
         // ================================================================
-        function ensureBulkSelectAll() {
-            var thead = tableBody.closest('table');
-            if (!thead) return;
-            thead = thead.querySelector('thead tr');
-            if (!thead) return;
+        function bindBulkSelectAll() {
+            var selectAll = document.querySelector('.bulk-select-all-absensi');
+            if (!selectAll || selectAll.dataset.attached) return;
 
-            var selectAll = thead.querySelector('.bulk-select-all-absensi');
-
-            // Insert if missing (backward compat with old HTML)
-            if (!selectAll) {
-                var cbTh = document.createElement('th');
-                cbTh.className = 'px-3 py-4 text-center w-12';
-                cbTh.innerHTML = '<input type="checkbox" class="bulk-select-all-absensi w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer" aria-label="Pilih semua">';
-                thead.insertBefore(cbTh, thead.firstElementChild);
-                selectAll = thead.querySelector('.bulk-select-all-absensi');
-            }
-
-            if (selectAll && !selectAll.dataset.attached) {
-                selectAll.dataset.attached = 'true';
-                selectAll.addEventListener('change', function () {
-                    var checked = this.checked;
-                    document.querySelectorAll('.absensi-checkbox').forEach(function (cb) {
-                        cb.checked = checked;
-                        if (checked) selectedIds.add(cb.dataset.id);
-                        else selectedIds.delete(cb.dataset.id);
-                        var row = cb.closest('tr');
-                        if (row) {
-                            row.classList.toggle('bg-red-50', checked);
-                            row.classList.toggle('dark:bg-red-900/10', checked);
-                        }
-                    });
-                    updateBulkBar();
+            selectAll.dataset.attached = 'true';
+            selectAll.addEventListener('change', function () {
+                var checked = this.checked;
+                document.querySelectorAll('.absensi-checkbox').forEach(function (cb) {
+                    cb.checked = checked;
+                    if (checked) selectedIds.add(cb.dataset.id);
+                    else selectedIds.delete(cb.dataset.id);
+                    var row = cb.closest('tr');
+                    if (row) {
+                        row.classList.toggle('bg-red-50', checked);
+                        row.classList.toggle('dark:bg-red-900/10', checked);
+                    }
                 });
-            }
+                updateBulkBar();
+            });
         }
 
         // ================================================================
         // 18. RENDER TABLE
         // ================================================================
         function renderTable(data) {
-            ensureBulkSelectAll();
+            bindBulkSelectAll();
 
             if (!data || data.length === 0) {
                 var isFiltered = currentFilter.search ||
@@ -1503,13 +1484,13 @@ App.register('absensi_admin', function () {
         }
 
         // ================================================================
-        // 27. BUILD EXPORT CANVAS (shared)
+        // 27. BUILD EXPORT CANVAS (dengan kop surat)
         // ================================================================
         function buildExportCanvas() {
             return new Promise(function (resolve, reject) {
                 var wrap = document.createElement('div');
                 wrap.style.cssText =
-                    'position:fixed;left:-99999px;top:0;padding:28px;' +
+                    'position:fixed;left:-99999px;top:0;padding:32px 28px;' +
                     'background:#ffffff;width:1000px;' +
                     "font-family:'Inter',system-ui,sans-serif;color:#0f2922;";
 
@@ -1524,25 +1505,75 @@ App.register('absensi_admin', function () {
                 if (currentFilter.dateFrom) filterDesc.push('Dari: ' + formatDate(currentFilter.dateFrom));
                 if (currentFilter.dateTo) filterDesc.push('Sampai: ' + formatDate(currentFilter.dateTo));
 
+                var logoUrl = getLogoUrl();
+                var exportDate = formatDateTime(new Date());
+
                 var html = '';
-                html += '<div style="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #0f2922;">';
-                html += '<h2 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#0f2922;">Laporan Absensi</h2>';
-                html += '<p style="margin:0;font-size:12px;color:#475569;font-weight:600;">PAC GP Ansor Kapanewon Sewon</p>';
-                html += '<p style="margin:6px 0 0;font-size:10px;color:#64748b;">Diekspor: ' +
-                        escapeHtml(formatDateTime(new Date())) + '</p>';
+
+                // ══════════════════════════════════════════════════════
+                // KOP SURAT — Logo kiri, Header kanan
+                // ══════════════════════════════════════════════════════
+                html += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px;">';
+                html += '<tr>';
+
+                // Logo (kiri)
+                html += '<td style="width:100px;vertical-align:middle;padding:0;">';
+                html += '<img src="' + escapeAttr(logoUrl) + '" ' +
+                        'style="width:88px;height:88px;object-fit:contain;display:block;" ' +
+                        'crossorigin="anonymous" ' +
+                        'onerror="this.style.display=\'none\';" />';
+                html += '</td>';
+
+                // Header (kanan, align right)
+                html += '<td style="vertical-align:middle;padding:0 0 0 16px;text-align:right;">';
+                html += '<div style="font-family:\'Amiri\',serif;font-size:22px;font-weight:800;color:#0f2922;line-height:1.2;margin:0;">' +
+                            'Pimpinan Anak Cabang Gerakan Pemuda Ansor' +
+                        '</div>';
+                html += '<div style="font-family:\'Amiri\',serif;font-size:19px;font-weight:700;color:#0f2922;line-height:1.2;margin:2px 0 6px;">' +
+                            'Kapanewon Sewon' +
+                        '</div>';
+                html += '<div style="font-size:12px;color:#475569;line-height:1.5;margin:2px 0;">' +
+                            'Alamat: Komplek Masjid Baitul Hadi' +
+                        '</div>';
+                html += '<div style="font-size:12px;color:#475569;line-height:1.5;margin:2px 0;">' +
+                            'No. Telp 083866675521&nbsp;&nbsp;|&nbsp;&nbsp;email: sewon.ansor@gmail.com' +
+                        '</div>';
+                html += '</td>';
+
+                html += '</tr>';
+                html += '</table>';
+
+                // Divider gradient
+                html += '<div style="height:3px;background:linear-gradient(90deg,#0f2922 0%,#0f2922 68%,#f59e0b 100%);' +
+                        'border-radius:2px;margin-bottom:20px;"></div>';
+
+                // ══════════════════════════════════════════════════════
+                // JUDUL LAPORAN + META
+                // ══════════════════════════════════════════════════════
+                html += '<div style="text-align:center;margin-bottom:18px;">';
+                html += '<h2 style="margin:0 0 6px;font-size:20px;font-weight:800;color:#0f2922;letter-spacing:0.02em;">' +
+                            'LAPORAN ABSENSI' +
+                        '</h2>';
+                html += '<p style="margin:0;font-size:11px;color:#64748b;">' +
+                            'Diekspor: ' + escapeHtml(exportDate) +
+                        '</p>';
                 if (filterDesc.length > 0) {
-                    html += '<p style="margin:4px 0 0;font-size:10px;color:#64748b;font-style:italic;">Filter: ' +
-                            escapeHtml(filterDesc.join(' · ')) + '</p>';
+                    html += '<p style="margin:4px 0 0;font-size:11px;color:#64748b;font-style:italic;">' +
+                                'Filter aktif: ' + escapeHtml(filterDesc.join(' · ')) +
+                            '</p>';
                 }
                 html += '</div>';
 
+                // ══════════════════════════════════════════════════════
+                // TABEL DATA
+                // ══════════════════════════════════════════════════════
                 html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
                 html += '<thead><tr style="background:#0f2922;color:#ffffff;">';
-                html += '<th style="padding:8px 6px;border:1px solid #1e4038;text-align:center;width:32px;">No</th>';
-                html += '<th style="padding:8px 8px;border:1px solid #1e4038;text-align:left;">Nama</th>';
-                html += '<th style="padding:8px 8px;border:1px solid #1e4038;text-align:left;">Alamat</th>';
-                html += '<th style="padding:8px 8px;border:1px solid #1e4038;text-align:left;width:130px;">Waktu</th>';
-                html += '<th style="padding:8px 6px;border:1px solid #1e4038;text-align:center;width:90px;">TTD</th>';
+                html += '<th style="padding:9px 6px;border:1px solid #1e4038;text-align:center;width:34px;">No</th>';
+                html += '<th style="padding:9px 8px;border:1px solid #1e4038;text-align:left;">Nama</th>';
+                html += '<th style="padding:9px 8px;border:1px solid #1e4038;text-align:left;">Alamat</th>';
+                html += '<th style="padding:9px 8px;border:1px solid #1e4038;text-align:left;width:130px;">Waktu</th>';
+                html += '<th style="padding:9px 6px;border:1px solid #1e4038;text-align:center;width:90px;">TTD</th>';
                 html += '</tr></thead><tbody>';
 
                 filteredCache.forEach(function (item, idx) {
@@ -1566,21 +1597,25 @@ App.register('absensi_admin', function () {
                 });
 
                 html += '</tbody></table>';
-                html += '<p style="text-align:center;font-size:10px;color:#94a3b8;margin-top:16px;padding-top:10px;' +
-                        'border-top:1px solid #e2e8f0;">' +
-                        'Total: <strong>' + total + '</strong> data · Dicetak dari Sistem Absensi Digital</p>';
+
+                // Footer
+                html += '<div style="margin-top:18px;padding-top:12px;border-top:1px solid #e2e8f0;' +
+                        'display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94a3b8;">';
+                html += '<span>Total: <strong style="color:#0f2922;">' + total + '</strong> data</span>';
+                html += '<span>Dicetak dari Sistem Absensi Digital — PAC GP Ansor Sewon</span>';
+                html += '</div>';
 
                 wrap.innerHTML = html;
                 document.body.appendChild(wrap);
 
-                // Wait for images (TTD)
+                // Wait for ALL images (logo + TTD)
                 var imgs = Array.prototype.slice.call(wrap.querySelectorAll('img'));
                 var waits = imgs.map(function (img) {
                     return new Promise(function (res) {
                         if (img.complete) return res();
                         img.onload = res;
                         img.onerror = res;
-                        setTimeout(res, 2500);
+                        setTimeout(res, 3000);
                     });
                 });
 
@@ -1655,7 +1690,6 @@ App.register('absensi_admin', function () {
                         safeToast('Error: ' + error.message, 'error');
                     } finally {
                         freshToggle.disabled = false;
-                        // Restore label via updateQrUI (which sets textContent)
                         updateQrUI(currentQrStatus, currentQrToken);
                         isSubmitting = false;
                     }
@@ -1827,7 +1861,7 @@ App.register('absensi_admin', function () {
         }
 
         // ================================================================
-        // 33. EXPORT DROPDOWN + BUTTONS
+        // 33. EXPORT DROPDOWN
         // ================================================================
         if (exportBtn && exportDropdown && exportDropdownWp) {
             var freshExport = exportBtn.cloneNode(true);
@@ -1975,7 +2009,7 @@ App.register('absensi_admin', function () {
         ensureExtraUI();
         attachFilterListeners();
         attachBulkListeners();
-        ensureBulkSelectAll();
+        bindBulkSelectAll();
 
         if (filterDate && !filterDate.value) {
             filterDate.value = '';
