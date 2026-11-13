@@ -1,0 +1,441 @@
+<!-- views/sekretaris_logbook.html -->
+<!-- Halaman Sekretaris: Logbook Ranting -->
+<!-- Logic: js/sekretaris_logbook.js | Route: /sekretaris_logbook -->
+<!-- Versi: 1.1.0 — Sekretaris Ranting Edition (Full Fix) -->
+<!--
+  ═══════════════════════════════════════════════════════════════
+  FITUR:
+  ═══════════════════════════════════════════════════════════════
+  ✅ List logbook (auto-filtered backend ke kalurahan sekretaris)
+  ✅ Stats 4 kartu (Total, Draft, Final, Bulan Ini)
+  ✅ Search real-time + Filter status
+  ✅ Modal create/edit (auto nomor, rich text optional)
+  ✅ Detail modal (view lengkap + copy)
+  ✅ Delete single dengan konfirmasi
+  ✅ Upload file pendukung background
+  ✅ Skeleton loading awal
+  ✅ Empty & error state
+  ✅ Offline-aware
+  ✅ Dark mode aware
+  ✅ Responsive mobile
+
+  ═══════════════════════════════════════════════════════════════
+  ELEMEN ID WAJIB (untuk js/sekretaris_logbook.js):
+  ═══════════════════════════════════════════════════════════════
+  - logbook-table-body, logbook-skeleton
+  - logbook-modal, logbook-modal-content, logbook-modal-title, logbook-modal-close, logbook-modal-cancel
+  - logbook-form
+  - add-logbook-btn, refresh-logbook-btn
+  - logbook-id, logbook_kegiatan, logbook_tempat,
+    logbook_tanggal_mulai, logbook_tanggal_selesai,
+    logbook_peserta, logbook_anggaran, logbook_deskripsi,
+    logbook_file_url, logbook_file, logbook_status
+  - logbook-stats, stats-total-logbook, stats-draft-logbook,
+    stats-final-logbook, stats-bulan-logbook
+  - logbook-search, logbook-filter-status
+  - sek-logbook-offline-banner
+  - logbook-detail-modal, logbook-detail-content,
+    logbook-detail-title, logbook-detail-body,
+    logbook-detail-close, logbook-detail-copy,
+    logbook-detail-edit, logbook-detail-ok
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<div id="sek-logbook-wrapper" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+    <!-- ══════════════════════════════════════════════════════════
+         HEADER
+         ══════════════════════════════════════════════════════════ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div class="min-w-0 flex-1">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-main)] font-amiri flex items-center gap-2 flex-wrap">
+                <i class="fas fa-book text-green-600 flex-shrink-0"></i>
+                <span>Logbook Ranting</span>
+            </h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1 flex items-center gap-1.5 flex-wrap">
+                <i class="fas fa-map-marker-alt flex-shrink-0"></i>
+                <span id="sek-logbook-subtitle">Memuat info ranting...</span>
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-2 flex-shrink-0">
+            <button id="refresh-logbook-btn"
+                    type="button"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+                    title="Refresh data logbook">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+            <button id="add-logbook-btn"
+                    type="button"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Logbook</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         OFFLINE WARNING BANNER
+         ══════════════════════════════════════════════════════════ -->
+    <div id="sek-logbook-offline-banner"
+         class="hidden mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2 no-print">
+        <i class="fas fa-wifi flex-shrink-0"></i>
+        <span>Mode offline — data dari cache. Perubahan akan disinkronkan saat online.</span>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STATS 4 KARTU
+         ══════════════════════════════════════════════════════════ -->
+    <div id="logbook-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Logbook</p>
+                    <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="stats-total-logbook">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-book"></i>
+                </div>
+            </div>
+        </div>
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Draft</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1" id="stats-draft-logbook">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-edit"></i>
+                </div>
+            </div>
+        </div>
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Final</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1" id="stats-final-logbook">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Bulan Ini</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-1" id="stats-bulan-logbook">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-calendar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SEARCH & FILTER BAR
+         ══════════════════════════════════════════════════════════ -->
+    <div id="logbook-search-wrap" class="flex flex-wrap gap-2 mb-4">
+        <div class="flex-1 min-w-[200px] relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
+            <input type="text" id="logbook-search"
+                   placeholder="Cari nama kegiatan, tempat..."
+                   class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)] transition">
+        </div>
+        <select id="logbook-filter-status"
+                class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm cursor-pointer">
+            <option value="all">Semua Status</option>
+            <option value="draft">Draft</option>
+            <option value="final">Final</option>
+        </select>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TABEL LOGBOOK
+         ══════════════════════════════════════════════════════════ -->
+    <div class="table-wrapper">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center">No</th>
+                        <th>Nama Kegiatan</th>
+                        <th>Tanggal</th>
+                        <th>Tempat</th>
+                        <th class="text-center w-20">Peserta</th>
+                        <th class="text-right w-32">Anggaran</th>
+                        <th class="text-center w-20">Status</th>
+                        <th class="text-center w-24">File</th>
+                        <th class="text-center w-32">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="logbook-table-body" class="divide-y divide-[var(--card-border)]">
+                    <tr id="logbook-skeleton">
+                        <td colspan="9" class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data logbook...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         INFO RANTING FOOTER
+         ══════════════════════════════════════════════════════════ -->
+    <div class="mt-6 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300 flex items-start gap-2 no-print">
+        <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+        <span>Semua logbook yang tampil di sini otomatis terfilter sesuai kalurahan Anda.
+              Saat membuat logbook baru, <strong>kalurahan otomatis terisi</strong> oleh sistem.</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: TAMBAH / EDIT LOGBOOK
+     ══════════════════════════════════════════════════════════════ -->
+<div id="logbook-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center backdrop-blur-sm bg-black/50 p-4"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="logbook-modal-title">
+
+    <div id="logbook-modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <h2 id="logbook-modal-title"
+                class="text-2xl font-bold text-[var(--text-main)] font-amiri">
+                Tambah Logbook
+            </h2>
+            <button type="button" id="logbook-modal-close"
+                    class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl leading-none flex-shrink-0 transition"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="logbook-form" class="space-y-4" novalidate>
+            <input type="hidden" id="logbook-id">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Nama Kegiatan <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="logbook_kegiatan"
+                           class="form-input"
+                           placeholder="Contoh: Pengajian Rutin"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tempat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="logbook_tempat"
+                           class="form-input"
+                           placeholder="Contoh: Masjid Baitul Hadi"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Status
+                    </label>
+                    <select id="logbook_status" class="form-input">
+                        <option value="draft">Draft</option>
+                        <option value="final">Final</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tanggal Mulai <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="logbook_tanggal_mulai"
+                           class="form-input"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tanggal Selesai <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="logbook_tanggal_selesai"
+                           class="form-input"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Jumlah Peserta
+                    </label>
+                    <input type="number" id="logbook_peserta"
+                           class="form-input"
+                           placeholder="0"
+                           min="0"
+                           inputmode="numeric">
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Anggaran (Rp)
+                    </label>
+                    <input type="number" id="logbook_anggaran"
+                           class="form-input"
+                           placeholder="0"
+                           min="0"
+                           inputmode="numeric">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Deskripsi Kegiatan <span class="text-red-500">*</span>
+                </label>
+                <textarea id="logbook_deskripsi" rows="5"
+                          class="form-input"
+                          placeholder="Tulis deskripsi kegiatan secara lengkap..."
+                          required></textarea>
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    File Pendukung (URL)
+                </label>
+                <input type="text" id="logbook_file_url"
+                       class="form-input"
+                       placeholder="Link Google Drive (opsional)"
+                       autocomplete="off">
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Upload File Pendukung
+                </label>
+                <input type="file" id="logbook_file"
+                       class="form-input"
+                       accept="image/*,.pdf,.doc,.docx">
+                <p class="text-xs text-[var(--text-muted)] mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    File akan diunggah ke Google Drive dan URL otomatis terisi. (Max 20 MB)
+                </p>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-[var(--card-border)]">
+                <button type="button" id="logbook-modal-cancel"
+                        class="btn-secondary px-4 py-2 rounded-lg">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Simpan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: DETAIL LOGBOOK
+     ══════════════════════════════════════════════════════════════ -->
+<div id="logbook-detail-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center backdrop-blur-sm bg-black/50 p-4"
+     role="dialog"
+     aria-modal="true">
+
+    <div id="logbook-detail-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-200">
+
+        <div class="flex justify-between items-start p-5 border-b border-[var(--card-border)] sticky top-0 bg-[var(--card-bg)] z-10">
+            <h3 id="logbook-detail-title"
+                class="text-xl font-bold text-[var(--text-main)] font-amiri pr-4 line-clamp-2">
+                Detail Logbook
+            </h3>
+            <button type="button" id="logbook-detail-close"
+                    class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl leading-none flex-shrink-0 transition"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="logbook-detail-body" class="p-5 space-y-4"></div>
+
+        <div class="flex justify-end gap-2 p-5 border-t border-[var(--card-border)] bg-[var(--card-bg)] sticky bottom-0">
+            <button type="button" id="logbook-detail-copy"
+                    class="btn-secondary px-4 py-2 rounded-lg">
+                <i class="fas fa-copy mr-1"></i>Copy
+            </button>
+            <button type="button" id="logbook-detail-edit"
+                    class="btn-secondary px-4 py-2 rounded-lg">
+                <i class="fas fa-edit mr-1"></i>Edit
+            </button>
+            <button type="button" id="logbook-detail-ok"
+                    class="btn-primary px-6 py-2 rounded-lg">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPT INLINE — Konfirmasi init
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        'use strict';
+        console.log('[View] sekretaris_logbook.html v1.1.0 loaded — logic di js/sekretaris_logbook.js');
+    })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     STYLE INLINE — Khusus view sekretaris_logbook
+     ══════════════════════════════════════════════════════════════ -->
+<style>
+    #logbook-table-body tr:not(#logbook-skeleton):hover {
+        background: var(--bg-stats);
+    }
+    #logbook-modal:not(.hidden) #logbook-modal-content,
+    #logbook-detail-modal:not(.hidden) #logbook-detail-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+    #logbook-table-body .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .logbook-detail-desc {
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 640px) {
+        #sek-logbook-wrapper { padding: 0.75rem !important; }
+        #sek-logbook-wrapper h1 { font-size: 1.35rem !important; }
+        #logbook-modal-content,
+        #logbook-detail-content { padding: 1rem !important; }
+        #logbook-stats .premium-card { padding: 0.75rem; }
+        #logbook-stats .text-2xl { font-size: 1.25rem; }
+    }
+
+    @media print {
+        #refresh-logbook-btn, #add-logbook-btn, #logbook-search-wrap,
+        #sek-logbook-offline-banner, .no-print,
+        .table-wrapper td:last-child, .table-wrapper th:last-child {
+            display: none !important;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #logbook-modal-content, #logbook-detail-content,
+        #logbook-table-body tr { transition: none !important; }
+    }
+</style>

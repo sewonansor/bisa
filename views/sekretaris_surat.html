@@ -1,0 +1,408 @@
+<!-- views/sekretaris_surat.html -->
+<!-- Halaman Sekretaris: Surat Ranting -->
+<!-- Logic: js/sekretaris_surat.js | Route: /sekretaris_surat -->
+<!-- Versi: 1.1.0 — Sekretaris Ranting Edition (Full Fix) -->
+<!--
+  ═══════════════════════════════════════════════════════════════
+  FITUR:
+  ═══════════════════════════════════════════════════════════════
+  ✅ List surat (auto-filtered by backend ke kalurahan sekretaris)
+  ✅ Stats 4 kartu (Total, Internal, Eksternal, Bulan Ini)
+  ✅ Search real-time (nomor, perihal, pengirim, penerima, isi)
+  ✅ Filter jenis (internal/eksternal)
+  ✅ Modal create/edit (auto nomor surat)
+  ✅ Preview & Cetak via /surat_preview
+  ✅ Copy nomor surat ke clipboard
+  ✅ Delete single dengan konfirmasi
+  ✅ Upload lampiran background
+  ✅ Skeleton loading awal
+  ✅ Empty & error state
+  ✅ Offline-aware
+  ✅ Dark mode aware
+  ✅ Responsive mobile
+
+  ═══════════════════════════════════════════════════════════════
+  ELEMEN ID WAJIB (untuk js/sekretaris_surat.js):
+  ═══════════════════════════════════════════════════════════════
+  - surat-table-body, surat-skeleton
+  - surat-modal, modal-content, modal-title, modal-close
+  - surat-form
+  - add-surat-btn, refresh-surat-btn
+  - surat-id, nomor_surat, perihal, tanggal, pengirim,
+    penerima, isi, lampiran, surat_file, jenis_surat
+  - surat-stats, stats-total-surat, stats-internal-surat,
+    stats-eksternal-surat, stats-bulan-surat
+  - surat-search, surat-filter-jenis
+  - sek-surat-offline-banner
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<div id="sek-surat-wrapper" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+    <!-- ══════════════════════════════════════════════════════════
+         HEADER
+         ══════════════════════════════════════════════════════════ -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div class="min-w-0 flex-1">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-main)] font-amiri flex items-center gap-2 flex-wrap">
+                <i class="fas fa-file-alt text-blue-600 flex-shrink-0"></i>
+                <span>Surat Ranting</span>
+            </h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1 flex items-center gap-1.5 flex-wrap">
+                <i class="fas fa-map-marker-alt flex-shrink-0"></i>
+                <span id="sek-surat-subtitle">Memuat info ranting...</span>
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-2 flex-shrink-0">
+            <button id="refresh-surat-btn"
+                    type="button"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+                    title="Refresh data surat">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+            <button id="add-surat-btn"
+                    type="button"
+                    class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Surat</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         OFFLINE WARNING BANNER
+         ══════════════════════════════════════════════════════════ -->
+    <div id="sek-surat-offline-banner"
+         class="hidden mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2 no-print">
+        <i class="fas fa-wifi flex-shrink-0"></i>
+        <span>Mode offline — data dari cache. Perubahan akan disinkronkan saat online.</span>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STATS 4 KARTU
+         ══════════════════════════════════════════════════════════ -->
+    <div id="surat-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Total -->
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Total Surat</p>
+                    <p class="text-2xl font-bold text-[var(--text-main)] mt-1" id="stats-total-surat">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Internal -->
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Internal</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-1" id="stats-internal-surat">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Eksternal -->
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Eksternal</p>
+                    <p class="text-2xl font-bold text-pink-600 mt-1" id="stats-eksternal-surat">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Bulan ini -->
+        <div class="premium-card p-4 rounded-xl">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Bulan Ini</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1" id="stats-bulan-surat">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fas fa-calendar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SEARCH & FILTER BAR
+         ══════════════════════════════════════════════════════════ -->
+    <div id="surat-search-wrap" class="flex flex-wrap gap-2 mb-4">
+        <div class="flex-1 min-w-[200px] relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
+            <input type="text" id="surat-search"
+                   placeholder="Cari nomor, perihal, pengirim..."
+                   class="w-full pl-9 pr-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm focus:outline-none focus:border-[var(--text-main)] transition">
+        </div>
+        <select id="surat-filter-jenis"
+                class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm cursor-pointer">
+            <option value="all">Semua Jenis</option>
+            <option value="internal">Internal (SR-01)</option>
+            <option value="eksternal">Eksternal (SR-02)</option>
+        </select>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TABEL SURAT
+         ══════════════════════════════════════════════════════════ -->
+    <div class="table-wrapper">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center">No</th>
+                        <th>Nomor Surat</th>
+                        <th>Perihal</th>
+                        <th>Tanggal</th>
+                        <th>Pengirim</th>
+                        <th>Penerima</th>
+                        <th class="text-center w-16">Lampiran</th>
+                        <th class="text-center w-32">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="surat-table-body" class="divide-y divide-[var(--card-border)]">
+                    <!-- SKELETON LOADING -->
+                    <tr id="surat-skeleton">
+                        <td colspan="8" class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-2xl text-[var(--text-muted)]"></i>
+                            <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data surat...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         INFO RANTING FOOTER
+         ══════════════════════════════════════════════════════════ -->
+    <div class="mt-6 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2 no-print">
+        <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+        <span>Semua surat yang tampil di sini otomatis terfilter sesuai kalurahan Anda.
+              Saat membuat surat baru, <strong>kalurahan otomatis terisi</strong> oleh sistem.</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL: TAMBAH / EDIT SURAT
+     ══════════════════════════════════════════════════════════════ -->
+<div id="surat-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center backdrop-blur-sm bg-black/50 p-4"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title">
+
+    <div id="modal-content"
+         class="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 opacity-0 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <h2 id="modal-title"
+                class="text-2xl font-bold text-[var(--text-main)] font-amiri">
+                Tambah Surat
+            </h2>
+            <button type="button" id="modal-close"
+                    class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-2xl leading-none flex-shrink-0 transition"
+                    aria-label="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="surat-form" class="space-y-4" novalidate>
+            <input type="hidden" id="surat-id">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Nomor Surat (Otomatis)
+                    </label>
+                    <input type="text" id="nomor_surat"
+                           class="form-input opacity-70 cursor-not-allowed"
+                           placeholder="Otomatis dibuat sistem"
+                           disabled
+                           readonly>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Jenis Surat
+                    </label>
+                    <select id="jenis_surat" class="form-input">
+                        <option value="internal">Internal (SR-01)</option>
+                        <option value="eksternal">Eksternal (SR-02)</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Perihal <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="perihal"
+                           class="form-input"
+                           placeholder="Contoh: Undangan Rapat"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Tanggal <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="tanggal"
+                           class="form-input"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Pengirim <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="pengirim"
+                           class="form-input"
+                           placeholder="Contoh: PAC GP Ansor Sewon"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                        Penerima <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="penerima"
+                           class="form-input"
+                           placeholder="Contoh: PC GP Ansor Bantul"
+                           autocomplete="off"
+                           required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Lampiran (URL)
+                </label>
+                <input type="text" id="lampiran"
+                       class="form-input"
+                       placeholder="URL dokumen (opsional)"
+                       autocomplete="off">
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Upload File Lampiran
+                </label>
+                <input type="file" id="surat_file"
+                       class="form-input"
+                       accept="image/*,.pdf,.doc,.docx">
+                <p class="text-xs text-[var(--text-muted)] mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    File akan diunggah ke Google Drive dan URL otomatis terisi ke lampiran.
+                    (Max 20 MB)
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-[var(--text-muted)] mb-2 text-sm font-medium">
+                    Isi Surat <span class="text-red-500">*</span>
+                </label>
+                <textarea id="isi" rows="5"
+                          class="form-input"
+                          placeholder="Tulis isi surat secara lengkap..."
+                          required></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-[var(--card-border)]">
+                <button type="button" id="modal-cancel"
+                        class="btn-secondary px-4 py-2 rounded-lg">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Simpan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPT INLINE — Konfirmasi + init log
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        'use strict';
+        console.log('[View] sekretaris_surat.html v1.1.0 loaded — logic di js/sekretaris_surat.js');
+    })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     STYLE INLINE — Khusus view sekretaris_surat
+     ══════════════════════════════════════════════════════════════ -->
+<style>
+    /* ────────────── TABLE ROW HOVER ────────────── */
+    #surat-table-body tr:not(#surat-skeleton):hover {
+        background: var(--bg-stats);
+    }
+
+    /* ────────────── MODAL TRANSITION ────────────── */
+    #surat-modal:not(.hidden) #modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    /* ────────────── LINE CLAMP untuk perihal ────────────── */
+    #surat-table-body .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 640px) {
+        #sek-surat-wrapper {
+            padding: 0.75rem !important;
+        }
+        #sek-surat-wrapper h1 {
+            font-size: 1.35rem !important;
+        }
+        #modal-content {
+            padding: 1rem !important;
+        }
+        #surat-stats .premium-card {
+            padding: 0.75rem;
+        }
+        #surat-stats .text-2xl {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* ────────────── PRINT ────────────── */
+    @media print {
+        #refresh-surat-btn,
+        #add-surat-btn,
+        #surat-search-wrap,
+        #sek-surat-offline-banner,
+        .no-print,
+        .table-wrapper td:last-child,
+        .table-wrapper th:last-child {
+            display: none !important;
+        }
+    }
+
+    /* ────────────── REDUCED MOTION ────────────── */
+    @media (prefers-reduced-motion: reduce) {
+        #modal-content,
+        #surat-table-body tr {
+            transition: none !important;
+        }
+    }
+</style>

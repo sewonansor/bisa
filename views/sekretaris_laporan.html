@@ -1,0 +1,390 @@
+<!-- views/sekretaris_laporan.html -->
+<!-- Halaman Sekretaris: Laporan Ranting -->
+<!-- Logic: js/sekretaris_laporan.js | Route: /sekretaris_laporan -->
+<!-- Versi: 1.0.0 — Sekretaris Ranting Edition -->
+<!-- Libs: html2canvas, jspdf, docx -->
+<!--
+  ═══════════════════════════════════════════════════════════════
+  FITUR UTAMA:
+  ═══════════════════════════════════════════════════════════════
+  ✅ Laporan A4 multi-page (cover, logbook, surat, keuangan,
+     absensi, anggota, penutup + TTD)
+  ✅ Scope: HANYA data ranting sekretaris (kalurahan) —
+     difilter via backend `_getRequestScope` & `_filterByScope`
+  ✅ Filter periode bulan/tahun (default: bulan ini)
+  ✅ Export PNG (high quality, 2x scale)
+  ✅ Export DOCX (word, multi-section)
+  ✅ Print / PDF (browser native)
+  ✅ Kop surat ranting (logo + header align right)
+  ✅ TTD Ketua + Sekretaris Ranting (auto-fetch dari struktur)
+  ✅ Loading state per step
+  ✅ Empty state + error state
+  ✅ Offline-aware (cache from sessionStorage)
+  ✅ Dark mode aware
+  ✅ Responsive mobile (grid collapse)
+  ✅ Print CSS rules (hide toolbar, force white bg)
+
+  ═══════════════════════════════════════════════════════════════
+  ELEMEN ID YANG DIPAKAI JS:
+  ═══════════════════════════════════════════════════════════════
+  Toolbar   : back-btn, refresh-btn, period-filter,
+              export-image-btn, export-docx-btn, print-pdf-btn
+  Meta      : sek-laporan-subtitle, sek-laporan-period-label
+  State     : report-loading, report-area, report-content
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<div id="main-content" class="p-4 sm:p-6 lg:p-8 min-h-screen"
+     style="background-color: #f1f5f9;">
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TOOLBAR (Disembunyikan saat Print/PDF)                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="max-w-[210mm] mx-auto mb-6 flex flex-wrap justify-between items-center gap-4 no-print">
+
+        <!-- LEFT: Back button + title -->
+        <div class="flex items-center gap-3 min-w-0">
+            <button id="back-btn"
+                    type="button"
+                    class="w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 flex items-center justify-center transition shadow-sm flex-shrink-0"
+                    title="Kembali ke Dashboard Sekretaris"
+                    aria-label="Kembali ke Dashboard Sekretaris">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="min-w-0">
+                <h1 class="text-2xl font-bold text-gray-800 font-amiri truncate">
+                    <i class="fas fa-file-pdf mr-2 text-red-600"></i>
+                    Laporan Ranting
+                </h1>
+                <p class="text-sm text-gray-500 truncate" id="sek-laporan-subtitle">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    Memuat info ranting...
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5" id="sek-laporan-period-label">
+                    <i class="far fa-calendar-alt mr-1"></i>
+                    <span>Periode: -</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- RIGHT: Filters & Actions -->
+        <div class="flex flex-wrap gap-2 items-center">
+
+            <!-- Period filter -->
+            <div class="relative">
+                <label for="period-filter" class="sr-only">Filter periode bulan/tahun</label>
+                <input type="month"
+                       id="period-filter"
+                       class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:border-[#0f2922] focus:ring-2 focus:ring-[#0f2922]/10 transition"
+                       title="Filter periode bulan/tahun. Kosongkan untuk semua data." />
+            </div>
+
+            <!-- Refresh -->
+            <button id="refresh-btn"
+                    type="button"
+                    class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 text-sm hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
+                    title="Refresh data dari server">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+
+            <!-- Export PNG -->
+            <button id="export-image-btn"
+                    type="button"
+                    class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
+                    title="Export sebagai gambar PNG (A4 multi-halaman)">
+                <i class="fas fa-image text-purple-600"></i>
+                <span class="hidden sm:inline">Export PNG</span>
+            </button>
+
+            <!-- Export DOCX -->
+            <button id="export-docx-btn"
+                    type="button"
+                    class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
+                    title="Export sebagai dokumen Word (.docx)">
+                <i class="fas fa-file-word text-blue-600"></i>
+                <span class="hidden sm:inline">Export DOCX</span>
+            </button>
+
+            <!-- Print / PDF -->
+            <button id="print-pdf-btn"
+                    type="button"
+                    class="px-4 py-2 bg-[#0f2922] hover:bg-[#1a4038] text-white rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-md"
+                    title="Print atau simpan sebagai PDF">
+                <i class="fas fa-print"></i>
+                <span>Print / PDF</span>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LOADING STATE                                          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="report-loading"
+         class="max-w-[210mm] mx-auto min-h-[60vh] flex flex-col items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 no-print">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500 font-medium">Menyiapkan laporan A4...</p>
+            <p class="text-gray-400 text-xs mt-1">Menghimpun data dari 5 modul ranting</p>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- OFFLINE WARNING BANNER (hidden by default)            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="report-offline-banner"
+         class="hidden max-w-[210mm] mx-auto mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2 no-print">
+        <i class="fas fa-wifi"></i>
+        <span>Mode offline — laporan dibuat dari cache. Export & upload memerlukan koneksi internet.</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- REPORT AREA (A4 multi-page)                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="report-area" class="w-full overflow-x-auto pb-10">
+        <div id="report-content" class="hidden">
+            <!-- Konten A4 di-inject oleh js/sekretaris_laporan.js -->
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- STYLE INLINE — Khusus view sekretaris_laporan             -->
+<!-- Common A4 style (.a4-page, .a4-table, .a4-summary-box)    -->
+<!-- sudah di-load dari css/forms.css (Section 13)             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<style>
+    /* ────────────── REPORT AREA (Fallback safe) ────────────── */
+    #report-area {
+        background-color: #475569;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        min-height: 400px;
+    }
+
+    #report-area #report-content {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+
+    /* ────────────── LOADING STATE ────────────── */
+    #report-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ────────────── HOVER ICON ANIMATIONS ────────────── */
+    #back-btn:hover i,
+    #print-pdf-btn:hover i,
+    #export-docx-btn:hover i,
+    #export-image-btn:hover i,
+    #refresh-btn:hover i {
+        transform: scale(1.08);
+        transition: transform 0.2s ease;
+    }
+
+    /* ────────────── PERIOD FILTER FOCUS ────────────── */
+    #period-filter:focus {
+        border-color: #0f2922;
+        box-shadow: 0 0 0 3px rgba(15, 41, 34, 0.08);
+    }
+
+    /* ────────────── TOOLBAR WRAPPER ────────────── */
+    .no-print.max-w-\[210mm\] {
+        row-gap: 12px;
+    }
+
+    /* ────────────── PRINT RULES ────────────── */
+    @media print {
+        /* Sembunyikan semua kontrol */
+        .no-print,
+        #back-btn,
+        #print-pdf-btn,
+        #export-docx-btn,
+        #export-image-btn,
+        #refresh-btn,
+        #period-filter,
+        #report-offline-banner {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        #report-area {
+            background: #ffffff !important;
+            padding: 0 !important;
+            gap: 0 !important;
+        }
+
+        #report-area #report-content {
+            gap: 0 !important;
+        }
+
+        body {
+            background: #ffffff !important;
+        }
+
+        #main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Force A4 print margin */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    }
+
+    /* ────────────── RESPONSIVE (Mobile) ────────────── */
+    @media (max-width: 768px) {
+        #report-area {
+            padding: 16px 8px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        #main-content {
+            padding: 0.75rem !important;
+        }
+
+        #main-content h1 {
+            font-size: 1.15rem !important;
+        }
+
+        #sek-laporan-subtitle,
+        #sek-laporan-period-label {
+            font-size: 0.72rem !important;
+        }
+
+        #report-area {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        #report-area #report-content {
+            gap: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Tombol export stack full-width */
+        #main-content .flex-wrap.gap-2 {
+            width: 100%;
+        }
+
+        #main-content .flex-wrap.gap-2 > button,
+        #main-content .flex-wrap.gap-2 > div {
+            flex: 1 1 calc(50% - 4px);
+            min-width: 0;
+        }
+
+        #main-content .flex-wrap.gap-2 > div:first-child {
+            flex: 1 1 100%;
+        }
+    }
+
+    /* ────────────── REDUCED MOTION ────────────── */
+    @media (prefers-reduced-motion: reduce) {
+        #back-btn i,
+        #print-pdf-btn i,
+        #export-docx-btn i,
+        #export-image-btn i,
+        #refresh-btn i {
+            transition: none !important;
+        }
+    }
+
+    /* ────────────── DARK MODE ────────────── */
+    .dark #report-area {
+        background-color: #1e293b;
+    }
+
+    .dark #main-content {
+        background-color: #0f172a !important;
+    }
+
+    .dark #main-content h1 {
+        color: #f1f5f9;
+    }
+
+    .dark #sek-laporan-subtitle {
+        color: #cbd5e1;
+    }
+
+    .dark #sek-laporan-period-label {
+        color: #94a3b8;
+    }
+
+    .dark #back-btn {
+        background: #1e293b;
+        border-color: #334155;
+        color: #cbd5e1;
+    }
+
+    .dark #back-btn:hover {
+        background: #334155;
+        color: #f1f5f9;
+    }
+
+    .dark #period-filter,
+    .dark #refresh-btn,
+    .dark #export-image-btn,
+    .dark #export-docx-btn {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+    .dark #period-filter:focus {
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12);
+    }
+
+    .dark #report-loading {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .dark #report-loading .text-gray-500 {
+        color: #cbd5e1;
+    }
+
+    .dark #report-loading .text-gray-400 {
+        color: #94a3b8;
+    }
+
+    .dark #report-offline-banner {
+        background: rgba(120, 53, 15, 0.25);
+        border-color: rgba(251, 146, 60, 0.3);
+        color: #fdba74;
+    }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SCRIPT INLINE — Konfirmasi saja (no emoji)                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+    (function() {
+        'use strict';
+        console.log('[View] sekretaris_laporan.html v1.0.0 loaded — logic handled by js/sekretaris_laporan.js');
+
+        // Auto-set period filter ke bulan sekarang (jika belum di-set)
+        // agar JS tidak render 12 bulan terakhir
+        var pf = document.getElementById('period-filter');
+        if (pf && !pf.value) {
+            var now = new Date();
+            var yyyy = now.getFullYear();
+            var mm = String(now.getMonth() + 1).padStart(2, '0');
+            pf.value = yyyy + '-' + mm;
+        }
+    })();
+</script>

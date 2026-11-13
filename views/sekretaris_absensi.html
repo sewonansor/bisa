@@ -1,0 +1,423 @@
+<!-- views/sekretaris_absensi.html -->
+<!-- Halaman Absensi Khusus Ranting (Sekretaris) -->
+<!-- Logic: js/sekretaris_absensi.js | Route: /sekretaris_absensi -->
+<!-- Versi: 2.2.0 — Full Fix Scoped CSS & Export/CRUD Ready -->
+
+<div id="main-content" class="sk-absensi-wrap">
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- KOP SURAT                                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="kop-surat" class="sk-kop" role="banner" aria-label="Kop surat organisasi">
+        <div class="sk-kop-flex">
+            <div class="sk-kop-logo-wrap">
+                <img src="logo-ansor.webp" alt="Logo GP Ansor" class="sk-kop-logo"
+                     loading="eager" onerror="this.style.display='none'" />
+            </div>
+            <div class="sk-kop-text">
+                <h2 class="sk-kop-title-main">Pimpinan Anak Cabang Gerakan Pemuda Ansor</h2>
+                <h3 class="sk-kop-title-sub">Kapanewon Sewon</h3>
+                <p class="sk-kop-line">
+                    <i class="fas fa-map-marker-alt sk-kop-icon"></i>
+                    <span>Ranting: <strong id="sk-ranting-name">-</strong></span>
+                </p>
+            </div>
+        </div>
+        <div class="sk-kop-divider"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HEADER & ACTIONS                                       -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="sk-header">
+        <div class="sk-header-left">
+            <h1 class="sk-page-title">
+                <i class="fas fa-clipboard-check"></i> Absensi Ranting
+            </h1>
+            <p class="sk-page-subtitle">
+                Kelola kehadiran khusus wilayah <strong id="sk-ranting-name-2">-</strong>
+            </p>
+        </div>
+        <div class="sk-header-actions">
+            <input type="date" id="sk-filter-date" class="sk-input sk-input-date" aria-label="Filter tanggal">
+            
+            <button id="sk-refresh-btn" type="button" class="sk-btn sk-btn-secondary" title="Refresh data">
+                <i class="fas fa-sync-alt"></i>
+                <span class="sk-btn-label">Refresh</span>
+            </button>
+
+            <!-- ✅ Export Dropdown -->
+            <div class="sk-relative" id="sk-export-dropdown-wrap">
+                <button id="sk-export-btn" type="button" class="sk-btn sk-btn-primary" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-download"></i>
+                    <span class="sk-btn-label">Export</span>
+                    <i class="fas fa-chevron-down text-xs sk-export-chev"></i>
+                </button>
+                <div id="sk-export-dropdown" class="sk-dropdown-menu hidden">
+                    <button id="sk-export-csv" class="sk-dropdown-item">
+                        <i class="fas fa-file-csv text-green-600 w-4"></i> CSV (.csv)
+                    </button>
+                    <button id="sk-export-pdf" class="sk-dropdown-item">
+                        <i class="fas fa-file-pdf text-red-600 w-4"></i> PDF (.pdf)
+                    </button>
+                    <button id="sk-export-img" class="sk-dropdown-item">
+                        <i class="fas fa-image text-purple-600 w-4"></i> Gambar (.png)
+                    </button>
+                </div>
+            </div>
+            <!-- ✅ End Export -->
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STATS 4 KARTU                                          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="sk-stats" class="sk-stats-grid">
+        <div class="sk-stat-card">
+            <div class="sk-stat-flex">
+                <div>
+                    <p class="sk-stat-label">Total</p>
+                    <p class="sk-stat-value" id="sk-stat-total">0</p>
+                </div>
+                <div class="sk-stat-icon sk-stat-icon-blue"><i class="fas fa-clipboard-check"></i></div>
+            </div>
+        </div>
+        <div class="sk-stat-card">
+            <div class="sk-stat-flex">
+                <div>
+                    <p class="sk-stat-label">Hari Ini</p>
+                    <p class="sk-stat-value sk-stat-value-green" id="sk-stat-today">0</p>
+                </div>
+                <div class="sk-stat-icon sk-stat-icon-green"><i class="fas fa-calendar-day"></i></div>
+            </div>
+        </div>
+        <div class="sk-stat-card">
+            <div class="sk-stat-flex">
+                <div>
+                    <p class="sk-stat-label">Bulan Ini</p>
+                    <p class="sk-stat-value sk-stat-value-purple" id="sk-stat-month">0</p>
+                </div>
+                <div class="sk-stat-icon sk-stat-icon-purple"><i class="fas fa-calendar-alt"></i></div>
+            </div>
+        </div>
+        <div class="sk-stat-card">
+            <div class="sk-stat-flex">
+                <div>
+                    <p class="sk-stat-label">Anggota Unik</p>
+                    <p class="sk-stat-value sk-stat-value-amber" id="sk-stat-unique">0</p>
+                </div>
+                <div class="sk-stat-icon sk-stat-icon-amber"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- QR PANEL KHUSUS RANTING                                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="sk-qr-panel">
+        <div class="sk-qr-header">
+            <div class="sk-qr-header-left">
+                <i class="fas fa-qrcode sk-qr-icon"></i>
+                <div>
+                    <h3 class="sk-qr-title">
+                        QR Absensi Ranting <span id="sk-ranting-name-3" class="sk-qr-ranting"></span>
+                    </h3>
+                    <p id="sk-qr-status-text" class="sk-qr-status">Memuat...</p>
+                    <p id="sk-qr-token-text" class="sk-qr-token">Token: -</p>
+                </div>
+            </div>
+            <div class="sk-qr-header-actions">
+                <button id="sk-qr-toggle-btn" type="button" class="sk-btn sk-btn-primary">
+                    <i class="fas fa-power-off"></i><span>Aktifkan QR</span>
+                </button>
+                <button id="sk-qr-regenerate-btn" type="button" class="sk-btn sk-btn-secondary" title="Buat token baru">
+                    <i class="fas fa-sync-alt"></i><span class="sk-btn-label">Regenerate</span>
+                </button>
+            </div>
+        </div>
+        <div class="sk-qr-preview-wrap">
+            <div id="sk-qr-preview" class="sk-qr-preview-box">
+                <div id="sk-qr-display" class="sk-qr-display">
+                    <i class="fas fa-spinner fa-spin sk-qr-spinner"></i>
+                </div>
+                <div id="sk-qr-logo" class="sk-qr-logo-overlay" aria-hidden="true">
+                    <img src="logo-ansor.webp" alt="" onerror="this.style.display='none'" />
+                </div>
+            </div>
+            <button id="sk-download-qr-btn" type="button" class="sk-btn sk-btn-secondary sk-download-qr" disabled>
+                <i class="fas fa-download"></i><span>Download QR</span>
+            </button>
+            <p class="sk-qr-hint">QR ini hanya berlaku untuk ranting <strong id="sk-ranting-name-4">-</strong></p>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SEARCH & FILTER                                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="sk-search-wrap">
+        <div class="sk-search-input-wrap">
+            <i class="fas fa-search sk-search-icon"></i>
+            <input type="text" id="sk-search" class="sk-input sk-search-input" placeholder="Cari nama, alamat...">
+        </div>
+        <input type="date" id="sk-date-from" class="sk-input sk-input-date" title="Dari tanggal">
+        <input type="date" id="sk-date-to" class="sk-input sk-input-date" title="Sampai tanggal">
+        <button id="sk-clear-filter" type="button" class="sk-btn sk-btn-secondary sk-btn-icon" title="Reset filter">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- TABEL ABSENSI                                          -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="sk-table-wrapper">
+        <div class="sk-table-scroll">
+            <table class="sk-table">
+                <thead>
+                    <tr>
+                        <th class="sk-th sk-th-num">No</th>
+                        <th class="sk-th">Nama</th>
+                        <th class="sk-th">Alamat</th>
+                        <th class="sk-th">Waktu</th>
+                        <th class="sk-th sk-th-ttd">TTD</th>
+                        <th class="sk-th sk-th-aksi">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="sk-table-body">
+                    <tr>
+                        <td colspan="6" class="sk-td-loading">
+                            <i class="fas fa-spinner fa-spin sk-loading-spinner"></i>
+                            <p class="sk-loading-text">Memuat data absensi...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LOAD MORE                                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="sk-load-more-wrap" class="sk-load-more-wrap hidden">
+        <button id="sk-load-more-btn" type="button" class="sk-btn sk-btn-secondary sk-btn-load-more">
+            <i class="fas fa-plus-circle"></i> Muat Lebih Banyak
+        </button>
+        <p id="sk-load-more-info" class="sk-load-more-info"></p>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- INLINE CSS — Self-contained                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ROOT VARIABLES (SCOPED) */
+.sk-absensi-wrap {
+    --sk-text-main: #0f2922; --sk-text-muted: #64748b; --sk-card-bg: #ffffff;
+    --sk-card-border: #e2e8f0; --sk-bg-body: #f8fafc; --sk-bg-stats: #f1f5f9;
+    --sk-brand-700: #0f2922; --sk-brand-600: #1a4038;
+    --sk-accent-400: #fbbf24; --sk-accent-500: #f59e0b;
+    --sk-blue-600: #2563eb; --sk-green-600: #16a34a;
+    --sk-red-600: #dc2626; --sk-amber-600: #d97706; --sk-purple-600: #7c3aed;
+    color: var(--sk-text-main);
+}
+.dark .sk-absensi-wrap {
+    --sk-text-main: #f1f5f9; --sk-text-muted: #cbd5e1; --sk-card-bg: #1e293b;
+    --sk-card-border: #334155; --sk-bg-body: #0f172a; --sk-bg-stats: #334155;
+}
+
+/* UTILITIES */
+.sk-relative { position: relative; }
+.hidden { display: none !important; }
+
+/* KOP SURAT */
+.sk-kop { padding: 8px 4px 0; margin-bottom: 24px; }
+.sk-kop-flex { display: flex; align-items: center; gap: 20px; }
+.sk-kop-logo { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(15, 41, 34, 0.10)); }
+.sk-kop-text { flex: 1; text-align: right; color: var(--sk-text-main); line-height: 1.35; }
+.sk-kop-title-main { font-family: 'Amiri', 'Times New Roman', serif; font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--sk-text-main); line-height: 1.25; }
+.sk-kop-title-sub { font-family: 'Amiri', 'Times New Roman', serif; font-size: 1.08rem; font-weight: 700; margin: 2px 0 8px; color: var(--sk-text-main); line-height: 1.2; }
+.sk-kop-line { font-size: 0.85rem; color: var(--sk-text-muted); margin: 3px 0; display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+.sk-kop-icon { color: var(--sk-text-muted); font-size: 0.75rem; margin-left: 6px; opacity: 0.85; }
+.sk-kop-line strong { color: var(--sk-blue-600); font-weight: 700; }
+.sk-kop-divider { height: 3px; background: linear-gradient(90deg, var(--sk-brand-700) 0%, var(--sk-brand-700) 68%, var(--sk-accent-500) 100%); margin-top: 14px; border-radius: 2px; }
+.dark .sk-kop-logo { filter: drop-shadow(0 2px 8px rgba(251, 191, 36, 0.15)) brightness(1.05); }
+.dark .sk-kop-line strong { color: #60a5fa; }
+
+/* HEADER */
+.sk-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.sk-page-title { font-family: 'Amiri', 'Times New Roman', serif; font-size: 1.85rem; font-weight: 800; color: var(--sk-text-main); margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+.sk-page-title i { color: var(--sk-blue-600); font-size: 1.6rem; }
+.sk-page-subtitle { font-size: 0.875rem; color: var(--sk-text-muted); margin: 0; }
+.sk-page-subtitle strong { color: var(--sk-blue-600); font-weight: 600; }
+.dark .sk-page-title i, .dark .sk-page-subtitle strong { color: #60a5fa; }
+.sk-header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* FORM & BUTTONS */
+.sk-input { padding: 9px 12px; border: 1px solid var(--sk-card-border); border-radius: 8px; background: var(--sk-bg-body); color: var(--sk-text-main); font-size: 0.875rem; font-family: inherit; transition: all 180ms ease; }
+.sk-input:focus { border-color: var(--sk-blue-600); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); outline: none; }
+.sk-input-date { min-width: 140px; cursor: pointer; }
+
+.sk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: all 180ms ease; white-space: nowrap; }
+.sk-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.sk-btn-primary { background: linear-gradient(135deg, var(--sk-brand-700), var(--sk-brand-600)); color: #ffffff; box-shadow: 0 2px 8px rgba(15, 41, 34, 0.15); }
+.sk-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 41, 34, 0.22); }
+.dark .sk-btn-primary { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.sk-btn-secondary { background: var(--sk-card-bg); color: var(--sk-text-main); border: 1px solid var(--sk-card-border); }
+.sk-btn-secondary:hover:not(:disabled) { background: var(--sk-bg-stats); }
+.sk-btn-icon { padding: 9px 12px; }
+.sk-btn-label { display: inline; }
+
+/* DROPDOWN EXPORT */
+.sk-export-chev { transition: transform 220ms ease; }
+#sk-export-dropdown-wrap.open .sk-export-chev { transform: rotate(180deg); }
+.sk-dropdown-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 200px; background: var(--sk-card-bg); border: 1px solid var(--sk-card-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; overflow: hidden; animation: skDropIn 160ms ease-out; }
+@keyframes skDropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.sk-dropdown-item { width: 100%; padding: 12px 16px; text-align: left; background: transparent; border: none; font-size: 0.875rem; color: var(--sk-text-main); cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: inherit; transition: background 0.15s; }
+.sk-dropdown-item:hover { background: var(--sk-bg-stats); }
+
+/* STATS */
+.sk-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+.sk-stat-card { background: var(--sk-card-bg); border: 1px solid var(--sk-card-border); border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(15, 41, 34, 0.04); transition: transform 200ms ease, box-shadow 200ms ease; }
+.sk-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(15, 41, 34, 0.08); }
+.sk-stat-flex { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sk-stat-label { font-size: 0.7rem; color: var(--sk-text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin: 0 0 4px; }
+.sk-stat-value { font-size: 1.75rem; font-weight: 800; color: var(--sk-text-main); line-height: 1; margin: 0; }
+.sk-stat-value-green { color: var(--sk-green-600); }
+.sk-stat-value-purple { color: var(--sk-purple-600); }
+.sk-stat-value-amber { color: var(--sk-amber-600); }
+.dark .sk-stat-value-green { color: #4ade80; }
+.dark .sk-stat-value-purple { color: #a78bfa; }
+.dark .sk-stat-value-amber { color: #fbbf24; }
+.sk-stat-icon { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1rem; flex-shrink: 0; }
+.sk-stat-icon-blue { background: linear-gradient(135deg, #60a5fa, #4f46e5); }
+.sk-stat-icon-green { background: linear-gradient(135deg, #34d399, #059669); }
+.sk-stat-icon-purple { background: linear-gradient(135deg, #a78bfa, #db2777); }
+.sk-stat-icon-amber { background: linear-gradient(135deg, #fbbf24, #ea580c); }
+
+/* QR PANEL */
+.sk-qr-panel { background: var(--sk-card-bg); border: 1px solid var(--sk-card-border); border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(15, 41, 34, 0.04); }
+.sk-qr-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.sk-qr-header-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 200px; }
+.sk-qr-icon { font-size: 1.75rem; color: var(--sk-blue-600); margin-top: 2px; }
+.sk-qr-title { font-size: 1rem; font-weight: 700; color: var(--sk-text-main); margin: 0 0 4px; }
+.sk-qr-ranting { color: var(--sk-blue-600); font-weight: 800; }
+.sk-qr-status { font-size: 0.82rem; color: var(--sk-text-muted); margin: 0 0 2px; font-weight: 500; }
+.sk-qr-status.is-active { color: var(--sk-green-600); font-weight: 600; }
+.sk-qr-status.is-inactive { color: var(--sk-red-600); font-weight: 600; }
+.sk-qr-token { font-size: 0.72rem; font-family: 'Courier New', monospace; color: var(--sk-text-muted); margin: 0; opacity: 0.8; }
+.sk-qr-header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sk-qr-preview-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.sk-qr-preview-box { padding: 16px; background: #ffffff; border: 1px solid var(--sk-card-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(15, 41, 34, 0.06); position: relative; display: inline-block; }
+.dark .sk-qr-preview-box { background: #0f172a; border-color: #334155; }
+.sk-qr-display { width: 180px; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+.sk-qr-display canvas, .sk-qr-display img { display: block; width: 100% !important; height: 100% !important; object-fit: contain; }
+.sk-qr-spinner { font-size: 1.75rem; color: #94a3b8; }
+.sk-qr-logo-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #ffffff; border-radius: 50%; padding: 3px; box-shadow: 0 0 0 3px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center; }
+.sk-qr-logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.sk-download-qr { padding: 8px 16px; font-size: 0.82rem; }
+.sk-qr-hint { font-size: 0.72rem; color: var(--sk-text-muted); text-align: center; margin: 0; }
+.sk-qr-hint strong { color: var(--sk-blue-600); font-weight: 700; }
+
+/* SEARCH & FILTER */
+.sk-search-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+.sk-search-input-wrap { flex: 1; min-width: 200px; position: relative; }
+.sk-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--sk-text-muted); font-size: 0.85rem; }
+.sk-search-input { width: 100%; padding-left: 36px; }
+
+/* TABEL */
+.sk-table-wrapper { background: var(--sk-card-bg); border: 1px solid var(--sk-card-border); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(15, 41, 34, 0.04); }
+.sk-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.sk-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.sk-th { text-align: left; padding: 14px 12px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sk-text-muted); font-weight: 700; background: var(--sk-bg-stats); border-bottom: 1px solid var(--sk-card-border); white-space: nowrap; }
+.sk-th-num { width: 50px; text-align: center; }
+.sk-th-ttd { width: 100px; text-align: center; }
+.sk-th-aksi { width: 100px; text-align: center; }
+.sk-table tbody tr { border-bottom: 1px solid var(--sk-card-border); transition: background 150ms ease; }
+.sk-table tbody tr:last-child { border-bottom: none; }
+.sk-table tbody tr:hover { background: var(--sk-bg-stats); }
+.sk-table td { padding: 12px; font-size: 0.875rem; color: var(--sk-text-main); vertical-align: middle; }
+.sk-table td.sk-td-center { text-align: center; }
+.sk-table td.sk-td-muted { color: var(--sk-text-muted); }
+.sk-table td.sk-td-num { text-align: center; color: var(--sk-text-muted); font-size: 0.82rem; }
+.sk-table td.sk-td-name { font-weight: 600; color: var(--sk-text-main); }
+.sk-td-loading { text-align: center; padding: 32px 12px !important; color: var(--sk-text-muted); }
+.sk-loading-spinner { font-size: 1.5rem; margin-bottom: 8px; display: inline-block; }
+.sk-loading-text { font-size: 0.875rem; margin: 0; }
+.sk-td-empty { text-align: center; padding: 40px 12px !important; color: var(--sk-text-muted); }
+.sk-td-empty i { font-size: 2rem; opacity: 0.4; display: block; margin-bottom: 8px; }
+.sk-td-empty p { margin: 0; font-size: 0.875rem; }
+.sk-ttd-img { width: 80px; height: 40px; object-fit: contain; background: #ffffff; border: 1px solid var(--sk-card-border); border-radius: 4px; cursor: pointer; transition: transform 180ms ease; padding: 2px; display: block; margin: 0 auto; }
+.sk-ttd-img:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); }
+.sk-ttd-none { font-size: 0.72rem; color: var(--sk-text-muted); font-style: italic; }
+.sk-action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; border: none; background: transparent; cursor: pointer; transition: all 180ms ease; font-size: 0.85rem; padding: 0; }
+.sk-action-edit { color: #d97706; }
+.sk-action-edit:hover { background: rgba(217, 119, 6, 0.1); color: #b45309; }
+.sk-action-delete { color: var(--sk-red-600); margin-left: 4px; }
+.sk-action-delete:hover { background: rgba(220, 38, 38, 0.1); color: #991b1b; }
+.dark .sk-action-edit { color: #fbbf24; }
+.dark .sk-action-edit:hover { background: rgba(251, 191, 36, 0.15); }
+.dark .sk-action-delete { color: #f87171; }
+.dark .sk-action-delete:hover { background: rgba(248, 113, 113, 0.15); }
+
+/* LOAD MORE */
+.sk-load-more-wrap { text-align: center; margin-top: 20px; }
+.sk-load-more-wrap.hidden { display: none; }
+.sk-btn-load-more { padding: 10px 24px; }
+.sk-load-more-info { font-size: 0.75rem; color: var(--sk-text-muted); margin: 8px 0 0; }
+
+/* RESPONSIVE */
+@media (min-width: 1024px) { .sk-stats-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px) {
+    .sk-kop-flex { flex-direction: column; text-align: center; gap: 12px; }
+    .sk-kop-logo { width: 72px; height: 72px; }
+    .sk-kop-text { text-align: center; }
+    .sk-kop-title-main { font-size: 1.05rem; }
+    .sk-kop-title-sub { font-size: 0.98rem; }
+    .sk-kop-line { justify-content: center; font-size: 0.78rem; }
+    .sk-kop-icon { margin-left: 3px; }
+    .sk-header { flex-direction: column; align-items: stretch; }
+    .sk-page-title { font-size: 1.4rem; }
+    .sk-header-actions { justify-content: flex-start; }
+    .sk-qr-header { flex-direction: column; align-items: stretch; }
+    .sk-qr-header-actions { justify-content: stretch; }
+    .sk-qr-header-actions .sk-btn { flex: 1; }
+    .sk-qr-display { width: 160px; height: 160px; }
+    .sk-qr-logo-overlay { width: 36px; height: 36px; }
+    .sk-btn-label { display: none; }
+    .sk-btn { padding: 9px 12px; }
+}
+@media (max-width: 480px) {
+    .sk-kop-logo { width: 64px; height: 64px; }
+    .sk-kop-title-main { font-size: 0.95rem; line-height: 1.3; }
+    .sk-kop-title-sub { font-size: 0.88rem; }
+    .sk-kop-line { font-size: 0.72rem; line-height: 1.45; gap: 4px; }
+    .sk-page-title { font-size: 1.25rem; }
+    .sk-page-title i { font-size: 1.2rem; }
+    .sk-page-subtitle { font-size: 0.8rem; }
+    .sk-stats-grid { gap: 10px; }
+    .sk-stat-card { padding: 12px; }
+    .sk-stat-label { font-size: 0.65rem; }
+    .sk-stat-value { font-size: 1.4rem; }
+    .sk-stat-icon { width: 34px; height: 34px; font-size: 0.9rem; }
+    .sk-qr-display { width: 140px; height: 140px; }
+    .sk-qr-logo-overlay { width: 32px; height: 32px; }
+    .sk-input-date { min-width: 0; flex: 1; }
+    .sk-search-wrap .sk-input-date { font-size: 0.8rem; padding: 8px; }
+    .sk-table th, .sk-table td { padding: 10px 8px; font-size: 0.8rem; }
+    .sk-th { font-size: 0.65rem; padding: 10px 8px; }
+    .sk-ttd-img { width: 64px; height: 32px; }
+}
+
+/* PRINT */
+@media print {
+    #sk-refresh-btn, #sk-export-btn, #sk-export-dropdown-wrap,
+    #sk-qr-toggle-btn, #sk-qr-regenerate-btn, #sk-download-qr-btn,
+    #sk-search, #sk-date-from, #sk-date-to, #sk-filter-date, #sk-clear-filter,
+    .sk-action-btn, #sk-load-more-wrap { display: none !important; }
+    .sk-table-wrapper { box-shadow: none; border: 1px solid #cbd5e1; }
+    .sk-kop-divider { background: #0f2922 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sk-kop-logo { filter: none !important; }
+    .sk-qr-panel { page-break-inside: avoid; }
+    .sk-th-aksi, .sk-td-center:last-child { display: none !important; }
+}
+</style>

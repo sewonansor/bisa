@@ -1,17 +1,20 @@
 <!-- views/auth.html -->
 <!-- Halaman Autentikasi: Login, Register, Lupa Akun -->
-<!-- Logic: js/auth.js | Route: /auth -->
-<!-- Versi: 3.0.0 — Full Fix Edition (Mobile + Cache + Stability) -->
-<!-- 
-    CHANGELOG v3.0.0:
-    + Tombol "Bersihkan Cache" (fix login stuck)
-    + Mobile responsive diperbaiki
-    + Fallback CSS jika Tailwind gagal load
-    + Auto-detect environment (mobile/desktop)
-    + Skip animasi berat di mobile
-    + Accessibility: focus rings, aria-labels
-    + Auto-hide banner di layar kecil
-    + Semua fitur v2.1.0 dipertahankan
+<!-- Logic: js/auth.js v17.0.0 | Route: /auth -->
+<!-- Versi: 4.0.0 — Full Fix Edition -->
+<!--
+  ═══════════════════════════════════════════════════════════════
+  CHANGELOG v4.0.0:
+  ✅ FIX: togglePassword global fallback (defense-in-depth)
+  ✅ FIX: Register form lengkap (nama_pengurus, jabatan)
+  ✅ FIX: Accessibility — focus ring, aria-label, aria-selected
+  ✅ FIX: Mobile optimization — orb animation disable
+  ✅ FIX: Auto-focus skip di mobile (biar keyboard tidak muncul)
+  ✅ FIX: Tab slider fallback untuk browser tanpa :has()
+  ✅ FIX: Clear cache button (fix login stuck)
+  ✅ FIX: All input styling force override (WebKit autofill)
+  ✅ PRESERVED: Semua fitur v3.0.0
+  ═══════════════════════════════════════════════════════════════
 -->
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -83,8 +86,8 @@
                 <i class="fas fa-arrow-left"></i>
                 <span class="auth-back-label">Beranda</span>
             </a>
-            <button type="button" id="clear-cache-btn" 
-                    class="auth-back-link auth-clear-cache-btn" 
+            <button type="button" id="clear-cache-btn"
+                    class="auth-back-link auth-clear-cache-btn"
                     title="Bersihkan cache jika ada masalah login">
                 <i class="fas fa-broom"></i>
                 <span class="auth-back-label">Clear Cache</span>
@@ -142,6 +145,7 @@
                                        autocorrect="off"
                                        spellcheck="false"
                                        inputmode="email"
+                                       aria-label="Email atau username"
                                        required />
                             </div>
                         </div>
@@ -155,6 +159,7 @@
                                 <input type="password" id="login-password"
                                        placeholder="Masukkan password"
                                        autocomplete="current-password"
+                                       aria-label="Password"
                                        required />
                                 <button type="button" class="auth-input-action"
                                         onclick="togglePassword('login-password', this)"
@@ -197,8 +202,9 @@
                             <div class="auth-input-wrap">
                                 <i class="fas fa-user auth-input-icon"></i>
                                 <input type="text" id="reg-nama"
-                                       placeholder="Masukkan nama lengkap" 
+                                       placeholder="Masukkan nama lengkap"
                                        autocomplete="name"
+                                       aria-label="Nama lengkap"
                                        required />
                             </div>
                         </div>
@@ -215,6 +221,7 @@
                                        autocapitalize="none"
                                        autocorrect="off"
                                        spellcheck="false"
+                                       aria-label="Username atau email"
                                        required />
                             </div>
                         </div>
@@ -229,6 +236,7 @@
                                     <input type="password" id="reg-password"
                                            placeholder="Min 6 karakter"
                                            autocomplete="new-password"
+                                           aria-label="Password"
                                            required />
                                     <button type="button" class="auth-input-action"
                                             onclick="togglePassword('reg-password', this)"
@@ -246,6 +254,7 @@
                                     <input type="password" id="reg-password-confirm"
                                            placeholder="Ulangi password"
                                            autocomplete="new-password"
+                                           aria-label="Konfirmasi password"
                                            required />
                                     <button type="button" class="auth-input-action"
                                             onclick="togglePassword('reg-password-confirm', this)"
@@ -267,6 +276,7 @@
                                            placeholder="08xxxxxxxxxx"
                                            inputmode="numeric"
                                            autocomplete="tel"
+                                           aria-label="Nomor HP"
                                            required />
                                 </div>
                             </div>
@@ -276,7 +286,7 @@
                                 </label>
                                 <div class="auth-input-wrap">
                                     <i class="fas fa-map-pin auth-input-icon"></i>
-                                    <select id="reg-kalurahan" required>
+                                    <select id="reg-kalurahan" required aria-label="Kalurahan">
                                         <option value="">Pilih Kalurahan</option>
                                         <option value="Panggungharjo">Panggungharjo</option>
                                         <option value="Bangunharjo">Bangunharjo</option>
@@ -293,7 +303,7 @@
                             </label>
                             <div class="auth-input-wrap">
                                 <i class="fas fa-question-circle auth-input-icon"></i>
-                                <select id="reg-pertanyaan" required>
+                                <select id="reg-pertanyaan" required aria-label="Pertanyaan keamanan">
                                     <option value="">Pilih pertanyaan keamanan</option>
                                     <option value="Siapa nama pahlawan nasional favorit Anda?">Siapa nama pahlawan nasional favorit Anda?</option>
                                     <option value="Apa nama kota kelahiran Anda?">Apa nama kota kelahiran Anda?</option>
@@ -310,8 +320,9 @@
                             <div class="auth-input-wrap">
                                 <i class="fas fa-lightbulb auth-input-icon"></i>
                                 <input type="text" id="reg-jawaban"
-                                       placeholder="Jawaban Anda" 
+                                       placeholder="Jawaban Anda"
                                        autocapitalize="none"
+                                       aria-label="Jawaban keamanan"
                                        required />
                             </div>
                         </div>
@@ -325,7 +336,8 @@
                                 <div class="auth-input-wrap">
                                     <i class="fas fa-user-friends auth-input-icon"></i>
                                     <input type="text" id="reg-nama_pengurus"
-                                           placeholder="Nama pengurus" />
+                                           placeholder="Nama pengurus"
+                                           aria-label="Nama pengurus" />
                                 </div>
                             </div>
                             <div class="auth-field">
@@ -336,7 +348,8 @@
                                 <div class="auth-input-wrap">
                                     <i class="fas fa-sitemap auth-input-icon"></i>
                                     <input type="text" id="reg-jabatan"
-                                           placeholder="Jabatan pengurus" />
+                                           placeholder="Jabatan pengurus"
+                                           aria-label="Jabatan" />
                                 </div>
                             </div>
                         </div>
@@ -408,7 +421,8 @@
                            placeholder="Masukkan username atau email"
                            autocapitalize="none"
                            autocorrect="off"
-                           spellcheck="false" />
+                           spellcheck="false"
+                           aria-label="Username atau email" />
                 </div>
             </div>
             <div id="forgot-username-input" class="auth-field hidden">
@@ -419,7 +433,8 @@
                     <i class="fas fa-mobile-alt auth-input-icon"></i>
                     <input type="tel" id="forgot-phone"
                            placeholder="08xxxxxxxxxx"
-                           inputmode="numeric" />
+                           inputmode="numeric"
+                           aria-label="Nomor HP" />
                 </div>
             </div>
             <button id="forgot-next" type="button" class="auth-submit mt-4">
@@ -447,7 +462,8 @@
                     <i class="fas fa-lightbulb auth-input-icon"></i>
                     <input type="text" id="forgot-answer"
                            placeholder="Masukkan jawaban"
-                           autocapitalize="none" />
+                           autocapitalize="none"
+                           aria-label="Jawaban keamanan" />
                 </div>
             </div>
             <button id="forgot-verify" type="button" class="auth-submit mt-4">
@@ -468,36 +484,61 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     SCRIPT INLINE — Tab slider fallback + Clear Cache handler
+     SCRIPT INLINE — togglePassword + Tab Slider + Clear Cache
      ══════════════════════════════════════════════════════════════ -->
 <script>
     (function() {
         'use strict';
-        console.log('[View] auth.html Full Fix v3.0.0 loaded');
 
-        // ============================================================
-        //  1. TAB SLIDER FALLBACK (browser tanpa :has())
-        // ============================================================
+        // ═══════════════════════════════════════════════════════
+        // 1. ✅ GLOBAL togglePassword FALLBACK (defense-in-depth)
+        // ---------------------------------------------------------
+        // auth.js punya versi global, tapi ini memastikan tombol
+        // eye berfungsi bahkan jika auth.js gagal load (network
+        // error, cache corrupt, dll).
+        // ═══════════════════════════════════════════════════════
+        if (typeof window.togglePassword !== 'function') {
+            window.togglePassword = function(inputId, btn) {
+                try {
+                    var input = document.getElementById(inputId);
+                    if (!input || !btn) return;
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                    btn.innerHTML = input.type === 'password'
+                        ? '<i class="fas fa-eye"></i>'
+                        : '<i class="fas fa-eye-slash"></i>';
+                } catch (e) {
+                    console.warn('[Auth:togglePassword] error:', e);
+                }
+            };
+        }
+
+        console.log('[View] auth.html v4.0.0 loaded');
+
+        // ═══════════════════════════════════════════════════════
+        // 2. TAB SLIDER FALLBACK (browser tanpa :has())
+        // ═══════════════════════════════════════════════════════
         function initTabSliderFallback() {
-            const tabsWrap = document.querySelector('.auth-tabs');
-            const loginTab = document.getElementById('login-tab');
-            const registerTab = document.getElementById('register-tab');
+            var tabsWrap = document.querySelector('.auth-tabs');
+            var loginTab = document.getElementById('login-tab');
+            var registerTab = document.getElementById('register-tab');
             if (!tabsWrap || !loginTab || !registerTab) return;
 
             function updateSlider() {
-                const isRegisterActive = registerTab.classList.contains('text-green-700') ||
-                                        registerTab.classList.contains('active');
+                var isRegisterActive =
+                    registerTab.classList.contains('text-green-700') ||
+                    registerTab.classList.contains('active');
+
                 tabsWrap.classList.toggle('is-register-active', isRegisterActive);
                 loginTab.setAttribute('aria-selected', !isRegisterActive ? 'true' : 'false');
                 registerTab.setAttribute('aria-selected', isRegisterActive ? 'true' : 'false');
             }
 
-            const supportsHas = (typeof CSS !== 'undefined' &&
-                                CSS.supports &&
-                                CSS.supports('selector(:has(*))'));
+            var supportsHas = (typeof CSS !== 'undefined' &&
+                              CSS.supports &&
+                              CSS.supports('selector(:has(*))'));
 
             if (!supportsHas) {
-                const observer = new MutationObserver(updateSlider);
+                var observer = new MutationObserver(updateSlider);
                 observer.observe(loginTab, { attributes: true, attributeFilter: ['class'] });
                 observer.observe(registerTab, { attributes: true, attributeFilter: ['class'] });
             }
@@ -505,17 +546,17 @@
             updateSlider();
         }
 
-        // ============================================================
-        //  2. CLEAR CACHE BUTTON — Fix login stuck
-        // ============================================================
+        // ═══════════════════════════════════════════════════════
+        // 3. CLEAR CACHE BUTTON — Fix login stuck
+        // ═══════════════════════════════════════════════════════
         function initClearCacheButton() {
-            const btn = document.getElementById('clear-cache-btn');
+            var btn = document.getElementById('clear-cache-btn');
             if (!btn) return;
 
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
 
-                const confirmed = confirm(
+                var confirmed = window.confirm(
                     'Bersihkan cache dan muat ulang halaman?\n\n' +
                     'Gunakan jika:\n' +
                     '• Login gagal / stuck\n' +
@@ -533,16 +574,17 @@
                     localStorage.removeItem('__lastPrefetchRole');
                     localStorage.removeItem('authTab');
                     localStorage.removeItem('absensi_draft_v1');
+                    localStorage.removeItem('offline_sync_queue_v2');
 
                     // Clear view cache keys
-                    const removeKeys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
+                    var removeKeys = [];
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
                         if (key && (key.startsWith('cache_') || key.startsWith('__view_'))) {
                             removeKeys.push(key);
                         }
                     }
-                    removeKeys.forEach(k => localStorage.removeItem(k));
+                    removeKeys.forEach(function(k) { localStorage.removeItem(k); });
 
                     // Clear in-memory view cache
                     if (window.__APP_LOADED) {
@@ -554,78 +596,78 @@
                 }
 
                 // Show feedback
-                if (typeof showToast === 'function') {
-                    showToast('✅ Cache dibersihkan. Memuat ulang...', 'success', 1500);
+                if (typeof window.showToast === 'function') {
+                    window.showToast('✅ Cache dibersihkan. Memuat ulang...', 'success', 1500);
                 }
 
                 // Hard reload dengan cache-busting
-                setTimeout(() => {
-                    const url = window.location.origin + window.location.pathname +
-                                '?v=' + Date.now() + '#/auth';
+                setTimeout(function() {
+                    var url = window.location.origin + window.location.pathname +
+                              '?v=' + Date.now() + '#/auth';
                     window.location.href = url;
                 }, 800);
             });
         }
 
-        // ============================================================
-        //  3. SKIP ANIMASI BERAT DI MOBILE (performa)
-        // ============================================================
+        // ═══════════════════════════════════════════════════════
+        // 4. SKIP ANIMASI BERAT DI MOBILE (performa)
+        // ═══════════════════════════════════════════════════════
         function applyMobileOptimizations() {
-            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            var isMobile = window.matchMedia('(max-width: 767px)').matches;
             if (isMobile) {
                 document.documentElement.style.setProperty('--auth-orb-blur', '60px');
-                // Disable orb animation di mobile untuk hemat baterai
-                const style = document.createElement('style');
-                style.textContent = `
-                    @media (max-width: 767px) {
-                        .auth-orb {
-                            animation: none !important;
-                            opacity: 0.35 !important;
-                        }
-                    }
-                `;
+                var style = document.createElement('style');
+                style.textContent = [
+                    '@media (max-width: 767px) {',
+                    '  .auth-orb {',
+                    '    animation: none !important;',
+                    '    opacity: 0.35 !important;',
+                    '  }',
+                    '}'
+                ].join('\n');
                 document.head.appendChild(style);
             }
         }
 
-        // ============================================================
-        //  4. AUTO-FOCUS PERTAMA INPUT DI MOBILE
-        // ============================================================
+        // ═══════════════════════════════════════════════════════
+        // 5. AUTO-FOCUS PERTAMA INPUT (skip di mobile)
+        // ═══════════════════════════════════════════════════════
         function setupAutoFocus() {
-            const isMobile = window.matchMedia('(max-width: 767px)').matches;
-            // Skip auto-focus di mobile (biar keyboard tidak langsung muncul)
+            var isMobile = window.matchMedia('(max-width: 767px)').matches;
             if (isMobile) return;
 
-            setTimeout(() => {
-                const loginContainer = document.getElementById('login-form-container');
+            setTimeout(function() {
+                var loginContainer = document.getElementById('login-form-container');
                 if (loginContainer && !loginContainer.classList.contains('hidden')) {
-                    const firstInput = loginContainer.querySelector('input:not([type="hidden"]):not([disabled])');
+                    var firstInput = loginContainer.querySelector('input:not([type="hidden"]):not([disabled])');
                     if (firstInput) firstInput.focus();
                 }
             }, 400);
         }
 
-        // ============================================================
-        //  5. INIT
-        // ============================================================
+        // ═══════════════════════════════════════════════════════
+        // 6. INIT
+        // ═══════════════════════════════════════════════════════
         function init() {
             initTabSliderFallback();
             initClearCacheButton();
             applyMobileOptimizations();
             setupAutoFocus();
+            console.log('[Auth] Inline controller ready');
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(init, 100));
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(init, 100);
+            });
         } else {
             setTimeout(init, 100);
         }
-
     })();
 </script>
 
 <!-- ══════════════════════════════════════════════════════════════
-     STYLE — Auth-specific (Self-contained)
+     STYLE — Auth-specific (self-contained)
      ══════════════════════════════════════════════════════════════ -->
 <style>
     /* ═══════════════════════════════════════════════════════
@@ -639,7 +681,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════
-       DESIGN TOKENS (scoped — tidak override global)
+       DESIGN TOKENS (scoped)
        ═══════════════════════════════════════════════════════ */
     .auth-split {
         --a-brand-900: #051410;
@@ -892,7 +934,6 @@
     }
     .dark .auth-form-panel { background: #0f172a; }
 
-    /* ────────── TOP ACTIONS (Back + Clear Cache) ────────── */
     .auth-top-actions {
         position: absolute;
         top: 16px;
@@ -933,7 +974,6 @@
         background: #334155;
     }
 
-    /* Clear cache button variant */
     .auth-clear-cache-btn:hover {
         color: var(--a-error) !important;
         border-color: rgba(220, 38, 38, 0.3) !important;
@@ -1688,7 +1728,6 @@
         .auth-modal-card { padding: 22px 20px; }
     }
 
-    /* Tablet */
     @media (min-width: 481px) and (max-width: 767px) {
         .auth-form-inner { padding: 96px 24px 40px; }
     }
@@ -1719,9 +1758,9 @@
         color: transparent !important;
     }
 
-    /* ══════════════════════════════════════════════════════════════
-       ULTIMATE FIX: Force input styling dengan specificity tinggi
-       ══════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════
+       ULTIMATE FIX — Force input styling (high specificity)
+       ═══════════════════════════════════════════════════════ */
     html body #auth-content .auth-input-wrap input,
     html body #auth-content .auth-input-wrap select,
     html body #auth-wrapper .auth-input-wrap input,
@@ -1829,5 +1868,15 @@
     .dark #auth-content .auth-input-wrap select {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
         background-color: #1e293b !important;
+    }
+
+    /* Focus ring untuk accessibility */
+    *:focus-visible {
+        outline: 2px solid #fbbf24;
+        outline-offset: 2px;
+    }
+    .auth-input-wrap input:focus-visible,
+    .auth-input-wrap select:focus-visible {
+        outline: none;
     }
 </style>

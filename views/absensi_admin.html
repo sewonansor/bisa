@@ -1,52 +1,118 @@
 <!-- views/absensi_admin.html -->
 <!-- Halaman Admin: Manajemen Absensi Digital -->
-<!-- Logic: js/absensi_admin.js | Route: /absensi_admin | Libs: qrcode, html2canvas, jspdf -->
-<!-- Versi: 3.0.0 — Edit + Export PDF/PNG -->
+<!-- Logic: js/absensi_admin.js | Route: /absensi_admin -->
+<!-- Libs: qrcodejs (QR preview), html2canvas + jspdf (export) -->
+<!-- Versi: 4.0.0 — Kop Surat + Edit + Export PDF/PNG -->
+<!-- ============================================================ -->
+<!-- CHANGELOG v4.0.0:                                            -->
+<!--   ✅ NEW: Kop surat (logo kiri, header kanan aligned right)   -->
+<!--   ✅ NEW: Divider gradient (brand → accent)                   -->
+<!--   ✅ NEW: Export dropdown (CSV / PDF / PNG)                   -->
+<!--   ✅ NEW: Edit modal trigger (diisi via JS)                   -->
+<!--   ✅ FIX: Checkbox column pre-rendered (colspan=7 konsisten)  -->
+<!--   ✅ FIX: aria-* lengkap untuk aksesibilitas                  -->
+<!--   ✅ FIX: Print CSS (kop + tabel, hide kontrol)               -->
+<!--   ✅ FIX: Dark mode kop surat                                 -->
+<!--   ✅ PRESERVED: Semua fitur v3.0.0                            -->
+<!-- ============================================================ -->
 
 <div id="main-content">
+
     <!-- ============================================================ -->
-    <!-- HEADER                                                        -->
+    <!-- KOP SURAT — Logo kiri, Header kanan (align right)            -->
+    <!-- ============================================================ -->
+    <div id="kop-surat" class="kop-surat" role="banner" aria-label="Kop surat organisasi">
+        <div class="kop-flex">
+            <!-- Logo (kiri) -->
+            <div class="kop-logo-wrap">
+                <img src="logo-ansor.webp"
+                     alt="Logo GP Ansor"
+                     class="kop-logo"
+                     loading="eager"
+                     onerror="this.style.display='none'" />
+            </div>
+
+            <!-- Header teks (kanan, align right) -->
+            <div class="kop-text">
+                <h2 class="kop-title-main">Pimpinan Anak Cabang Gerakan Pemuda Ansor</h2>
+                <h3 class="kop-title-sub">Kapanewon Sewon</h3>
+                <p class="kop-line">
+                    <i class="fas fa-map-marker-alt kop-icon" aria-hidden="true"></i>
+                    <span>Alamat: Komplek Masjid Baitul Hadi</span>
+                </p>
+                <p class="kop-line">
+                    <i class="fas fa-phone kop-icon" aria-hidden="true"></i>
+                    <span>No. Telp</span>
+                    <a href="tel:083866675521" class="kop-link">083866675521</a>
+                    <span class="kop-sep" aria-hidden="true">|</span>
+                    <i class="fas fa-envelope kop-icon" aria-hidden="true"></i>
+                    <span>email:</span>
+                    <a href="mailto:sewon.ansor@gmail.com" class="kop-link">sewon.ansor@gmail.com</a>
+                </p>
+            </div>
+        </div>
+        <div class="kop-divider" aria-hidden="true"></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- HEADER HALAMAN                                                -->
     <!-- ============================================================ -->
     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
         <h1 class="text-3xl font-bold text-[var(--text-main)] font-amiri">
             <i class="fas fa-clipboard-check mr-2"></i>
             Manajemen Absensi
         </h1>
+
         <div class="flex flex-wrap gap-2 items-center">
             <input type="date" id="filter-date"
                    class="px-3 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] text-sm"
                    aria-label="Filter tanggal absensi">
 
-            <button id="refresh-btn" class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2"
-                    title="Refresh data">
-                <i class="fas fa-sync-alt"></i>
+            <button id="refresh-btn"
+                    type="button"
+                    class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2"
+                    title="Refresh data absensi">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i>
                 <span class="hidden sm:inline">Refresh</span>
             </button>
 
-            <!-- ✅ NEW: Export dropdown -->
+            <!-- ✅ Export Dropdown -->
             <div class="relative" id="export-dropdown-wrap">
-                <button id="export-btn" type="button"
+                <button id="export-btn"
+                        type="button"
                         class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
-                        aria-haspopup="true" aria-expanded="false" title="Export data">
-                    <i class="fas fa-download"></i>
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="export-dropdown"
+                        title="Export data absensi">
+                    <i class="fas fa-download" aria-hidden="true"></i>
                     <span class="hidden sm:inline">Export</span>
-                    <i class="fas fa-chevron-down text-xs export-chev"></i>
+                    <i class="fas fa-chevron-down text-xs export-chev" aria-hidden="true"></i>
                 </button>
+
                 <div id="export-dropdown"
-                     class="hidden absolute right-0 mt-2 w-52 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--card-border)] overflow-hidden z-30">
-                    <button id="export-csv-btn" type="button"
-                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
-                        <i class="fas fa-file-csv text-green-600 w-4"></i>
+                     class="hidden absolute right-0 mt-2 w-52 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--card-border)] overflow-hidden z-30"
+                     role="menu"
+                     aria-labelledby="export-btn">
+                    <button id="export-csv-btn"
+                            type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors"
+                            role="menuitem">
+                        <i class="fas fa-file-csv text-green-600 w-4" aria-hidden="true"></i>
                         <span>CSV (.csv)</span>
                     </button>
-                    <button id="export-pdf-btn" type="button"
-                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
-                        <i class="fas fa-file-pdf text-red-600 w-4"></i>
+                    <button id="export-pdf-btn"
+                            type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors"
+                            role="menuitem">
+                        <i class="fas fa-file-pdf text-red-600 w-4" aria-hidden="true"></i>
                         <span>PDF (.pdf)</span>
                     </button>
-                    <button id="export-img-btn" type="button"
-                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors">
-                        <i class="fas fa-image text-purple-600 w-4"></i>
+                    <button id="export-img-btn"
+                            type="button"
+                            class="w-full px-4 py-2.5 text-left text-sm text-[var(--text-main)] hover:bg-[var(--bg-stats)] flex items-center gap-2 transition-colors"
+                            role="menuitem">
+                        <i class="fas fa-image text-purple-600 w-4" aria-hidden="true"></i>
                         <span>Gambar (.png)</span>
                     </button>
                 </div>
@@ -55,12 +121,12 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- PANEL KONTROL QR + PREVIEW + DOWNLOAD                         -->
+    <!-- PANEL QR ABSENSI                                             -->
     <!-- ============================================================ -->
     <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow mb-6 border border-[var(--card-border)]">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <i class="fas fa-qrcode text-2xl text-[var(--text-main)]"></i>
+                <i class="fas fa-qrcode text-2xl text-[var(--text-main)]" aria-hidden="true"></i>
                 <div>
                     <h3 class="font-bold text-[var(--text-main)]">QR Absensi</h3>
                     <p id="qr-status-text-admin" class="text-sm text-[var(--text-muted)]">
@@ -71,36 +137,45 @@
                     </p>
                 </div>
             </div>
+
             <div class="flex flex-wrap gap-2">
                 <button id="qr-toggle-btn"
+                        type="button"
                         class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-                    <i class="fas fa-power-off"></i>
+                    <i class="fas fa-power-off" aria-hidden="true"></i>
                     <span>Aktifkan QR</span>
                 </button>
                 <button id="qr-regenerate-btn"
+                        type="button"
                         class="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2"
                         title="Buat QR baru (QR lama langsung tidak berlaku)">
-                    <i class="fas fa-sync-alt"></i>
+                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
                     <span class="hidden sm:inline">Regenerate QR</span>
                 </button>
             </div>
         </div>
 
+        <!-- Preview QR + Download -->
         <div id="qr-preview-container" class="mt-5">
             <div id="qr-preview">
                 <div id="qr-code-display">
-                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400" aria-hidden="true"></i>
                 </div>
-                <div id="qr-logo-overlay">
-                    <img src="logo-ansor.webp" alt="Logo Ansor" onerror="this.style.display='none'" />
+                <div id="qr-logo-overlay" aria-hidden="true">
+                    <img src="logo-ansor.webp"
+                         alt=""
+                         onerror="this.style.display='none'" />
                 </div>
             </div>
+
             <button id="download-qr-btn"
+                    type="button"
                     class="btn-secondary mt-3 px-4 py-2 rounded-lg flex items-center gap-2"
                     disabled>
-                <i class="fas fa-download"></i>
+                <i class="fas fa-download" aria-hidden="true"></i>
                 <span>Download QR</span>
             </button>
+
             <p class="text-xs text-[var(--text-muted)] mt-2 text-center">
                 QR ini menampilkan token aktif dan dapat diunduh.
             </p>
@@ -108,11 +183,11 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- PANEL MANAJEMEN PASSWORD                                      -->
+    <!-- PANEL MANAJEMEN PASSWORD                                     -->
     <!-- ============================================================ -->
     <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow mb-6 border border-[var(--card-border)]">
         <div class="flex items-center gap-3 mb-3">
-            <i class="fas fa-lock text-2xl text-[var(--text-main)]"></i>
+            <i class="fas fa-lock text-2xl text-[var(--text-main)]" aria-hidden="true"></i>
             <h3 class="font-bold text-[var(--text-main)]">Password Akses Langsung</h3>
         </div>
         <p class="text-sm text-[var(--text-muted)] mb-3">
@@ -121,21 +196,24 @@
             langsung tanpa scan QR.
         </p>
         <div class="flex flex-wrap gap-2">
-            <input type="text" id="password-input-admin"
+            <input type="text"
+                   id="password-input-admin"
                    placeholder="Password baru (min. 6 karakter)"
                    class="flex-1 min-w-[200px] px-4 py-2 border border-[var(--card-border)] rounded-lg bg-[var(--bg-body)] text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)] focus:ring-2 focus:ring-[var(--accent-400)]/20"
-                   autocomplete="new-password">
+                   autocomplete="new-password"
+                   aria-label="Password baru untuk akses langsung">
             <button id="save-password-btn"
+                    type="button"
                     class="btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-                <i class="fas fa-save"></i>
+                <i class="fas fa-save" aria-hidden="true"></i>
                 <span>Simpan Password</span>
             </button>
         </div>
-        <p id="password-msg" class="text-sm text-[var(--text-muted)] mt-2"></p>
+        <p id="password-msg" class="text-sm text-[var(--text-muted)] mt-2" role="status"></p>
     </div>
 
     <!-- ============================================================ -->
-    <!-- TABEL ABSENSI                                                 -->
+    <!-- TABEL ABSENSI                                                -->
     <!-- ============================================================ -->
     <div class="table-wrapper">
         <div class="overflow-x-auto">
@@ -145,7 +223,8 @@
                         <th class="w-12 text-center px-3 py-4">
                             <input type="checkbox"
                                    class="bulk-select-all-absensi w-4 h-4 rounded border-gray-300 text-red-600 cursor-pointer"
-                                   aria-label="Pilih semua">
+                                   aria-label="Pilih semua data"
+                                   title="Pilih semua">
                         </th>
                         <th>No</th>
                         <th>Nama</th>
@@ -158,7 +237,7 @@
                 <tbody id="absensi-table-body">
                     <tr>
                         <td colspan="7" class="text-center py-6">
-                            <i class="fas fa-spinner fa-spin text-xl text-[var(--text-muted)]"></i>
+                            <i class="fas fa-spinner fa-spin text-xl text-[var(--text-muted)]" aria-hidden="true"></i>
                             <p class="text-[var(--text-muted)] text-sm mt-2">Memuat data absensi...</p>
                         </td>
                     </tr>
@@ -166,22 +245,134 @@
             </table>
         </div>
     </div>
+
 </div>
 
 <!-- ============================================================ -->
-<!-- SCRIPT INLINE — Bootstrap only                                -->
+<!-- SCRIPT INLINE — Bootstrap only (logic di js/absensi_admin.js)-->
 <!-- ============================================================ -->
 <script>
-    (function() {
+    (function () {
         console.log('[View] absensi_admin.html loaded — logic handled by js/absensi_admin.js');
     })();
 </script>
 
 <!-- ============================================================ -->
 <!-- STYLE INLINE — Khusus view absensi_admin saja                 -->
+<!-- Common styles (btn-primary, btn-secondary, table, skeleton)   -->
+<!-- sudah di-load dari css/style.css                              -->
 <!-- ============================================================ -->
 <style>
-    /* ────────────── TABLE THUMB (TTD preview) ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       KOP SURAT — Logo kiri, Header kanan (align right)
+       ════════════════════════════════════════════════════════════ */
+    .kop-surat {
+        padding: 8px 4px 0;
+        margin-bottom: 24px;
+    }
+
+    .kop-flex {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .kop-logo-wrap {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .kop-logo {
+        width: 84px;
+        height: 84px;
+        object-fit: contain;
+        display: block;
+        filter: drop-shadow(0 2px 6px rgba(15, 41, 34, 0.10));
+    }
+
+    .kop-text {
+        flex: 1;
+        text-align: right;
+        color: var(--text-main);
+        line-height: 1.35;
+        min-width: 0;
+    }
+
+    .kop-title-main {
+        font-family: 'Amiri', 'Times New Roman', serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.01em;
+        color: var(--text-main);
+        line-height: 1.25;
+    }
+
+    .kop-title-sub {
+        font-family: 'Amiri', 'Times New Roman', serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        margin: 2px 0 8px;
+        color: var(--text-main);
+        line-height: 1.2;
+    }
+
+    .kop-line {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin: 3px 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        line-height: 1.5;
+    }
+
+    .kop-icon {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        margin-left: 6px;
+        opacity: 0.85;
+    }
+
+    .kop-line .kop-icon:first-child {
+        margin-left: 0;
+    }
+
+    .kop-link {
+        color: var(--text-main);
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 180ms ease;
+    }
+
+    .kop-link:hover {
+        color: var(--accent-500, #f59e0b);
+        text-decoration: underline;
+    }
+
+    .kop-sep {
+        color: var(--card-border);
+        margin: 0 4px;
+        font-weight: 300;
+    }
+
+    .kop-divider {
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--brand-700, #0f2922) 0%,
+            var(--brand-700, #0f2922) 68%,
+            var(--accent-500, #f59e0b) 100%);
+        margin-top: 14px;
+        border-radius: 2px;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       TTD THUMBNAIL
+       ════════════════════════════════════════════════════════════ */
     .table-thumb {
         width: 80px;
         height: 40px;
@@ -196,7 +387,6 @@
         border-color: #334155;
     }
 
-    /* TTD image (dari respons JS) */
     .ttd-img {
         width: 80px;
         height: 40px;
@@ -205,14 +395,16 @@
         border-radius: 4px;
         border: 1px solid var(--card-border);
         cursor: pointer;
-        transition: transform 180ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+        transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .ttd-img:hover {
         transform: scale(1.08);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
     }
 
-    /* ────────────── QR PREVIEW ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       QR PREVIEW
+       ════════════════════════════════════════════════════════════ */
     #qr-preview-container {
         display: flex;
         flex-direction: column;
@@ -248,7 +440,6 @@
         height: 100%;
     }
 
-    /* ────────────── LOGO OVERLAY DI TENGAH QR ────────────── */
     #qr-logo-overlay {
         position: absolute;
         top: 50%;
@@ -275,7 +466,9 @@
         border-radius: 50%;
     }
 
-    /* ────────────── EXPORT DROPDOWN ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       EXPORT DROPDOWN
+       ════════════════════════════════════════════════════════════ */
     .export-chev {
         transition: transform 220ms ease;
     }
@@ -290,11 +483,15 @@
         to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ────────────── STATUS BADGE ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       STATUS BADGE (mengikuti style JS)
+       ════════════════════════════════════════════════════════════ */
     #qr-status-text-admin.text-green-600 { color: var(--success-600, #059669); }
     #qr-status-text-admin.text-red-600   { color: var(--error-600, #dc2626); }
 
-    /* ────────────── PASSWORD INPUT ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       PASSWORD INPUT FOCUS
+       ════════════════════════════════════════════════════════════ */
     #password-input-admin:focus {
         border-color: var(--brand-700, #0f2922);
     }
@@ -302,7 +499,25 @@
         border-color: var(--accent-400, #fbbf24);
     }
 
-    /* ────────────── RESPONSIVE ────────────── */
+    /* ════════════════════════════════════════════════════════════
+       DARK MODE — KOP
+       ════════════════════════════════════════════════════════════ */
+    .dark .kop-logo {
+        filter: drop-shadow(0 2px 8px rgba(251, 191, 36, 0.15)) brightness(1.05);
+    }
+    .dark .kop-link:hover {
+        color: var(--accent-400, #fbbf24);
+    }
+    .dark .kop-divider {
+        background: linear-gradient(90deg,
+            var(--accent-500, #f59e0b) 0%,
+            var(--accent-500, #f59e0b) 30%,
+            var(--brand-700, #0f2922) 100%);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       RESPONSIVE — TABLET
+       ════════════════════════════════════════════════════════════ */
     @media (max-width: 768px) {
         .table-wrapper {
             border-radius: 1rem;
@@ -310,17 +525,49 @@
         .table-wrapper table {
             min-width: 720px;
         }
+
         #qr-preview-container {
             padding-top: 1rem;
             border-top: 1px dashed var(--card-border);
             margin-top: 1rem;
         }
+
         #qr-code-display {
             width: 160px;
             height: 160px;
         }
+
+        /* KOP: stack vertical center di tablet */
+        .kop-flex {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+        .kop-logo {
+            width: 72px;
+            height: 72px;
+        }
+        .kop-text {
+            text-align: center;
+        }
+        .kop-title-main {
+            font-size: 1.05rem;
+        }
+        .kop-title-sub {
+            font-size: 0.98rem;
+        }
+        .kop-line {
+            justify-content: center;
+            font-size: 0.78rem;
+        }
+        .kop-icon {
+            margin-left: 3px;
+        }
     }
 
+    /* ════════════════════════════════════════════════════════════
+       RESPONSIVE — MOBILE
+       ════════════════════════════════════════════════════════════ */
     @media (max-width: 480px) {
         #qr-code-display {
             width: 140px;
@@ -330,11 +577,70 @@
             width: 34px;
             height: 34px;
         }
+
+        .kop-logo {
+            width: 64px;
+            height: 64px;
+        }
+        .kop-title-main {
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+        .kop-title-sub {
+            font-size: 0.88rem;
+        }
+        .kop-line {
+            font-size: 0.72rem;
+            line-height: 1.45;
+            gap: 4px;
+        }
+        .kop-sep {
+            margin: 0 2px;
+        }
     }
 
+    /* ════════════════════════════════════════════════════════════
+       PRINT — kop & tabel bersih, kontrol hidden
+       ════════════════════════════════════════════════════════════ */
     @media print {
-        #export-dropdown, #export-btn, #refresh-btn, #filter-date,
-        #qr-preview-container, .bulk-select-all-absensi,
+        #export-dropdown,
+        #export-btn,
+        #refresh-btn,
+        #filter-date,
+        #qr-preview-container,
+        #qr-toggle-btn,
+        #qr-regenerate-btn,
+        #download-qr-btn,
+        #password-input-admin,
+        #save-password-btn,
+        .bulk-select-all-absensi,
         .absensi-checkbox { display: none !important; }
+
+        .kop-surat {
+            display: block !important;
+            page-break-after: avoid;
+        }
+        .kop-divider {
+            background: #0f2922 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .kop-logo {
+            filter: none !important;
+        }
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       REDUCED MOTION
+       ════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+        .kop-link,
+        .ttd-img,
+        .export-chev {
+            transition: none !important;
+        }
+        #export-dropdown {
+            animation: none !important;
+        }
     }
 </style>
